@@ -21,7 +21,7 @@ export default async function BlogPage() {
             ConserveNow
           </h1>
           <p className="text-xl text-stone-700 max-w-2xl mx-auto leading-relaxed font-medium">
-            Evidence-based conservation research, field reports, and actionable insights for protecting our planet's biodiversity.
+            Evidence-based conservation research, field reports, and actionable insights for protecting our planet biodiversity.
           </p>
           <div className="mt-6 flex items-center justify-center gap-6 text-sm text-stone-600">
             <div className="flex items-center gap-2">
