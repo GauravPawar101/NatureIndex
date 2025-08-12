@@ -1,14 +1,12 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import CreatePostForm from './CreatePostForm'; // We'll create this next
+import CreatePostForm from './CreatePostForm'; 
 
 export default async function CreatePostPage() {
   const supabase = createServerComponentClient({ cookies });
 
   const { data: { session } } = await supabase.auth.getSession();
-
-  // If the user is not logged in, redirect them to the login page.
   if (!session) {
     redirect('/login');
   }

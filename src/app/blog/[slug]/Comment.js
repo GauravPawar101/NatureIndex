@@ -1,80 +1,59 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
-// This is the individual comment component
-export default function Comment({ comment, postId, session }) {
-  const [isReplying, setIsReplying] = useState(false);
-  const [replyContent, setReplyContent] = useState('');
+export default function Comment({ comment, onReply, onDelete }) {
+  const [user, setUser] = useState(null);
   const supabase = createClientComponentClient();
-  const router = useRouter();
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+  }, [supabase.auth]);
 
-  const handleReplySubmit = async (e) => {
-    e.preventDefault();
-    if (!replyContent.trim() || !session) return;
-
-    const { error } = await supabase.from('comments').insert({
-      content: replyContent,
-      post_id: postId,
-      user_id: session.user.id,
-      parent_id: comment.id, // This is the key to nesting!
-    });
-
-    if (error) {
-      console.error('Error posting reply:', error);
-    } else {
-      setReplyContent('');
-      setIsReplying(false);
-      router.refresh(); // Refresh the page to show the new comment
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this comment?")) {
+      onDelete(comment.id);
     }
   };
 
   return (
-    <div className="py-4">
-      {/* The comment itself */}
-      <div className="flex flex-col">
-        <p className="text-gray-300">{comment.content}</p>
-        <div className="text-xs text-gray-500 mt-2 flex items-center gap-4">
-          <span>By {comment.username || 'Anonymous'} on {new Date(comment.created_at).toLocaleDateString()}</span>
-          {session && (
-            <button onClick={() => setIsReplying(!isReplying)} className="font-semibold hover:text-white">
-              Reply
-            </button>
+    <div className="bg-zinc-800/30 rounded-xl p-6 border border-gray-700/30 backdrop-blur-sm hover:border-orange-500/20 transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 ring-2 ring-gray-700">
+          {comment.profiles?.avatar_url ? (
+            <Image src={comment.profiles.avatar_url} alt="Avatar" fill className="object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-lg font-bold text-gray-300">?</div>
           )}
         </div>
-      </div>
-
-      {/* Reply form, shown on demand */}
-      {isReplying && (
-        <form onSubmit={handleReplySubmit} className="mt-4 ml-4">
-          <textarea
-            value={replyContent}
-            onChange={(e) => setReplyContent(e.target.value)}
-            placeholder={`Replying to ${comment.username || 'Anonymous'}...`}
-            className="w-full bg-gray-900 border border-white/20 rounded-md p-2 text-white text-sm"
-            rows="2"
-          />
-          <div className="flex gap-2 mt-2">
-            <button type="submit" className="px-3 py-1 bg-white text-black text-sm font-semibold rounded-md">
-              Submit
+        <div className="flex-grow">
+          <p className="font-semibold text-orange-400 hover:text-red-400 transition-colors cursor-pointer">
+            {comment.profiles?.username || 'Anonymous'}
+          </p>
+          <p className="text-gray-200 mt-1 leading-relaxed">{comment.content}</p>
+          {comment.image_url && (
+            <div className="mt-3 relative w-full max-w-xs h-48 rounded-lg overflow-hidden border border-gray-600 hover:border-orange-500/50 transition-colors">
+              <Image src={comment.image_url} alt="Comment image" fill className="object-cover" />
+            </div>
+          )}
+          <div className="flex items-center gap-4 mt-3 text-sm">
+            <button 
+              onClick={() => onReply(comment.id)} 
+              className="font-semibold text-gray-400 hover:text-orange-400 transition-colors"
+            >
+              Reply
             </button>
-            <button type="button" onClick={() => setIsReplying(false)} className="px-3 py-1 bg-gray-600 text-white text-sm font-semibold rounded-md">
-              Cancel
-            </button>
+            {user && user.id === comment.user_id && (
+              <button 
+                onClick={handleDelete} 
+                className="font-semibold text-gray-400 hover:text-red-400 transition-colors"
+              >
+                Delete
+              </button>
+            )}
           </div>
-        </form>
-      )}
-
-      {/* Recursive rendering of child comments */}
-      {comment.children && comment.children.length > 0 && (
-        <div className="pl-6 border-l-2 border-gray-800">
-          {comment.children.map((child) => (
-            <Comment key={child.id} comment={child} postId={postId} session={session} />
-          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }

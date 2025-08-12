@@ -8,10 +8,11 @@ export default function BlogList({ posts }) {
   const [sortBy, setSortBy] = useState('newest');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const topics = ['All', ...Array.from(new Set(posts.map(p => p.topic)))];
+  const topics = useMemo(() => ['All', ...Array.from(new Set(posts.map(p => p.topic).filter(Boolean)))], [posts]);
 
   const filteredAndSortedPosts = useMemo(() => {
     return posts
+      .filter(post => post && post.slug && post.profiles)
       .filter(post => {
         const topicMatch = activeTopic === 'All' || post.topic === activeTopic;
         const searchMatch = searchTerm === '' || post.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -25,49 +26,44 @@ export default function BlogList({ posts }) {
   }, [posts, activeTopic, sortBy, searchTerm]);
 
   return (
-    <>
-      {/* Professional Filter and Sort Controls with sophisticated color scheme */}
-      <div className="my-8 py-8 px-6 rounded-2xl bg-gradient-to-br from-stone-50 via-slate-50 to-neutral-100 border border-stone-200/60 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Search Input */}
+    <div className="max-w-4xl mx-auto">
+      {/* Filter & Sort Controls Panel */}
+      <div className="mb-8 p-6 bg-zinc-800/80 rounded-xl border border-orange-500/20 shadow-lg backdrop-blur-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-500" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search conservation research..."
+              placeholder="Search articles..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition-all duration-200 placeholder:text-stone-400 text-stone-800 font-medium shadow-sm hover:shadow-md hover:border-stone-300"
+              className="w-full pl-11 pr-4 py-2.5 bg-black/60 border border-gray-700 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition"
             />
           </div>
-          {/* Sort Dropdown */}
           <div className="relative">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full appearance-none pl-4 pr-10 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition-all duration-200 text-stone-800 font-medium shadow-sm hover:shadow-md hover:border-stone-300 cursor-pointer"
+              className="w-full appearance-none pl-4 pr-10 py-2.5 bg-black/60 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition cursor-pointer"
             >
-              <option value="newest">Sort by Newest</option>
-              <option value="oldest">Sort by Oldest</option>
-              <option value="popular">Sort by Popular</option>
+              <option value="newest">Sort: Newest</option>
+              <option value="oldest">Sort: Oldest</option>
+              <option value="popular">Sort: Popular</option>
             </select>
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg className="w-5 h-5 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
             </div>
           </div>
         </div>
-        {/* Topic Filters with professional styling */}
-        <div className="flex items-center gap-3 overflow-x-auto pt-6 mt-6 border-t border-stone-200/70">
+        <div className="flex items-center gap-2 overflow-x-auto pt-4 border-t border-gray-700">
           {topics.map(topic => (
             <button
               key={topic}
               onClick={() => setActiveTopic(topic)}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-full shrink-0 transition-all duration-200 border-2 transform hover:scale-105 ${
+              className={`px-4 py-1.5 text-sm font-semibold rounded-full shrink-0 transition-all duration-200 border ${
                 activeTopic === topic 
-                  ? 'bg-gradient-to-r from-slate-800 to-stone-700 text-white border-slate-800 shadow-lg shadow-slate-300/50' 
-                  : 'bg-white text-stone-700 border-stone-300 hover:bg-gradient-to-r hover:from-slate-800 hover:to-stone-700 hover:text-white hover:border-slate-800 hover:shadow-lg hover:shadow-slate-300/50'
+                  ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white border-orange-500 shadow-lg' 
+                  : 'bg-zinc-700/50 text-gray-300 border-gray-600 hover:bg-orange-500/20 hover:border-orange-500/50 hover:text-orange-300'
               }`}
             >
               {topic}
@@ -76,39 +72,34 @@ export default function BlogList({ posts }) {
         </div>
       </div>
       
-      {/* Professional blog cards with refined color scheme */}
-      <div className="space-y-6 overflow-y-auto p-2 pr-4 flex-grow max-h-[55vh]">
+      {/* Blog Post List */}
+      <div className="space-y-6">
         {filteredAndSortedPosts.length > 0 ? (
           filteredAndSortedPosts.map(post => (
-            <Link key={post.slug} href={`/blog/${post.slug}`} className="block group">
-              <div className="bg-gradient-to-br from-white to-stone-50/40 rounded-2xl p-7 border border-stone-200/60 hover:border-amber-300 hover:shadow-xl hover:shadow-amber-100/30 transition-all duration-300 transform hover:-translate-y-1">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-amber-700 transition-colors duration-200 leading-tight">{post.title}</h2>
-                  <p className="text-stone-600 mb-5 text-base leading-relaxed line-clamp-2">{post.excerpt}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-stone-500 font-medium">
-                      <span className="text-stone-800 font-semibold">{post.author}</span> • {new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                    </div>
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </div>
-                  </div>
-              </div>
-            </Link>
+            <article key={post.slug} className="bg-zinc-800/70 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 shadow-lg hover:shadow-orange-500/20 hover:border-orange-500/40 transition-all duration-300 transform hover:-translate-y-1 group">
+                <Link href={`/blog/${post.slug}`}>
+                  <h2 className="text-xl font-bold text-gray-100 mb-2 group-hover:text-orange-400 transition-colors cursor-pointer">{post.title}</h2>
+                </Link>
+                <p className="text-gray-400 text-sm leading-relaxed line-clamp-2 mb-4">{post.excerpt}</p>
+                <div className="text-xs font-medium text-gray-500">
+                  <span>By </span>
+                  <Link href={`/profile/${post.profiles?.username}`} className="hover:underline text-orange-400 font-semibold hover:text-red-400 transition-colors">
+                    {post.profiles?.username || 'Unknown Author'}
+                  </Link>
+                  <span className="text-gray-500"> • {new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                </div>
+            </article>
           ))
         ) : (
           <div className="text-center py-16">
-            <div className="bg-gradient-to-br from-stone-50 to-slate-100 rounded-2xl p-12 border border-stone-200/60 shadow-sm">
-              <div className="w-16 h-16 bg-gradient-to-br from-stone-200 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-stone-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">No Research Articles Found</h3>
-              <p className="text-stone-600 text-lg">Adjust your search criteria to explore different conservation topics.</p>
+            <div className="inline-block bg-zinc-800/70 backdrop-blur-sm p-8 rounded-2xl border border-gray-700/50">
+              <Search className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-200">No Articles Found</h3>
+              <p className="text-gray-400 mt-2">Try adjusting your search or filter criteria.</p>
             </div>
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }

@@ -11,7 +11,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // If the user is logged in, redirect them to the home page.
       if (session) {
         router.push('/');
       }
@@ -37,7 +36,7 @@ export default function LoginPage() {
                 }
             }
           }}
-          providers={[]} // Add providers like 'google', 'github' if you want
+          providers={['google', 'linkedin']} 
           redirectTo={`${process.env.NEXT_PUBLIC_URL}/auth/callback`}
         />
       </div>

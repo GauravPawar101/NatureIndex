@@ -29,7 +29,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Manifesto Section (Updated to a long passage) */}
+        {/* Manifesto Section */}
         <div className="text-center">
             <h2 className="text-4xl font-bold text-white mb-12">Our Manifesto</h2>
             <div className="max-w-3xl mx-auto text-left text-lg">

@@ -5,7 +5,7 @@ import Link from 'next/link';
 export default function HomePage() {
   return (
     <>
-      {/* Hero Section (Unchanged) */}
+      {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6">
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url("https://images.unsplash.com/photo-1476231682828-37e571bc172f?q=80&w=2100&auto=format&fit=crop")`, filter: 'grayscale(50%) brightness(0.6)' }}/>
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
@@ -21,7 +21,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Section (Updated as Requested) */}
+      {/* Features Section */}
       <section 
         className="relative py-20 lg:py-32 bg-cover bg-center" 
         style={{ backgroundImage: `url("https://imgs.search.brave.com/6RGCGDpj_sOj4Ut8H2d4MZZipuL9k_KQHe6fVZJqQnM/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93YWxs/cGFwZXJhY2Nlc3Mu/Y29tL2Z1bGwvNTQ4/NzAyLmpwZw")` }}
@@ -31,19 +31,16 @@ export default function HomePage() {
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">Our Key Initiatives</h2>
             <p className="text-lg text-gray-300 mb-16 max-w-2xl mx-auto">Our work focuses on the most critical areas to protect endangered species and vital ecosystems for a sustainable future.</p>
             <div className="grid md:grid-cols-3 gap-8">
-                {/* Card 1 */}
                 <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 text-center shadow-lg">
                     <MapPin className="w-12 h-12 text-white mx-auto mb-6"/>
                     <h3 className="text-2xl font-bold text-white mb-3">Habitat Restoration</h3>
                     <p className="text-gray-300">We work on the ground to reforest lands, clean up waterways, and restore natural habitats for wildlife to thrive.</p>
                 </div>
-                {/* Card 2 */}
                 <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 text-center shadow-lg">
                     <Wind className="w-12 h-12 text-white mx-auto mb-6"/>
                     <h3 className="text-2xl font-bold text-white mb-3">Policy & Advocacy</h3>
                     <p className="text-gray-300">We campaign for stronger environmental laws and work with communities and governments to drive systemic change.</p>
                 </div>
-                {/* Card 3 */}
                 <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 text-center shadow-lg">
                     <ShieldCheck className="w-12 h-12 text-white mx-auto mb-6"/>
                     <h3 className="text-2xl font-bold text-white mb-3">Wildlife Protection</h3>

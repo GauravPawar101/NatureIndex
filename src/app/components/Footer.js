@@ -18,11 +18,11 @@ export default function Footer() {
         </div>
         <p className="mb-6">Cataloging the Wonders of the Natural World.</p>
         <div className="flex justify-center gap-6 mb-8">
-          <Link href="#" className="hover:text-white transition-colors"><Twitter /></Link>
-          <Link href="#" className="hover:text-white transition-colors"><Linkedin /></Link>
-          <Link href="#" className="hover:text-white transition-colors"><Github /></Link>
+          <Link href="https://x.com/GauravPawar1001" className="hover:text-white transition-colors"><Twitter /></Link>
+          <Link href="https://www.linkedin.com/in/gaurav-pawar-471933298/" className="hover:text-white transition-colors"><Linkedin /></Link>
+          <Link href="https://github.com/GauravPawar101" className="hover:text-white transition-colors"><Github /></Link>
         </div>
-        <p className="text-sm">&copy; {new Date().getFullYear()} Nature Index. All Rights Reserved.</p>
+        <p className="text-sm">Gaurav Pawar</p>
       </div>
     </footer>
   );

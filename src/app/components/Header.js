@@ -21,7 +21,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/'; // Refresh to update state
+    window.location.href = '/'; 
   };
 
   const navLinks = [
