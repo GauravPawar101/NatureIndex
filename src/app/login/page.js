@@ -36,7 +36,7 @@ export default function LoginPage() {
                 }
             }
           }}
-          providers={['google', 'linkedin']} 
+          providers={[]} 
           redirectTo={`${process.env.NEXT_PUBLIC_URL}/auth/callback`}
         />
       </div>
