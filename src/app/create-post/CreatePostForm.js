@@ -56,7 +56,6 @@ export default function CreatePostForm({ userId }) {
         content,
         slug,
         user_id: userId,
-        author: 'A registered user',
         date: new Date().toISOString(),
       })
       .select()
