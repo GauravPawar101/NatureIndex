@@ -12,7 +12,7 @@ export default function BlogList({ posts }) {
 
   const filteredAndSortedPosts = useMemo(() => {
     return posts
-      .filter(post => post && post.slug && post.profiles)
+      .filter(post => post && post.slug)
       .filter(post => {
         const topicMatch = activeTopic === 'All' || post.topic === activeTopic;
         const searchMatch = searchTerm === '' || post.title.toLowerCase().includes(searchTerm.toLowerCase());
