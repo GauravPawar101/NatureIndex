@@ -1,137 +1,75 @@
-# 🌱 Nature Conservation Blog
+# Nature Index Blog
 
-A modern, community-driven blog platform dedicated to raising awareness about environmental issues and inspiring action for a greener planet.  
-Built for concerned citizens of the world who want to share knowledge, ideas, and solutions for protecting our natural resources.
+A Next.js 14 blog with Clerk authentication and Supabase database.
 
----
-Natureiscalling$#123
+## 🔐 Authentication Implementation
 
-## ✨ Features
+Complete Clerk + Supabase authentication with Server Actions has been implemented.
 
-- 📝 **Create, Read, Update, Delete** blog posts on environmental topics  
-- 🌍 User-friendly interface for **global contributors**  
-- 🔍 **Search** and **filter** posts by topic or keyword  
-- 📅 Automatic date tracking for posts  
-- 🔒 Secure authentication for contributors  
-- 📱 Fully **responsive** design for mobile, tablet, and desktop  
-- ♻ Focus on **sustainability, conservation, and community**
+**✅ [Setup Complete - Start Here!](./SETUP_COMPLETE.md)**
 
----
+### Quick Links
 
-## 🛠 Tech Stack
-
-**Frontend:**
-- [Next.js](https://nextjs.org/) – React framework for a fast, SEO-friendly UI
-- [Tailwind CSS](https://tailwindcss.com/) – Utility-first CSS for rapid design
-- [React Icons](https://react-icons.github.io/react-icons/) – Icons for better UX
-
-**Backend:**
-- [Supabase](https://supabase.com/) – Auth & storage
-
-**Deployment:**
-- [Vercel](https://vercel.com/) – Frontend hosting
-- [Render](https://render.com/) / [Heroku](https://www.heroku.com/) – Backend hosting
-
----
+- **[Start Here](./docs/START_HERE.md)** - Your entry point
+- **[Quick Reference](./docs/QUICK_REFERENCE.md)** - Syntax lookup while coding
+- **[Migration Guide](./docs/MIGRATION_GUIDE.md)** - Update existing components
+- **[Architecture Guide](./docs/AUTH_SETUP.md)** - Understand the system
+- **[Examples](./docs/examples/)** - See implementation examples
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Node.js v18+ installed
-- PostgreSQL or MongoDB database
-- npm or yarn package manager
-
-### Installation
 ```bash
-# Clone the repo
-git clone https://github.com/yourusername/nature-conservation-blog.git
-
-# Navigate to project directory
-cd nature-conservation-blog
-
 # Install dependencies
 npm install
 
-# Setup environment variables
-cp .env.example .env.local
-
-# Start development server
+# Run development server
 npm run dev
 
+# Build for production
+npm run build
 ```
 
-## 🧬 Supabase TypeScript Types (Auto-Generated)
+## 📁 Project Structure
 
-This project can generate a strongly-typed `Database` type from your Supabase schema, so `.from('posts')...` queries become fully typed in TypeScript.
-
-### 1) Install Supabase CLI
-
-- https://supabase.com/docs/guides/cli
-
-### 2) Generate types
-
-Set your Supabase project id and run the generator:
-
-PowerShell:
-```powershell
-$env:SUPABASE_PROJECT_ID = "YOUR_PROJECT_ID"
-npm run supabase:types
+```
+src/
+├── lib/
+│   ├── supabase/       # Typed Supabase clients
+│   ├── auth/           # Auth helpers
+│   ├── types/          # TypeScript types
+│   └── validations/    # Zod schemas
+├── actions/            # Server Actions for mutations
+└── app/                # Next.js App Router pages
 ```
 
-This writes the generated types to:
+## 📚 Documentation
 
-- src/app/lib/database.types.ts
+All documentation is in the [`docs/`](./docs/) folder:
 
-If you prefer running the raw command yourself:
+- [START_HERE.md](./docs/START_HERE.md) - Your entry point
+- [QUICK_REFERENCE.md](./docs/QUICK_REFERENCE.md) - Quick syntax lookup
+- [AUTH_SETUP.md](./docs/AUTH_SETUP.md) - Complete architecture
+- [MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md) - Update components
+- [MIGRATION_CHECKLIST.md](./docs/MIGRATION_CHECKLIST.md) - Track progress
+
+## 🔧 Environment Variables
+
+Required environment variables:
 
 ```bash
-supabase gen types typescript --project-id YOUR_PROJECT_ID --schema public > src/app/lib/database.types.ts
+# Clerk
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+CLERK_WEBHOOK_SECRET=
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-### 3) Use the generated `Database` type with Supabase client
+## 📖 Learn More
 
-```ts
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/app/lib/database.types';
-
-const supabase = createClient<Database>(
-	process.env.NEXT_PUBLIC_SUPABASE_URL!,
-	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-// Fully typed table helper
-export type Post = Database['public']['Tables']['posts']['Row'];
-```
-
-## 👤 Public Author Pages + Follows
-
-This project includes public author pages at `/authors/[username]` backed by a `profiles` table (synced from Clerk) and a `follows` table.
-
-### 1) Apply Supabase schema
-
-Run the SQL in:
-
-- supabase/schema.sql
-
-This adds/extends:
-
-- `public.profiles.user_id` (Clerk user id)
-- `public.follows` (follower/following graph)
-- a foreign key `posts.author_id -> profiles.user_id` (used for joins)
-
-### 2) Configure Clerk webhook
-
-Create a Clerk webhook pointing to:
-
-- `POST /api/webhooks/clerk`
-
-Enable at least:
-
-- `user.created`
-- `user.updated`
-- `user.deleted`
-
-Add env vars:
-
-- `CLERK_WEBHOOK_SECRET`
-- `SUPABASE_SERVICE_ROLE_KEY` (server-only; do not expose as `NEXT_PUBLIC_*`)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Clerk Documentation](https://clerk.com/docs)
+- [Supabase Documentation](https://supabase.com/docs)

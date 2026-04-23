@@ -51,9 +51,9 @@ Choose your path based on your role and needs:
 → [README_AUTH_IMPLEMENTATION.md](./README_AUTH_IMPLEMENTATION.md) - Full overview
 
 **See examples?**
-→ [EXAMPLE_BLOG_POST_PAGE.tsx](./EXAMPLE_BLOG_POST_PAGE.tsx) - Blog post example
-→ [EXAMPLE_PROFILE_FORM.tsx](./EXAMPLE_PROFILE_FORM.tsx) - Profile form example
-→ [EXAMPLE_ACCOUNT_PAGE.tsx](./EXAMPLE_ACCOUNT_PAGE.tsx) - Account page example
+→ [EXAMPLE_BLOG_POST_PAGE.tsx](./examples/EXAMPLE_BLOG_POST_PAGE.tsx) - Blog post example
+→ [EXAMPLE_PROFILE_FORM.tsx](./examples/EXAMPLE_PROFILE_FORM.tsx) - Profile form example
+→ [EXAMPLE_ACCOUNT_PAGE.tsx](./examples/EXAMPLE_ACCOUNT_PAGE.tsx) - Account page example
 
 ## 🎯 Quick Start (5 Minutes)
 
