@@ -1,0 +1,84 @@
+// Example: src/app/account/page.tsx
+// Shows how to build a profile edit page with Server Components + Server Actions
+
+import { redirect } from 'next/navigation'
+import { getAuthenticatedClient } from '@/lib/supabase/server'
+import ProfileForm from './ProfileForm'
+
+export default async function AccountPage() {
+  try {
+    const { client, userId } = await getAuthenticatedClient()
+
+    // Fetch user profile
+    const { data: profile, error } = await client
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+
+    if (error || !profile) {
+      return (
+        <div className="min-h-screen bg-gray-900 pt-32 pb-20">
+          <div className="container mx-auto max-w-2xl px-6">
+            <div className="bg-red-500/10 border border-red-500 text-red-500 px-6 py-4 rounded-lg">
+              Profile not found. Please contact support.
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // Fetch user stats
+    const { count: postCount } = await client
+      .from('posts')
+      .select('*', { count: 'exact', head: true })
+      .eq('author_id', userId)
+
+    const { count: followerCount } = await client
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('following_id', userId)
+
+    const { count: followingCount } = await client
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('follower_id', userId)
+
+    return (
+      <div className="min-h-screen bg-gray-900 pt-32 pb-20">
+        <div className="container mx-auto max-w-4xl px-6">
+          <div className="mb-10">
+            <h1 className="text-4xl font-bold text-white mb-2">Account Settings</h1>
+            <p className="text-gray-400">Manage your profile and preferences</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            {/* Stats Cards */}
+            <div className="bg-zinc-800/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/30">
+              <p className="text-gray-400 text-sm mb-1">Posts</p>
+              <p className="text-3xl font-bold text-white">{postCount || 0}</p>
+            </div>
+
+            <div className="bg-zinc-800/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/30">
+              <p className="text-gray-400 text-sm mb-1">Followers</p>
+              <p className="text-3xl font-bold text-white">{followerCount || 0}</p>
+            </div>
+
+            <div className="bg-zinc-800/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/30">
+              <p className="text-gray-400 text-sm mb-1">Following</p>
+              <p className="text-3xl font-bold text-white">{followingCount || 0}</p>
+            </div>
+          </div>
+
+          {/* Profile Form */}
+          <div className="bg-zinc-800/30 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/30">
+            <h2 className="text-2xl font-bold text-white mb-6">Profile Information</h2>
+            <ProfileForm profile={profile} />
+          </div>
+        </div>
+      </div>
+    )
+  } catch {
+    redirect('/login')
+  }
+}
