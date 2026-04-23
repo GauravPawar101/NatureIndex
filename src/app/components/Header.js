@@ -5,14 +5,23 @@ import { usePathname } from 'next/navigation';
 import { Mountain, PlusCircle } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useEffect, useState } from 'react';
+import HeaderSearch from './HeaderSearch';
+import ThemeToggle from './ThemeToggle';
+import InstallAppPrompt from './InstallAppPrompt';
 
 export default function Header() {
   const pathname = usePathname();
-  const supabase = createClientComponentClient();
+  const hasSupabaseEnv =
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+  const supabase =
+    typeof window === 'undefined' || !hasSupabaseEnv ? null : createClientComponentClient();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     const getUser = async () => {
+      if (!supabase) return;
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
     };
@@ -20,7 +29,9 @@ export default function Header() {
   }, [supabase]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     window.location.href = '/'; 
   };
 
@@ -37,14 +48,21 @@ export default function Header() {
           <Mountain className="w-7 h-7 text-white drop-shadow-lg" />
           <span className="text-xl font-bold text-white drop-shadow-lg">Nature Index</span>
         </Link>
-        <nav className="hidden lg:flex items-center gap-6 bg-black/30 backdrop-blur-md px-6 py-2 rounded-full border border-white/10">
-          {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className={`font-medium transition-colors ${pathname === link.href ? 'text-white' : 'text-gray-400 hover:text-white'}`}>
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="hidden lg:flex items-center gap-4 flex-1 justify-center px-6">
+          <nav className="flex items-center gap-6 bg-black/30 backdrop-blur-md px-6 py-2 rounded-full border border-white/10">
+            {navLinks.map((link) => (
+              <Link key={link.href} href={link.href} className={`font-medium transition-colors ${pathname === link.href ? 'text-white' : 'text-gray-400 hover:text-white'}`}>
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="w-full max-w-md">
+            <HeaderSearch />
+          </div>
+        </div>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <InstallAppPrompt />
           {user ? (
             <>
               <Link href="/create-post" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-full font-semibold text-sm hover:bg-gray-200 transition-colors">

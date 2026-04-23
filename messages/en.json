@@ -1,0 +1,37 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "blog": "Blog",
+    "login": "Login",
+    "logout": "Logout",
+    "createPost": "Create Post",
+    "language": "Language"
+  },
+  "common": {
+    "previous": "Previous",
+    "next": "Next",
+    "saveDraft": "Save Draft",
+    "publish": "Publish",
+    "saving": "Saving…",
+    "publishing": "Publishing…"
+  },
+  "postForm": {
+    "titleLabel": "Title",
+    "slugLabel": "Slug",
+    "contentLabel": "Content",
+    "tagsLabel": "Tags",
+    "localeLabel": "Language"
+  },
+  "createPost": {
+    "heading": "Create a New Post",
+    "subheading": "Share your story, knowledge, or latest adventure."
+  },
+  "blog": {
+    "heading": "The Field Journal",
+    "subheading": "An open journal for conservation science, field discoveries, and community action."
+  },
+  "footer": {
+    "tagline": "Cataloging the Wonders of the Natural World."
+  }
+}

@@ -22,6 +22,7 @@ export default async function ProfilePage({ params }) {
     .from('posts')
     .select('*')
     .eq('user_id', profile.id)
+    .eq('status', 'published')
     .order('date', { ascending: false });
 
   return (

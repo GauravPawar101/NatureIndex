@@ -1,0 +1,88 @@
+
+> nature_index@0.1.0 build
+> next build
+
+ ΓÜá Warning: Found multiple lockfiles. Selecting C:\Users\Gaurav\pnpm-lock.yaml.
+   Consider removing the lockfiles at:
+   * C:\Users\Gaurav\Desktop\Resume\NatureIndex\package-lock.json
+
+   Γû▓ Next.js 15.4.6
+
+   Creating an optimized production build ...
+> [PWA] Compile server
+> [PWA] Compile server
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: C:\Users\Gaurav\Desktop\Resume\NatureIndex\node_modules\next-pwa\register.js
+> [PWA] Service worker: C:\Users\Gaurav\Desktop\Resume\NatureIndex\public\sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+> [PWA] Fallback to precache routes when fetch failed from cache or network:
+> [PWA]   document (page): /offline
+ ΓÜá Compiled with warnings in 29.0s
+
+./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+./node_modules/@supabase/realtime-js/dist/module/index.js
+./node_modules/@supabase/supabase-js/dist/module/index.js
+./src/app/lib/supabaseClerkServer.js
+./src/app/create-post/actions.js
+
+   Linting and checking validity of types ...
+   Collecting page data ...
+ ΓÜá Using edge runtime on a page currently disables static generation for that page
+   Generating static pages (0/25) ...
+sitemap: failed to fetch published posts from Supabase Error: Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY
+    at <unknown> (C:\Users\Gaurav\Desktop\Resume\NatureIndex\.next\server\app\sitemap.xml\route.js:16:786)
+    at y (C:\Users\Gaurav\Desktop\Resume\NatureIndex\.next\server\app\sitemap.xml\route.js:16:881)
+    at z (C:\Users\Gaurav\Desktop\Resume\NatureIndex\.next\server\app\sitemap.xml\route.js:16:1834)
+    at C (C:\Users\Gaurav\Desktop\Resume\NatureIndex\.next\server\app\sitemap.xml\route.js:16:2418)
+   Generating static pages (6/25) 
+   Generating static pages (12/25) 
+   Generating static pages (18/25) 
+ Γ£ô Generating static pages (25/25)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS  Revalidate  Expire
+Γöî Γùï /                                    2.53 kB         106 kB
+Γö£ Γùï /_not-found                            171 B         100 kB
+Γö£ Γùï /about                                 491 B         106 kB
+Γö£ Γùï /account                             2.42 kB         152 kB
+Γö£ ╞Æ /api/bookmarks                         171 B         100 kB
+Γö£ ╞Æ /api/follows                           171 B         100 kB
+Γö£ ╞Æ /api/posts                             171 B         100 kB
+Γö£ ╞Æ /api/posts/[id]                        171 B         100 kB
+Γö£ ╞Æ /api/search                            171 B         100 kB
+Γö£ ╞Æ /api/tags                              171 B         100 kB
+Γö£ ╞Æ /api/uploads/post-images               171 B         100 kB
+Γö£ ╞Æ /api/views                             171 B         100 kB
+Γö£ ╞Æ /api/webhooks/clerk                    171 B         100 kB
+Γö£ ╞Æ /auth/callback                         171 B         100 kB
+Γö£ ╞Æ /authors/[username]                   1.4 kB         142 kB
+Γö£ ╞Æ /blog                                4.45 kB         180 kB
+Γö£ ΓùÅ /blog/[slug]                         4.89 kB         186 kB
+Γö£ ╞Æ /blog/[slug]/opengraph-image           171 B         100 kB
+Γö£ Γùï /create-post                         43.7 kB         265 kB
+Γö£ Γùï /dashboard                             172 B         103 kB
+Γö£ Γùï /dashboard/analytics                  117 kB         225 kB
+Γö£ Γùï /dashboard/bookmarks                 1.08 kB         142 kB
+Γö£ ╞Æ /dashboard/posts/[id]/edit           3.86 kB         225 kB
+Γö£ Γùï /dashboard/webhooks                    171 B         100 kB
+Γö£ ╞Æ /feed.xml                              171 B         100 kB
+Γö£ Γùï /login                               21.2 kB         166 kB
+Γö£ Γùï /offline                               172 B         103 kB
+Γö£ ╞Æ /profile/[username]                    178 B         109 kB
+Γöö Γùï /sitemap.xml                           171 B         100 kB          1h      1y
++ First Load JS shared by all            99.9 kB
+  Γö£ chunks/4bd1b696-6ab7bfcba9168409.js  54.1 kB
+  Γö£ chunks/5964-e19a6f11bf2f8a01.js      43.7 kB
+  Γöö other shared chunks (total)          2.05 kB
+
+
+Γùï  (Static)   prerendered as static content
+ΓùÅ  (SSG)      prerendered as static HTML (uses generateStaticParams)
+╞Æ  (Dynamic)  server-rendered on demand
+

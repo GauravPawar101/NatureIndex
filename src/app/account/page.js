@@ -1,10 +1,18 @@
 'use client';
+
+export const dynamic = 'force-dynamic';
+
 import { useCallback, useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Image from 'next/image';
 
 export default function AccountPage() {
-  const supabase = createClientComponentClient();
+  const hasSupabaseEnv =
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+  const supabase =
+    typeof window === 'undefined' || !hasSupabaseEnv ? null : createClientComponentClient();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState(null);
@@ -15,6 +23,11 @@ export default function AccountPage() {
   const getProfile = useCallback(async (user) => {
     try {
       setLoading(true);
+
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
 
       let { data, error, status } = await supabase
         .from('profiles')
@@ -39,6 +52,10 @@ export default function AccountPage() {
 
   useEffect(() => {
     async function getUser() {
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       if (user) getProfile(user);
@@ -49,6 +66,11 @@ export default function AccountPage() {
   async function updateProfile({ username, website, avatar_url }) {
     try {
       setLoading(true);
+
+      if (!supabase || !user) {
+        alert('Supabase is not configured.');
+        return;
+      }
 
       let { error } = await supabase.from('profiles').upsert({
         id: user.id,
@@ -71,6 +93,10 @@ export default function AccountPage() {
   async function uploadAvatar(event) {
     try {
       setLoading(true);
+      if (!supabase || !user) {
+        alert('Supabase is not configured.');
+        return;
+      }
       if (!event.target.files || event.target.files.length === 0) {
         throw new Error('You must select an image to upload.');
       }
@@ -98,6 +124,13 @@ export default function AccountPage() {
     <div className="min-h-screen bg-stone-100 p-6 flex items-center justify-center">
       <div className="w-full max-w-lg bg-white rounded-xl shadow-lg p-8 space-y-6">
         <h1 className="text-3xl font-bold text-gray-800">Account Settings</h1>
+
+        {!hasSupabaseEnv && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            Missing <code>NEXT_PUBLIC_SUPABASE_URL</code> / <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>. Account settings are unavailable.
+          </div>
+        )}
+
         {/* Avatar Upload */}
         <div className="flex items-center gap-4">
           <div className="relative w-20 h-20 rounded-full overflow-hidden">

@@ -1,9 +1,27 @@
-import { getBlogPosts } from '../lib/blog';
+import Link from 'next/link';
+import { getBlogPostsPage } from '../lib/blog';
+import { getReactionCountsByPostIds } from '../lib/reactions';
 import BlogList from './BlogList';
 import { BookOpen } from 'lucide-react';
 
-export default async function BlogPage() {
-  const posts = await getBlogPosts();
+export const dynamic = 'force-dynamic';
+
+export default async function BlogPage({ searchParams }) {
+  const before = typeof searchParams?.before === 'string' ? searchParams.before : null;
+  const after = typeof searchParams?.after === 'string' ? searchParams.after : null;
+
+  const { posts, hasNext, hasPrev } = await getBlogPostsPage({
+    before,
+    after,
+    limit: 10,
+  });
+  const reactionCounts = await getReactionCountsByPostIds(posts.map((p) => p.id));
+
+  const firstCursor = posts?.[0]?.created_at || null;
+  const lastCursor = posts?.[posts.length - 1]?.created_at || null;
+
+  const prevHref = firstCursor ? `/blog?after=${encodeURIComponent(firstCursor)}` : '/blog';
+  const nextHref = lastCursor ? `/blog?before=${encodeURIComponent(lastCursor)}` : '/blog';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-zinc-900">
@@ -38,7 +56,35 @@ export default async function BlogPage() {
           <div className="bg-gradient-to-br from-zinc-800/90 to-black/90 backdrop-blur-sm rounded-3xl shadow-2xl border-2 border-orange-500/30 p-8 md:p-12 hover:border-red-500/50 transition-all duration-500">
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-orange-500/5 via-transparent to-red-500/5 pointer-events-none"></div>
             <div className="relative z-10">
-              <BlogList posts={posts} />
+              <BlogList posts={posts} reactionCounts={reactionCounts} />
+
+              <div className="mt-10 flex items-center justify-between">
+                <Link
+                  href={prevHref}
+                  aria-disabled={!hasPrev}
+                  className={
+                    `px-5 py-2 rounded-full text-sm font-semibold border transition ` +
+                    (!hasPrev
+                      ? 'pointer-events-none opacity-50 bg-zinc-800/40 text-gray-400 border-gray-700/50'
+                      : 'bg-black/40 text-white border-white/10 hover:bg-white/10 hover:border-white/20')
+                  }
+                >
+                  Previous
+                </Link>
+
+                <Link
+                  href={nextHref}
+                  aria-disabled={!hasNext}
+                  className={
+                    `px-5 py-2 rounded-full text-sm font-semibold border transition ` +
+                    (!hasNext
+                      ? 'pointer-events-none opacity-50 bg-zinc-800/40 text-gray-400 border-gray-700/50'
+                      : 'bg-black/40 text-white border-white/10 hover:bg-white/10 hover:border-white/20')
+                  }
+                >
+                  Next
+                </Link>
+              </div>
             </div>
           </div>
         </div>

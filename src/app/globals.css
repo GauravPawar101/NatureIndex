@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4: make `dark:` variants use the `.dark` class (next-themes) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -12,15 +15,77 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Table of contents anchor alignment (account for fixed header) */
+.post-content :is(h2[id], h3[id]) {
+  scroll-margin-top: 7rem;
+}
+
+/* ------------------------------ */
+/* Shiki code blocks + copy button */
+/* ------------------------------ */
+
+.post-content pre {
+  position: relative;
+}
+
+/* Shiki emits .shiki and uses CSS variables like --shiki-dark-bg/--shiki-light-bg */
+.post-content pre.shiki {
+  @apply my-5 p-4 rounded-2xl overflow-x-auto border border-black/10;
+}
+
+.post-content pre.shiki code {
+  @apply block font-mono text-sm leading-relaxed;
+}
+
+/* Ensure theme switches with next-themes .dark */
+.dark .post-content pre.shiki {
+  background-color: var(--shiki-dark-bg) !important;
+  color: var(--shiki-dark) !important;
+  @apply border-white/10;
+}
+
+.dark .post-content pre.shiki span {
+  color: var(--shiki-dark) !important;
+}
+
+/* Copy button injected by CodeCopyButtons */
+.post-content .code-copy-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+
+  @apply cursor-pointer select-none rounded-full border border-black/10 bg-black/40 text-white/90 px-3 py-1 text-xs font-semibold leading-none;
+}
+
+.post-content .code-copy-button:hover {
+  @apply bg-black/55;
+}
+
+.dark .post-content .code-copy-button {
+  @apply border-white/15;
+}
+
+.post-content .code-copy-button[data-copy-state="busy"] {
+  opacity: 0.75;
+}
+
+.post-content .code-copy-button[data-copy-state="copied"] {
+  @apply border-emerald-500/50;
+}
+
+.post-content .code-copy-button[data-copy-state="error"] {
+  @apply border-red-500/50;
 }
