@@ -61,7 +61,7 @@ export default function FollowButton({ followingId }) {
     return (
       <button
         type="button"
-        onClick={() => router.push('/login')}
+        onClick={() => router.push('/sign-in')}
         className="px-4 py-2 rounded-full bg-teal-700 hover:bg-teal-800 text-white font-semibold"
       >
         Follow

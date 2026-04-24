@@ -6,7 +6,7 @@ export default async function DashboardPage() {
   try {
     const { client: supabase, userId } = await getAuthenticatedClient();
   } catch {
-    redirect('/login');
+    redirect('/sign-in');
   }
 
   const { client: supabase, userId } = await getAuthenticatedClient();

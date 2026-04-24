@@ -53,7 +53,7 @@ export default function BookmarkButton({ postId, className = '', size = 16 }) {
     if (!isLoaded) return;
 
     if (!userId) {
-      router.push('/login');
+      router.push('/sign-in');
       return;
     }
 

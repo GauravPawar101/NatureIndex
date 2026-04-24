@@ -3,37 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Mountain, PlusCircle } from 'lucide-react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useEffect, useState } from 'react';
+import { useUser, UserButton } from '@clerk/nextjs';
 import HeaderSearch from './HeaderSearch';
 import ThemeToggle from './ThemeToggle';
 import InstallAppPrompt from './InstallAppPrompt';
 
 export default function Header() {
   const pathname = usePathname();
-  const hasSupabaseEnv =
-    Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
-    Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
-  const supabase =
-    typeof window === 'undefined' || !hasSupabaseEnv ? null : createClientComponentClient();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const getUser = async () => {
-      if (!supabase) return;
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
-  }, [supabase]);
-
-  const handleLogout = async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
-    window.location.href = '/'; 
-  };
+  const { isSignedIn, user } = useUser();
 
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -63,17 +40,27 @@ export default function Header() {
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <InstallAppPrompt />
-          {user ? (
+          {isSignedIn ? (
             <>
               <Link href="/create-post" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-full font-semibold text-sm hover:bg-gray-200 transition-colors">
                 <PlusCircle size={16} />
                 Create Post
               </Link>
-              <button onClick={handleLogout} className="text-gray-300 hover:text-white text-sm font-medium">Logout</button>
+              <Link href="/dashboard" className="text-gray-300 hover:text-white text-sm font-medium">
+                Dashboard
+              </Link>
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: 'w-9 h-9',
+                  },
+                }}
+                afterSignOutUrl="/"
+              />
             </>
           ) : (
-            <Link href="/login" className="px-5 py-2 border border-white/20 text-white rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-300 font-medium text-sm">
-              Login
+            <Link href="/sign-in" className="px-5 py-2 border border-white/20 text-white rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-300 font-medium text-sm">
+              Sign In
             </Link>
           )}
         </div>

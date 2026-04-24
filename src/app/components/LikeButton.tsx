@@ -25,7 +25,7 @@ export default function LikeButton({ postId, initialCount, initialLiked, classNa
 
   function handleClick() {
     if (!userId) {
-      window.location.href = '/login'
+      window.location.href = '/sign-in'
       return
     }
 

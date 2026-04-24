@@ -34,16 +34,19 @@ function pickUsername(data: any) {
 
 function pickProfileFields(data: any) {
   const meta = data?.public_metadata || {}
+  const unsafeMeta = data?.unsafe_metadata || {}
   const email = data?.email_addresses?.[0]?.email_address
+  const phone = data?.phone_numbers?.[0]?.phone_number
 
   return {
     user_id: String(data?.id || ''),
     username: pickUsername(data),
     email: typeof email === 'string' ? email : null,
-    bio: typeof meta.bio === 'string' ? meta.bio : null,
+    bio: typeof meta.bio === 'string' ? meta.bio : typeof unsafeMeta.bio === 'string' ? unsafeMeta.bio : null,
     avatar_url: typeof data?.image_url === 'string' ? data.image_url : null,
-    twitter: typeof meta.twitter === 'string' ? meta.twitter : null,
-    website: typeof meta.website === 'string' ? meta.website : null,
+    twitter: typeof meta.twitter === 'string' ? meta.twitter : typeof unsafeMeta.twitter === 'string' ? unsafeMeta.twitter : null,
+    website: typeof meta.website === 'string' ? meta.website : typeof unsafeMeta.website === 'string' ? unsafeMeta.website : null,
+    phone: typeof phone === 'string' ? phone : null,
     full_name:
       typeof data?.first_name === 'string' || typeof data?.last_name === 'string'
         ? `${data?.first_name || ''} ${data?.last_name || ''}`.trim() || null

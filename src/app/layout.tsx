@@ -34,7 +34,19 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        baseTheme: undefined,
+        variables: {
+          colorPrimary: '#0f766e',
+          colorBackground: '#ffffff',
+        },
+      }}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignInUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL || '/dashboard'}
+      afterSignUpUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL || '/dashboard'}
+    >
       <html lang={locale} suppressHydrationWarning>
         <body className={`${inter.className} bg-[var(--background)] text-[var(--foreground)] font-sans antialiased`}>
           <ThemeProvider>

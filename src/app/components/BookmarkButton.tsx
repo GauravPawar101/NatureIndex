@@ -31,7 +31,7 @@ export default function BookmarkButton({
     e.stopPropagation()
 
     if (!userId) {
-      window.location.href = '/login'
+      window.location.href = '/sign-in'
       return
     }
 

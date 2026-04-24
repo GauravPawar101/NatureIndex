@@ -24,7 +24,7 @@ export async function requireAuth() {
   const { userId } = await auth()
 
   if (!userId) {
-    redirect('/login')
+    redirect('/sign-in')
   }
 
   return userId
@@ -34,7 +34,7 @@ export async function requireRole(allowedRoles: Role[]) {
   const { userId, sessionClaims } = await auth()
 
   if (!userId) {
-    redirect('/login')
+    redirect('/sign-in')
   }
 
   const role = getRoleFromClaims(sessionClaims)

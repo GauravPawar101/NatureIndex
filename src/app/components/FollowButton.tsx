@@ -26,7 +26,7 @@ export default function FollowButton({ followingId, initialFollowing }: FollowBu
 
   function handleClick() {
     if (!userId) {
-      window.location.href = '/login'
+      window.location.href = '/sign-in'
       return
     }
 
