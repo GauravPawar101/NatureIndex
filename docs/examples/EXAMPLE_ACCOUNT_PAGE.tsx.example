@@ -1,9 +1,21 @@
+// ============================================================================
+// EXAMPLE FILE - FOR REFERENCE ONLY
+// ============================================================================
+// This is an example implementation showing how to build an account page.
+// Copy and adapt this code to your actual src/app/account/page.tsx file.
+// You'll also need to create ProfileForm.tsx from EXAMPLE_PROFILE_FORM.tsx
+// ============================================================================
+
 // Example: src/app/account/page.tsx
 // Shows how to build a profile edit page with Server Components + Server Actions
+//
+// NOTE: This is an EXAMPLE file for reference only.
+// To use this, copy it to src/app/account/page.tsx and create ProfileForm.tsx
+// from EXAMPLE_PROFILE_FORM.tsx in the same directory.
 
 import { redirect } from 'next/navigation'
 import { getAuthenticatedClient } from '@/lib/supabase/server'
-import ProfileForm from './ProfileForm'
+// import ProfileForm from './ProfileForm' // Create this from EXAMPLE_PROFILE_FORM.tsx
 
 export default async function AccountPage() {
   try {
@@ -73,7 +85,8 @@ export default async function AccountPage() {
           {/* Profile Form */}
           <div className="bg-zinc-800/30 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/30">
             <h2 className="text-2xl font-bold text-white mb-6">Profile Information</h2>
-            <ProfileForm profile={profile} />
+            {/* <ProfileForm profile={profile} /> */}
+            {/* Create ProfileForm from EXAMPLE_PROFILE_FORM.tsx */}
           </div>
         </div>
       </div>

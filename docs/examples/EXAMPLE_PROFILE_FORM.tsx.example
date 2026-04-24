@@ -1,3 +1,10 @@
+// ============================================================================
+// EXAMPLE FILE - FOR REFERENCE ONLY
+// ============================================================================
+// This is an example implementation showing how to build a profile form.
+// Copy this code to create src/app/account/ProfileForm.tsx
+// ============================================================================
+
 // Example: src/app/account/ProfileForm.tsx
 // Client component for profile editing with optimistic updates
 

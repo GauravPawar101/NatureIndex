@@ -1,13 +1,15 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { createSupabaseClerkServerClient } from '../lib/supabaseClerkServer';
+import { getAuthenticatedClient } from '@/lib/supabase/server';
 
 export default async function DashboardPage() {
-  const { userId, supabase } = await createSupabaseClerkServerClient();
-
-  if (!userId || !supabase) {
+  try {
+    const { client: supabase, userId } = await getAuthenticatedClient();
+  } catch {
     redirect('/login');
   }
+
+  const { client: supabase, userId } = await getAuthenticatedClient();
 
   const { data: followingRows } = await supabase
     .from('follows')

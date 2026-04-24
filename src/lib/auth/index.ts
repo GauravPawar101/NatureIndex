@@ -1,6 +1,24 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { Role } from './roles'
+
+export type Role = 'admin' | 'author' | 'reader'
+
+function getRoleFromClaims(claims: unknown): Role {
+  const c = (claims || {}) as any
+  const raw = String(
+    c?.publicMetadata?.role ??
+      c?.public_metadata?.role ??
+      c?.metadata?.role ??
+      c?.user?.publicMetadata?.role ??
+      ''
+  ).toLowerCase()
+
+  if (raw === 'admin' || raw === 'author' || raw === 'reader') {
+    return raw
+  }
+
+  return 'reader'
+}
 
 export async function requireAuth() {
   const { userId } = await auth()
@@ -28,21 +46,7 @@ export async function requireRole(allowedRoles: Role[]) {
   return { userId, role }
 }
 
-function getRoleFromClaims(claims: unknown): Role {
-  const c = (claims || {}) as any
-  const raw = String(
-    c?.publicMetadata?.role ??
-      c?.public_metadata?.role ??
-      c?.metadata?.role ??
-      c?.user?.publicMetadata?.role ??
-      ''
-  ).toLowerCase()
-
-  if (raw === 'admin' || raw === 'author' || raw === 'reader') {
-    return raw
-  }
-
-  return 'reader'
+export async function getCurrentUserRole(): Promise<Role> {
+  const { sessionClaims } = await auth()
+  return getRoleFromClaims(sessionClaims)
 }
-
-export { getCurrentUserRole, type Role } from './roles'

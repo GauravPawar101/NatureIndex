@@ -1,3 +1,10 @@
+// ============================================================================
+// EXAMPLE FILE - FOR REFERENCE ONLY
+// ============================================================================
+// This is an example implementation showing how to build a blog post page.
+// Copy and adapt this code to your actual src/app/blog/[slug]/page.tsx file.
+// ============================================================================
+
 // Example: src/app/blog/[slug]/page.tsx
 // This shows how to fetch data with proper auth checks and pass to client components
 
