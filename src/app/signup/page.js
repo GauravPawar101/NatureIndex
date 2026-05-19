@@ -47,15 +47,14 @@ export default function SignupPage() {
     setError('');
     setSuccess('');
 
-    const redirectBase = process.env.NEXT_PUBLIC_URL || window.location.origin;
     const normalizedUsername = username.trim().toLowerCase();
     const normalizedWebsite = normalizeWebsite(website);
 
+    // Create the user without requesting an email redirect so no verification mail is sent
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
-        emailRedirectTo: `${redirectBase}/auth/callback`,
         data: {
           username: normalizedUsername,
           full_name: fullName.trim() || null,
@@ -72,12 +71,22 @@ export default function SignupPage() {
     }
 
     if (data.session) {
+      // Already signed in
       router.push('/account');
       router.refresh();
     } else {
-      setSuccess('Check your inbox for the confirmation link, then return here to sign in.');
-      setEmail('');
-      setPassword('');
+      // Try to sign in immediately so the user remains logged in when server allows it
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message || 'Account created but could not sign in automatically.');
+      } else {
+        router.push('/account');
+        router.refresh();
+      }
     }
 
     setLoading(false);
