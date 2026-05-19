@@ -1,4 +1,3 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 
 export async function middleware(request) {
@@ -10,6 +9,8 @@ export async function middleware(request) {
   if (!supabaseUrl || !supabaseAnonKey) {
     return supabaseResponse;
   }
+
+  const { createServerClient } = await import('@supabase/ssr');
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
