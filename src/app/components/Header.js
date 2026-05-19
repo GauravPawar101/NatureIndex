@@ -3,14 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Mountain, PlusCircle } from 'lucide-react';
-import { createClient, hasSupabaseConfig } from '../lib/supabase/client';
+import { createClient } from '../lib/supabase/client';
 import { useEffect, useState } from 'react';
 
 export default function Header() {
   const pathname = usePathname();
-  const hasSupabaseEnv = Boolean(
-    hasSupabaseConfig()
-  );
   const supabase = createClient();
   const [user, setUser] = useState(null);
 
@@ -22,6 +19,12 @@ export default function Header() {
       setUser(user);
     };
     getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, [supabase]);
 
   const handleLogout = async () => {
@@ -58,16 +61,13 @@ export default function Header() {
                 <PlusCircle size={16} />
                 Create Post
               </Link>
+              <Link href="/account" className="text-gray-300 hover:text-white text-sm font-medium">Account</Link>
               <button onClick={handleLogout} className="text-gray-300 hover:text-white text-sm font-medium">Logout</button>
             </>
-          ) : hasSupabaseEnv ? (
+          ) : (
             <Link href="/login" className="px-5 py-2 border border-white/20 text-white rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-300 font-medium text-sm">
               Login
             </Link>
-          ) : (
-            <span className="px-5 py-2 border border-white/10 text-gray-400 rounded-full font-medium text-sm">
-              Demo Mode
-            </span>
           )}
         </div>
       </div>

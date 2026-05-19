@@ -5,6 +5,8 @@ import Link from 'next/link';
 
 export default async function ProfilePage({ params }) {
   const supabase = await createClient();
+  if (!supabase) notFound();
+
   const username = decodeURIComponent(params.username);
 
   const { data: profile } = await supabase

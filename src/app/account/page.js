@@ -1,10 +1,12 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { createClient } from '../lib/supabase/client';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export default function AccountPage() {
   const supabase = createClient();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState(null);
@@ -38,13 +40,22 @@ export default function AccountPage() {
   }, [supabase]);
 
   useEffect(() => {
+    if (!supabase) {
+      router.push('/login');
+      return;
+    }
+
     async function getUser() {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login');
+        return;
+      }
       setUser(user);
-      if (user) getProfile(user);
+      getProfile(user);
     }
     getUser();
-  }, [supabase, getProfile]);
+  }, [supabase, getProfile, router]);
 
   async function updateProfile({ username, website, avatar_url }) {
     try {

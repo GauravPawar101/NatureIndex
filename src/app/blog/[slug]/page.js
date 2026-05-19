@@ -1,4 +1,5 @@
 import { getBlogPostBySlug } from '../../lib/blog';
+import { incrementPostViews } from '../../lib/actions/posts';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -11,6 +12,8 @@ export default async function BlogPostPage({ params }) {
   if (!post) {
     notFound();
   }
+
+  await incrementPostViews(post.id);
 
   return (
     <div className="bg-gradient-to-br from-black via-gray-900 to-zinc-900 min-h-screen pt-24 pb-20">

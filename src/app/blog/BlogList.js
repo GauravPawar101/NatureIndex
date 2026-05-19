@@ -20,7 +20,7 @@ export default function BlogList({ posts }) {
       })
       .sort((a, b) => {
         if (sortBy === 'oldest') return new Date(a.date) - new Date(b.date);
-        if (sortBy === 'popular') return b.views - a.views;
+        if (sortBy === 'popular') return (b.views || 0) - (a.views || 0);
         return new Date(b.date) - new Date(a.date);
       });
   }, [posts, activeTopic, sortBy, searchTerm]);
