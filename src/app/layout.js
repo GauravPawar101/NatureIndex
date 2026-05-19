@@ -6,8 +6,8 @@ import Footer from './components/Footer';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Nature Index. - Engineered for Adventure',
-  description: 'Curated alpine experiences for the modern adventurer.',
+  title: 'Nature Index — Conservation Science & Community',
+  description: 'An open platform for conservation science, field discoveries, and community action.',
 };
 
 export default function RootLayout({ children }) {

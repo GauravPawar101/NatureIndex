@@ -1,6 +1,7 @@
 import { createClient, hasSupabaseConfig } from '../lib/supabase/server';
 import { redirect } from 'next/navigation';
-import CreatePostForm from './CreatePostForm'; 
+import CreatePostForm from './CreatePostForm';
+import PageHero from '../components/PageHero';
 
 export default async function CreatePostPage() {
   if (!hasSupabaseConfig()) {
@@ -18,13 +19,16 @@ export default async function CreatePostPage() {
   }
 
   return (
-    <div className="bg-gray-900 pt-32 pb-20">
+    <div className="page-shell">
       <div className="container mx-auto max-w-2xl px-6">
-        <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold text-white mb-4">Create a New Post</h1>
-            <p className="text-lg text-gray-400">Share your story, knowledge, or latest adventure.</p>
+        <PageHero
+          eyebrow="Contribute"
+          title="Create a New Post"
+          description="Share your research, field notes, or conservation story with the community."
+        />
+        <div className="glass-card p-6 md:p-8">
+          <CreatePostForm userId={user.id} />
         </div>
-        <CreatePostForm userId={user.id} />
       </div>
     </div>
   );

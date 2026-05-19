@@ -1,28 +1,34 @@
 import Link from 'next/link';
-import { Mountain, Twitter, Linkedin, Github } from 'lucide-react';
+import { Leaf, Twitter, Linkedin, Github } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer 
-      className="relative bg-cover bg-center border-t border-white/10 py-12 text-center" 
-      style={{ backgroundImage: `url("")` }}
-    >
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/70"></div>
-
-      {/* Footer Content */}
-      <div className="relative container mx-auto max-w-6xl px-6 text-gray-400">
+    <footer className="bg-black border-t border-white/10 py-12">
+      <div className="container mx-auto max-w-6xl px-6 text-center">
         <div className="flex justify-center items-center gap-2 mb-4">
-          <Mountain className="w-6 h-6 text-white" />
-          <span className="text-lg font-bold text-white">Nature Index.</span>
+          <Leaf className="w-6 h-6 text-white" />
+          <span className="text-lg font-bold text-white">Nature Index</span>
         </div>
-        <p className="mb-6">Cataloging the Wonders of the Natural World.</p>
+        <p className="text-gray-400 mb-6 max-w-md mx-auto">
+          An open platform for conservation science, field discoveries, and community action.
+        </p>
+        <nav className="flex justify-center gap-6 mb-8 text-sm">
+          <Link href="/" className="text-gray-400 hover:text-white transition-colors">Home</Link>
+          <Link href="/about" className="text-gray-400 hover:text-white transition-colors">About</Link>
+          <Link href="/blog" className="text-gray-400 hover:text-white transition-colors">Blog</Link>
+        </nav>
         <div className="flex justify-center gap-6 mb-8">
-          <Link href="https://x.com/GauravPawar1001" className="hover:text-white transition-colors"><Twitter /></Link>
-          <Link href="https://www.linkedin.com/in/gaurav-pawar-471933298/" className="hover:text-white transition-colors"><Linkedin /></Link>
-          <Link href="https://github.com/GauravPawar101" className="hover:text-white transition-colors"><Github /></Link>
+          <Link href="https://x.com/GauravPawar1001" className="text-gray-400 hover:text-white transition-colors" aria-label="Twitter">
+            <Twitter className="w-5 h-5" />
+          </Link>
+          <Link href="https://www.linkedin.com/in/gaurav-pawar-471933298/" className="text-gray-400 hover:text-white transition-colors" aria-label="LinkedIn">
+            <Linkedin className="w-5 h-5" />
+          </Link>
+          <Link href="https://github.com/GauravPawar101" className="text-gray-400 hover:text-white transition-colors" aria-label="GitHub">
+            <Github className="w-5 h-5" />
+          </Link>
         </div>
-        <p className="text-sm">Gaurav Pawar</p>
+        <p className="text-gray-500 text-sm">&copy; {new Date().getFullYear()} Nature Index. All rights reserved.</p>
       </div>
     </footer>
   );

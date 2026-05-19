@@ -78,7 +78,6 @@ export default function AccountPage() {
     }
   }
 
-  // Logic for uploading an avatar image
   async function uploadAvatar(event) {
     try {
       setLoading(true);
@@ -92,12 +91,10 @@ export default function AccountPage() {
 
       let { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
       if (uploadError) throw uploadError;
-      
-      // Get the new public URL and update the profile
+
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
       setAvatarUrl(publicUrl);
       updateProfile({ username, website, avatar_url: publicUrl });
-
     } catch (error) {
       alert('Error uploading avatar!');
     } finally {
@@ -106,48 +103,46 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-100 p-6 flex items-center justify-center">
-      <div className="w-full max-w-lg bg-white rounded-xl shadow-lg p-8 space-y-6">
-        <h1 className="text-3xl font-bold text-gray-800">Account Settings</h1>
-        {/* Avatar Upload */}
+    <div className="page-shell flex items-center justify-center px-6">
+      <div className="w-full max-w-lg glass-card p-8 space-y-6">
+        <div>
+          <span className="eyebrow mb-2">Your profile</span>
+          <h1 className="text-3xl font-bold text-white">Account Settings</h1>
+        </div>
         <div className="flex items-center gap-4">
-          <div className="relative w-20 h-20 rounded-full overflow-hidden">
+          <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-white/20">
             {avatarUrl ? (
               <Image src={avatarUrl} alt="Avatar" fill className="object-cover" />
             ) : (
-              <div className="w-full h-full bg-gray-200"></div>
+              <div className="w-full h-full bg-white/10" />
             )}
           </div>
           <div>
-            <label htmlFor="avatar-upload" className="cursor-pointer bg-teal-700 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-teal-800">
+            <label htmlFor="avatar-upload" className="cursor-pointer btn-primary text-sm !px-4 !py-2">
               {loading ? 'Uploading...' : 'Upload Avatar'}
             </label>
             <input id="avatar-upload" type="file" accept="image/*" onChange={uploadAvatar} disabled={loading} className="hidden" />
           </div>
         </div>
-        
-        {/* Profile Form */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-600">Email</label>
-          <input id="email" type="text" value={user?.email || ''} className="mt-1 w-full p-2 border border-gray-300 rounded-lg bg-gray-50" disabled />
+          <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+          <input id="email" type="text" value={user?.email || ''} className="input-dark opacity-60" disabled />
         </div>
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-gray-600">Username</label>
-          <input id="username" type="text" value={username || ''} onChange={(e) => setUsername(e.target.value)} className="mt-1 w-full p-2 border border-gray-300 rounded-lg" />
+          <label htmlFor="username" className="block text-sm font-medium text-gray-400 mb-1">Username</label>
+          <input id="username" type="text" value={username || ''} onChange={(e) => setUsername(e.target.value)} className="input-dark" />
         </div>
         <div>
-          <label htmlFor="fullName" className="block text-sm font-medium text-gray-600">Full Name</label>
-          <input id="fullName" type="text" value={fullName || ''} onChange={(e) => setFullName(e.target.value)} className="mt-1 w-full p-2 border border-gray-300 rounded-lg" />
+          <label htmlFor="fullName" className="block text-sm font-medium text-gray-400 mb-1">Full Name</label>
+          <input id="fullName" type="text" value={fullName || ''} onChange={(e) => setFullName(e.target.value)} className="input-dark" />
         </div>
         <div>
-          <label htmlFor="website" className="block text-sm font-medium text-gray-600">Website</label>
-          <input id="website" type="url" value={website || ''} onChange={(e) => setWebsite(e.target.value)} className="mt-1 w-full p-2 border border-gray-300 rounded-lg" />
+          <label htmlFor="website" className="block text-sm font-medium text-gray-400 mb-1">Website</label>
+          <input id="website" type="url" value={website || ''} onChange={(e) => setWebsite(e.target.value)} className="input-dark" />
         </div>
-        <div>
-          <button onClick={() => updateProfile({ username, website, avatar_url: avatarUrl })} disabled={loading} className="w-full bg-gray-800 text-white font-bold py-2 px-4 rounded-lg hover:bg-black transition">
-            {loading ? 'Saving ...' : 'Update Profile'}
-          </button>
-        </div>
+        <button onClick={() => updateProfile({ username, website, avatar_url: avatarUrl })} disabled={loading} className="btn-primary w-full disabled:opacity-50">
+          {loading ? 'Saving...' : 'Update Profile'}
+        </button>
       </div>
     </div>
   );

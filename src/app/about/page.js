@@ -1,49 +1,80 @@
 import Image from 'next/image';
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
+import PageHero from '../components/PageHero';
 
 export default function AboutPage() {
   return (
-    <div className="bg-black pt-32 pb-20">
+    <div className="page-shell">
       <div className="container mx-auto max-w-5xl px-6">
-        <h1 className="text-5xl lg:text-6xl font-bold text-white text-center mb-16">A Collective for Conservation</h1>
-        
-        {/* Story Section */}
-        <div className="grid md:grid-cols-2 gap-10 text-left mb-20 items-center">
+        <PageHero
+          eyebrow="Who We Are"
+          title="A Collective for Conservation"
+          description="We believe the greatest force for protecting our planet is shared knowledge — open, collaborative, and actionable."
+        />
+
+        <div className="grid md:grid-cols-2 gap-10 items-center mb-24">
           <div>
-            <h2 className="text-3xl font-semibold mb-4 text-white">Our Mission</h2>
-            <p className="text-gray-400 leading-relaxed mb-4">
-              We believe the greatest force for protecting our planet is shared knowledge. Our mission is to provide an open, collaborative platform where scientists, activists, and nature enthusiasts can unite to share crucial information, inspire dialogue, and drive meaningful conservation action.
+            <span className="eyebrow mb-4">Our Mission</span>
+            <h2 className="text-3xl font-bold text-white mb-4">Knowledge for Action</h2>
+            <p className="text-gray-300 leading-relaxed mb-4">
+              We provide an open, collaborative platform where scientists, activists, and nature enthusiasts unite to share crucial information, inspire dialogue, and drive meaningful conservation action.
             </p>
             <p className="text-gray-400 leading-relaxed">
-              Founded on August 1st, 2025, Nature Index was born from the idea that conservation cannot be confined to labs and academic papers. It must be accessible, collaborative, and actionable for everyone who wishes to contribute to a sustainable future.
+              Founded in 2025, Nature Index was born from the idea that conservation cannot be confined to labs and academic papers. It must be accessible, collaborative, and actionable for everyone who wishes to contribute to a sustainable future.
             </p>
           </div>
-          <div className="relative h-80 rounded-2xl overflow-hidden">
-             <Image 
-                src="https://imgs.search.brave.com/48b69E82cTdLjNEw3wSTzvzF8osjnIsqJ-A9zIKIOMw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTMx/NzAzMjQ2Ny92aWRl/by9tb3RoZXItYW5k/LWRhdWdodGVyLXBs/YW50aW5nLWEtdHJl/ZS1hdC1ldmVuaW5n/LXRpbWUuanBnP3M9/NjQweDY0MCZrPTIw/JmM9MG1Tdk5BZzFv/aGVTR3hLeDBfODU5/blluNjdBU0RYM0dx/enNLNmc4MENncz0" 
-                alt="A group of volunteers planting trees"
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover"
-                priority
-             />
+          <div className="relative h-80 rounded-2xl overflow-hidden border border-white/20">
+            <Image
+              src="https://images.pexels.com/photos/957024/forest-trees-perspective-bright-957024.jpeg?auto=compress&cs=tinysrgb&w=1200"
+              alt="Forest canopy"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           </div>
         </div>
 
-        {/* Manifesto Section */}
-        <div className="text-center">
-            <h2 className="text-4xl font-bold text-white mb-12">Our Manifesto</h2>
-            <div className="max-w-3xl mx-auto text-left text-lg">
-              <p className="text-gray-300 leading-relaxed mb-6">
-                Our first principle is an unwavering commitment to truth. We believe that effective, lasting conservation is built upon a foundation of sound science and verifiable data. In a world of noise and speculation, we provide a space for evidence-based strategies, ensuring every action we advocate for is informed, intentional, and impactful. We champion rigorous research and fact-based dialogue as the essential starting point for protecting our planet.
-              </p>
-              <p className="text-gray-300 leading-relaxed mb-6">
-                Secondly, we operate with radical collaboration. The complex challenges facing our ecosystems are too large for any single organization to tackle alone. We are dedicated to an open-source ethos, demolishing silos and sharing knowledge freely. By building bridges between local communities, scientific institutions, and policymakers, we create a powerful network where diverse perspectives converge to forge holistic and resilient solutions.
-              </p>
-              <p className="text-gray-300 leading-relaxed">
-                Ultimately, our purpose is empowerment from the ground up. Information without action remains inert. We strive to translate global data and collaborative insights into tangible tools for individuals and communities. True, sustainable change begins locally, and we are committed to equipping every person with the knowledge and confidence they need to become effective, passionate guardians of their own natural world.
-              </p>
-            </div>
-        </div>
+        <section className="mb-24">
+          <div className="text-center mb-12">
+            <span className="eyebrow mb-4">Principles</span>
+            <h2 className="text-4xl font-bold text-white">Our Manifesto</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                title: 'Truth & Science',
+                text: 'Effective conservation is built on sound science and verifiable data. We champion rigorous research and fact-based dialogue as the essential starting point for protecting our planet.',
+              },
+              {
+                title: 'Radical Collaboration',
+                text: 'Ecosystem challenges are too large for any single organization. We share knowledge freely and build bridges between communities, scientists, and policymakers.',
+              },
+              {
+                title: 'Empowerment',
+                text: 'Information without action remains inert. We translate global insights into tangible tools so every person can become an effective guardian of their natural world.',
+              },
+            ].map((item) => (
+              <div key={item.title} className="glass-card p-8">
+                <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
+                <p className="text-gray-300 leading-relaxed text-sm">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="text-center glass-card p-10 md:p-14">
+          <h2 className="text-3xl font-bold text-white mb-4">Join the conversation</h2>
+          <p className="text-gray-300 mb-8 max-w-xl mx-auto">
+            Read field reports, share your research, and connect with a global community of conservation stewards.
+          </p>
+          <Link href="/blog" className="btn-primary">
+            Explore the Field Journal
+            <ChevronRight className="w-4 h-4" />
+          </Link>
+        </section>
       </div>
     </div>
   );

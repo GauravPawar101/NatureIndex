@@ -114,20 +114,20 @@ export default function CreatePostForm({ userId }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-800 mb-1">Title</label>
+        <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-1">Title</label>
         <input
           type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)}
-          className="block w-full bg-stone-50 border border-gray-200 rounded-lg py-2 px-3 text-gray-800" required
+          className="input-dark" required
         />
       </div>
       
       <div>
-        <label htmlFor="topic" className="block text-sm font-medium text-gray-800 mb-1">Topic</label>
+        <label htmlFor="topic" className="block text-sm font-medium text-gray-300 mb-1">Topic</label>
         <select
           id="topic"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          className="block w-full bg-stone-50 border border-gray-200 rounded-lg py-2 px-3 text-gray-800"
+          className="input-dark"
           required
         >
           <option value="">Select a topic</option>
@@ -138,26 +138,26 @@ export default function CreatePostForm({ userId }) {
       </div>
 
       <div>
-        <label htmlFor="image_url" className="block text-sm font-medium text-gray-800 mb-1">Cover image URL</label>
+        <label htmlFor="image_url" className="block text-sm font-medium text-gray-300 mb-1">Cover image URL</label>
         <input
           type="url"
           id="image_url"
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
           placeholder="https://..."
-          className="block w-full bg-stone-50 border border-gray-200 rounded-lg py-2 px-3 text-gray-800"
+          className="input-dark"
         />
         <p className="mt-1 text-xs text-gray-500">Or upload an image:</p>
         <input
           type="file"
           accept="image/*"
           onChange={handleCoverImageUpload}
-          className="mt-2 block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
+          className="mt-2 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-white file:text-black hover:file:bg-gray-200"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-800 mb-1">Content</label>
+        <label className="block text-sm font-medium text-gray-300 mb-1">Content</label>
         <div className="prose prose-lg max-w-none">
           <SimpleMdeEditor
             value={content}
@@ -167,12 +167,10 @@ export default function CreatePostForm({ userId }) {
         </div>
       </div>
       
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && <p className="text-red-400 text-sm">{error}</p>}
       
       <div>
-        <button type="submit" disabled={isLoading}
-          className="w-full flex justify-center py-3 px-4 rounded-md font-medium text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50"
-        >
+        <button type="submit" disabled={isLoading} className="btn-primary w-full disabled:opacity-50 disabled:hover:scale-100">
           {isLoading ? 'Publishing...' : 'Publish Post'}
         </button>
       </div>
