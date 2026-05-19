@@ -1,11 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '../../lib/supabase/client';
 
 export default function Comment({ comment, onReply, onDelete }) {
   const [user, setUser] = useState(null);
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
   }, [supabase.auth]);

@@ -1,13 +1,16 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient, hasSupabaseConfig } from '../lib/supabase/server';
 import { redirect } from 'next/navigation';
 import CreatePostForm from './CreatePostForm'; 
 
 export default async function CreatePostPage() {
-  const supabase = createServerComponentClient({ cookies });
+  if (!hasSupabaseConfig()) {
+    redirect('/login');
+  }
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
     redirect('/login');
   }
 
@@ -18,7 +21,7 @@ export default async function CreatePostPage() {
             <h1 className="text-5xl font-bold text-white mb-4">Create a New Post</h1>
             <p className="text-lg text-gray-400">Share your story, knowledge, or latest adventure.</p>
         </div>
-        <CreatePostForm userId={session.user.id} />
+        <CreatePostForm userId={user.id} />
       </div>
     </div>
   );

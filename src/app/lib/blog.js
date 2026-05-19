@@ -1,11 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const hasSupabaseEnv = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
+const supabase = hasSupabaseEnv
+  ? createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
+  : null;
+
 export async function getBlogPosts() {
+  if (!supabase) return [];
+
   const { data, error } = await supabase
     .from('posts')
     .select('*, profiles(username)')
@@ -21,6 +29,7 @@ export async function getBlogPosts() {
 
 export async function getBlogPostBySlug(slug) {
   if (!slug) return null;
+  if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('posts')

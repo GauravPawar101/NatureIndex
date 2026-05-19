@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '../lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import "easymde/dist/easymde.min.css";
@@ -13,7 +13,7 @@ export default function CreatePostForm({ userId }) {
   const [content, setContent] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const router = useRouter();
 
   const handleImageUpload = useCallback(async (file, onSuccess, onError) => {

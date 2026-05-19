@@ -1,11 +1,10 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '../../lib/supabase/server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default async function ProfilePage({ params }) {
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = await createClient();
   const username = decodeURIComponent(params.username);
 
   const { data: profile } = await supabase

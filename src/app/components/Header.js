@@ -3,15 +3,20 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Mountain, PlusCircle } from 'lucide-react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient, hasSupabaseConfig } from '../lib/supabase/client';
 import { useEffect, useState } from 'react';
 
 export default function Header() {
   const pathname = usePathname();
-  const supabase = createClientComponentClient();
+  const hasSupabaseEnv = Boolean(
+    hasSupabaseConfig()
+  );
+  const supabase = createClient();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    if (!supabase) return;
+
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
@@ -20,6 +25,8 @@ export default function Header() {
   }, [supabase]);
 
   const handleLogout = async () => {
+    if (!supabase) return;
+
     await supabase.auth.signOut();
     window.location.href = '/'; 
   };
@@ -53,10 +60,14 @@ export default function Header() {
               </Link>
               <button onClick={handleLogout} className="text-gray-300 hover:text-white text-sm font-medium">Logout</button>
             </>
-          ) : (
+          ) : hasSupabaseEnv ? (
             <Link href="/login" className="px-5 py-2 border border-white/20 text-white rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-300 font-medium text-sm">
               Login
             </Link>
+          ) : (
+            <span className="px-5 py-2 border border-white/10 text-gray-400 rounded-full font-medium text-sm">
+              Demo Mode
+            </span>
           )}
         </div>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '../../lib/supabase/client';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -9,7 +9,7 @@ function CommentForm({ postId, parentId = null, onComplete, onCancel }) {
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,7 +89,7 @@ function CommentForm({ postId, parentId = null, onComplete, onCancel }) {
 // --- Recursive Component to Display a Comment and Its Replies ---
 function Comment({ comment, replyingTo, onReplyClick, onDeleteClick, postId, onActionComplete }) {
   const [user, setUser] = useState(null);
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
@@ -167,7 +167,7 @@ function Comment({ comment, replyingTo, onReplyClick, onDeleteClick, postId, onA
 export default function CommentsSection({ postId }) {
   const [comments, setComments] = useState([]);
   const [replyingTo, setReplyingTo] = useState(null);
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const fetchComments = useCallback(async () => {
     const { data } = await supabase
