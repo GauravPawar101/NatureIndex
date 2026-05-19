@@ -1,4 +1,4 @@
-import { createClient, hasSupabaseConfig } from '../../lib/supabase/server';
+import { createClient } from '../../lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -12,5 +12,5 @@ export async function GET(request) {
     }
   }
 
-  return NextResponse.redirect(requestUrl.origin);
+  return NextResponse.redirect(new URL('/account', requestUrl.origin));
 }

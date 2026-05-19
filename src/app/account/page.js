@@ -4,6 +4,8 @@ import { createClient } from '../lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
+const DEFAULT_AVATAR = '/images/default-avatar.svg';
+
 export default function AccountPage() {
   const supabase = createClient();
   const router = useRouter();
@@ -12,7 +14,8 @@ export default function AccountPage() {
   const [username, setUsername] = useState(null);
   const [fullName, setFullName] = useState(null);
   const [website, setWebsite] = useState(null);
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [bio, setBio] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(DEFAULT_AVATAR);
 
   const getProfile = useCallback(async (user) => {
     try {
@@ -20,7 +23,7 @@ export default function AccountPage() {
 
       let { data, error, status } = await supabase
         .from('profiles')
-        .select(`username, full_name, website, avatar_url`)
+        .select(`username, full_name, website, bio, avatar_url`)
         .eq('id', user.id)
         .single();
 
@@ -30,7 +33,10 @@ export default function AccountPage() {
         setUsername(data.username);
         setFullName(data.full_name);
         setWebsite(data.website);
-        setAvatarUrl(data.avatar_url);
+        setBio(data.bio);
+        setAvatarUrl(data.avatar_url || DEFAULT_AVATAR);
+      } else {
+        setAvatarUrl(DEFAULT_AVATAR);
       }
     } catch (error) {
       alert('Error loading user data!');
@@ -57,7 +63,7 @@ export default function AccountPage() {
     getUser();
   }, [supabase, getProfile, router]);
 
-  async function updateProfile({ username, website, avatar_url }) {
+  async function updateProfile({ username, website, bio, avatar_url }) {
     try {
       setLoading(true);
 
@@ -66,7 +72,8 @@ export default function AccountPage() {
         username,
         full_name: fullName,
         website,
-        avatar_url,
+        bio,
+        avatar_url: avatar_url || DEFAULT_AVATAR,
         updated_at: new Date().toISOString(),
       });
       if (error) throw error;
@@ -87,14 +94,14 @@ export default function AccountPage() {
 
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}-${Math.random()}.${fileExt}`;
+      const filePath = `${user.id}-${Date.now()}.${fileExt}`;
 
       let { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
       setAvatarUrl(publicUrl);
-      updateProfile({ username, website, avatar_url: publicUrl });
+      await updateProfile({ username, website, bio, avatar_url: publicUrl });
     } catch (error) {
       alert('Error uploading avatar!');
     } finally {
@@ -111,16 +118,13 @@ export default function AccountPage() {
         </div>
         <div className="flex items-center gap-4">
           <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-white/20">
-            {avatarUrl ? (
-              <Image src={avatarUrl} alt="Avatar" fill className="object-cover" />
-            ) : (
-              <div className="w-full h-full bg-white/10" />
-            )}
+            <Image src={avatarUrl || DEFAULT_AVATAR} alt="Avatar" fill className="object-cover" />
           </div>
           <div>
             <label htmlFor="avatar-upload" className="cursor-pointer btn-primary text-sm !px-4 !py-2">
-              {loading ? 'Uploading...' : 'Upload Avatar'}
+              {loading ? 'Uploading...' : avatarUrl && avatarUrl !== DEFAULT_AVATAR ? 'Change Avatar' : 'Add Avatar'}
             </label>
+            <p className="mt-2 text-xs text-gray-400">A default avatar is assigned until you upload one.</p>
             <input id="avatar-upload" type="file" accept="image/*" onChange={uploadAvatar} disabled={loading} className="hidden" />
           </div>
         </div>
@@ -140,7 +144,11 @@ export default function AccountPage() {
           <label htmlFor="website" className="block text-sm font-medium text-gray-400 mb-1">Website</label>
           <input id="website" type="url" value={website || ''} onChange={(e) => setWebsite(e.target.value)} className="input-dark" />
         </div>
-        <button onClick={() => updateProfile({ username, website, avatar_url: avatarUrl })} disabled={loading} className="btn-primary w-full disabled:opacity-50">
+        <div>
+          <label htmlFor="bio" className="block text-sm font-medium text-gray-400 mb-1">Bio</label>
+          <textarea id="bio" value={bio || ''} onChange={(e) => setBio(e.target.value)} className="input-dark min-h-28" />
+        </div>
+        <button onClick={() => updateProfile({ username, website, bio, avatar_url: avatarUrl })} disabled={loading} className="btn-primary w-full disabled:opacity-50">
           {loading ? 'Saving...' : 'Update Profile'}
         </button>
       </div>

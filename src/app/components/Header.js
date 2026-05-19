@@ -2,14 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { Leaf, PlusCircle } from 'lucide-react';
 import { createClient } from '../lib/supabase/client';
 import { useEffect, useState } from 'react';
+
+const DEFAULT_AVATAR = '/images/default-avatar.svg';
 
 export default function Header() {
   const pathname = usePathname();
   const supabase = createClient();
   const [user, setUser] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(DEFAULT_AVATAR);
 
   useEffect(() => {
     if (!supabase) return;
@@ -17,11 +21,26 @@ export default function Header() {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', user.id)
+          .single();
+
+        setAvatarUrl(profile?.avatar_url || DEFAULT_AVATAR);
+      } else {
+        setAvatarUrl(DEFAULT_AVATAR);
+      }
     };
     getUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (!session?.user) {
+        setAvatarUrl(DEFAULT_AVATAR);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -61,13 +80,23 @@ export default function Header() {
                 <PlusCircle size={16} />
                 Create Post
               </Link>
-              <Link href="/account" className="text-gray-300 hover:text-white text-sm font-medium">Account</Link>
+              <Link href="/account" className="flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-2 text-sm font-medium text-gray-200 hover:border-white/30 hover:text-white transition-colors">
+                <span className="relative h-8 w-8 overflow-hidden rounded-full ring-1 ring-white/15">
+                  <Image src={avatarUrl || DEFAULT_AVATAR} alt="Account avatar" fill className="object-cover" />
+                </span>
+                <span>Account</span>
+              </Link>
               <button onClick={handleLogout} className="text-gray-300 hover:text-white text-sm font-medium">Logout</button>
             </>
           ) : (
-            <Link href="/login" className="px-5 py-2 border border-white/20 text-white rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-300 font-medium text-sm">
-              Login
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link href="/login" className="px-5 py-2 border border-white/20 text-white rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-300 font-medium text-sm">
+                Login
+              </Link>
+              <Link href="/signup" className="px-5 py-2 bg-white text-black rounded-full font-semibold text-sm hover:bg-gray-200 transition-colors">
+                Sign up
+              </Link>
+            </div>
           )}
         </div>
       </div>

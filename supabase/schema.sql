@@ -121,13 +121,22 @@ create trigger trg_comments_updated_at
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
+  supplied_username text;
   base_username  text;
   final_username text;
   counter        int := 0;
 begin
-  base_username := lower(
-    regexp_replace(split_part(new.email, '@', 1), '[^a-zA-Z0-9_-]', '', 'g')
+  supplied_username := lower(
+    regexp_replace(coalesce(nullif(trim(new.raw_user_meta_data->>'username'), ''), ''), '[^a-zA-Z0-9_-]', '', 'g')
   );
+  base_username := supplied_username;
+
+  if char_length(base_username) < 3 then
+    base_username := lower(
+      regexp_replace(split_part(new.email, '@', 1), '[^a-zA-Z0-9_-]', '', 'g')
+    );
+  end if;
+
   if char_length(base_username) < 3 then
     base_username := base_username || 'user';
   end if;
@@ -144,8 +153,15 @@ begin
     new.id,
     final_username,
     coalesce(new.raw_user_meta_data->>'full_name', null),
-    coalesce(new.raw_user_meta_data->>'avatar_url', null)
+    coalesce(new.raw_user_meta_data->>'avatar_url', '/images/default-avatar.svg')
   );
+
+  update public.profiles
+  set
+    website = coalesce(nullif(trim(new.raw_user_meta_data->>'website'), ''), null),
+    bio = coalesce(nullif(trim(new.raw_user_meta_data->>'bio'), ''), null)
+  where id = new.id;
+
   return new;
 end;
 $$;

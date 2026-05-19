@@ -1,26 +1,52 @@
 'use client';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { createClient } from '../lib/supabase/client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHero from '../components/PageHero';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const supabase = createClient();
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!supabase) return;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        router.push('/');
+        router.push('/account');
       }
     });
 
     return () => subscription.unsubscribe();
   }, [supabase, router]);
+
+  const handleSignIn = async (event) => {
+    event.preventDefault();
+
+    if (!supabase) return;
+
+    setLoading(true);
+    setError('');
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+
+    if (signInError) {
+      setError(signInError.message);
+    } else {
+      router.push('/account');
+      router.refresh();
+    }
+
+    setLoading(false);
+  };
 
   if (!supabase) {
     return (
@@ -43,29 +69,45 @@ export default function LoginPage() {
         <PageHero
           eyebrow="Welcome back"
           title="Sign in to Nature Index"
-          description="Join our community of conservation researchers and storytellers."
+          description="Access your account, publish articles, and manage your profile."
         />
         <div className="glass-card p-8">
-          <Auth
-            supabaseClient={supabase}
-            appearance={{
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: '#ffffff',
-                    brandAccent: '#e5e5e5',
-                    brandButtonText: '#000000',
-                    inputText: 'white',
-                    inputBackground: 'rgba(0,0,0,0.4)',
-                    inputBorder: 'rgba(255,255,255,0.2)',
-                  },
-                },
-              },
-            }}
-            providers={[]}
-            redirectTo={`${process.env.NEXT_PUBLIC_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/auth/callback`}
-          />
+          <form onSubmit={handleSignIn} className="space-y-5">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="input-dark"
+                autoComplete="email"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Password</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="input-dark"
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+            <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-50">
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+            <p className="text-sm text-gray-400 text-center">
+              New here?{' '}
+              <Link href="/signup" className="text-white hover:underline underline-offset-4">
+                Create an account
+              </Link>
+            </p>
+          </form>
         </div>
       </div>
     </div>

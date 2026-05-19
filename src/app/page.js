@@ -146,7 +146,7 @@ export default function HomePage() {
           <p className="text-lg text-gray-300 mb-10 leading-relaxed">
             Join our community of researchers, activists, and nature enthusiasts. Share your story and help protect what remains.
           </p>
-          <Link href="/login" className="btn-primary text-lg px-10 py-4 group">
+          <Link href="/signup" className="btn-primary text-lg px-10 py-4 group">
             Join Nature Index
             <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
