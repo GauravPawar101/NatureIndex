@@ -1,0 +1,28 @@
+[package]
+name = "recommendation_engine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Async Runtime
+tokio = { version = "1.38", features = ["full"] }
+
+# Database (PostgreSQL / Supabase + Rustls TLS + UUID v1 support)
+tokio-postgres = { version = "0.7", features = ["with-uuid-1"] }
+tokio-postgres-rustls = { version = "0.12", default-features = false }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+webpki-roots = "0.26"
+
+# PgVector Extension
+pgvector = { version = "0.4", features = ["postgres"] }
+rustls-native-certs = "0.8"
+# Cache (Redis Async + ConnectionManager Feature Flag Enabled)
+redis = { version = "0.25", features = ["aio", "tokio-comp", "connection-manager", "tokio-rustls-comp", "tls-rustls"] }
+dotenvy = "0.15"
+# Utilities (UUID v1.8 matching tokio-postgres with-uuid-1)
+uuid = { version = "1.8", features = ["v4"] }
+rustls-pemfile = "2.2.0"
+
+[[bin]]
+name = "rec_service"
+path = "src/main.rs"

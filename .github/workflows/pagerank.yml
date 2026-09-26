@@ -1,0 +1,68 @@
+# Recomputes PageRank scores and writes them back to Postgres + Redis.
+#
+# This replaces .github/pageRankEnginePolicy.yaml, which was inert: it sat in
+# .github/ rather than .github/workflows/, so GitHub never picked it up, and it
+# ran `cargo run` from the repository root where there is no Cargo.toml.
+name: pagerank
+
+on:
+  schedule:
+    # Every 15 minutes. The engine is idempotent — it recomputes from scratch
+    # and upserts — so a missed or duplicated run is harmless.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - "pagerank/**"
+      - ".github/workflows/pagerank.yml"
+
+# Never let two runs overlap: the engine writes the same rows every time.
+concurrency:
+  group: pagerank
+  cancel-in-progress: false
+
+jobs:
+  compute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: pagerank/pageRankEngine
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: pagerank/pageRankEngine
+
+      - name: Cache the Supabase CA bundle
+        # include_bytes! reads this at compile time, so it has to be present
+        # before cargo build runs — checkout already guarantees that, but this
+        # step fails loudly if the file is ever removed.
+        run: test -f certs/prod-ca-2021.crt
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      # Tests run before the live job so a broken engine is caught without
+      # needing database credentials.
+      - name: Test
+        run: cargo test
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Run recommendation engine
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+        run: cargo run --release

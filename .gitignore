@@ -41,3 +41,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# rust (pagerank engine)
+# `target/` holds ~700MB of build artifacts and must never be committed.
+pagerank/**/target/
+**/*.rs.bk
+
+# stray shell-redirect artifacts (e.g. a file literally named "2" from `2>`)
+/2

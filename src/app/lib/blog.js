@@ -1,41 +1,41 @@
 import { createClient } from './supabase/server';
 
 export async function getBlogPosts() {
-  const supabase = await createClient();
-  if (!supabase) return [];
+    const supabase = await createClient();
+    if (!supabase) return [];
 
-  const { data, error } = await supabase
-    .from('posts')
-    .select('*, profiles(username)')
-    .eq('published', true)
-    .order('date', { ascending: false });
+    const { data, error } = await supabase
+        .from('posts')
+        .select('*, profiles!posts_user_id_fkey(username, avatar_url, full_name)')
+        .eq('published', true)
+        .order('date', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching posts:', error);
-    return [];
-  }
+    if (error) {
+        console.error('Error fetching posts:', error);
+        return [];
+    }
 
-  return data || [];
+    return data || [];
 }
 
 export async function getBlogPostBySlug(slug) {
-  if (!slug) return null;
+    if (!slug) return null;
 
-  const supabase = await createClient();
-  if (!supabase) return null;
+    const supabase = await createClient();
+    if (!supabase) return null;
 
-  const { data, error } = await supabase
-    .from('posts')
-    .select('*, profiles(username), comments(*, profiles(username, avatar_url))')
-    .eq('slug', slug)
-    .eq('published', true)
-    .order('created_at', { foreignTable: 'comments', ascending: true })
-    .single();
+    const { data, error } = await supabase
+        .from('posts')
+        .select('*, profiles!posts_user_id_fkey(username, avatar_url, full_name), comments(*, profiles(username, avatar_url))')
+        .eq('slug', slug)
+        .eq('published', true)
+        .order('created_at', { foreignTable: 'comments', ascending: true })
+        .single();
 
-  if (error) {
-    console.error(`Error fetching post with slug "${slug}":`, error);
-    return null;
-  }
+    if (error) {
+        console.error(`Error fetching post with slug "${slug}":`, error);
+        return null;
+    }
 
-  return data;
+    return data;
 }

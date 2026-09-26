@@ -1,0 +1,111 @@
+# Deploys the Next.js app to Vercel.
+#
+#   pull_request  -> preview deployment
+#   push to main  -> production deployment
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#
+#   VERCEL_TOKEN                 personal access token
+#   VERCEL_ORG_ID                team id
+#   VERCEL_PROJECT_ID            project id
+#   VERCEL_PRODUCTION_DOMAIN     optional, used to annotate the PR comment
+#
+# Deploying from GitHub rather than Vercel's built-in Git integration makes the
+# `ci` workflow a real gate: Vercel only ever sees commits that already passed
+# lint, production build, and the database rehearsal.
+name: deploy
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  vercel:
+    name: Vercel
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      # `vercel build`/`deploy` read this to decide target vs preview.
+      VERCEL_ENVIRONMENT: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Pull project settings
+        run: vercel pull --yes --environment=${{ env.VERCEL_ENVIRONMENT }}
+
+      - name: Build
+        run: vercel build --prod=${{ github.event_name != 'pull_request' }}
+
+      - name: Deploy
+        id: deploy
+        run: |
+          url="$(vercel deploy --prebuilt --prod=${{ github.event_name != 'pull_request' }})"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # Every push to a PR rewrites the same comment rather than adding a new
+      # one each time, so a 20-commit branch doesn't produce 20 comments.
+      - name: Comment preview URL on the PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = process.env.PREVIEW_URL;
+            if (!url) {
+              core.warning('vercel deploy did not report a URL; skipping comment');
+              return;
+            }
+            const full = url.startsWith('http') ? url : `https://${url}`;
+            const marker = '<!-- vercel-preview -->';
+            const body = [
+              marker,
+              '### Vercel preview deployed',
+              '',
+              `[Open preview](${full})`,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo,
+              issue_number: context.issue.number,
+            });
+            const previous = comments.find((c) => c.body?.includes(marker));
+
+            if (previous) {
+              await github.rest.issues.updateComment({
+                ...context.repo,
+                comment_id: previous.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.url }}

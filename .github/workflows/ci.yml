@@ -1,0 +1,104 @@
+# Pull-request and push gate: lint, production build, and a full local
+# rehearsal of the database schema + seed data.
+#
+# Nothing here needs Supabase, Vercel, or any other secret. The database job
+# stands up a throwaway pgvector container and applies the same schema.sql the
+# project uses in production, so a migration that would break on deploy fails
+# here instead.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# A new push supersedes an in-flight run for the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # The build prerenders pages, several of which read from Supabase. The
+      # data layer already degrades to empty results when the client can't be
+      # created, so a placeholder URL is enough to prove the build works
+      # without handing CI a real credential.
+      - name: Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          NEXT_PUBLIC_URL: http://localhost:3000
+        run: npm run build
+
+  database:
+    name: Database schema + seed
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Verify schema is applicable, idempotent, and accepts the seed data
+        run: npm run db:verify
+
+  engine:
+    name: PageRank engine
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: pagerank/pageRankEngine
+
+      - name: Clippy
+        working-directory: pagerank/pageRankEngine
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Test
+        working-directory: pagerank/pageRankEngine
+        run: cargo test

@@ -1,77 +1,88 @@
-import { createClient } from '../../lib/supabase/server';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import PageHero from '../../components/PageHero';
+import ProfileContent, { ProfileHeader, ProfileStats } from './ProfileContent';
+import {
+    buildProfileStats,
+    decodeUsername,
+    getProfile,
+    getProfileComments,
+    getProfilePosts,
+    safeWebsiteHref,
+} from '../../lib/profile';
+import { formatMemberSince } from '../../lib/format';
+
+async function loadProfile(rawUsername) {
+    const username = decodeUsername(rawUsername);
+    if (!username) return null;
+
+    const profile = await getProfile(username);
+    if (!profile) return null;
+
+    // Posts and comments are independent — a comments query that fails (older
+    // deployment, missing table) should still render the profile.
+    const [posts, comments] = await Promise.all([
+        getProfilePosts(profile.id),
+        getProfileComments(profile.id, 20),
+    ]);
+
+    return { profile, posts, comments };
+}
+
+export async function generateMetadata({ params }) {
+    const { username } = await params;
+    const loaded = await loadProfile(username);
+
+    if (!loaded) {
+        return { title: 'Profile not found' };
+    }
+
+    const { profile } = loaded;
+    const displayName = profile.full_name || profile.username;
+
+    return {
+        title: displayName,
+        description: profile.bio || `Articles and field notes by ${profile.username} on Nature Index.`,
+        openGraph: {
+            type: 'profile',
+            title: displayName,
+            description: profile.bio || `Articles by ${profile.username} on Nature Index.`,
+        },
+    };
+}
 
 export default async function ProfilePage({ params }) {
-  const supabase = await createClient();
-  if (!supabase) notFound();
+    const { username } = await params;
+    const loaded = await loadProfile(username);
 
-  const username = decodeURIComponent(params.username);
+    if (!loaded) {
+        notFound();
+    }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('username', username)
-    .single();
+    const { profile, posts, comments } = loaded;
+    const stats = buildProfileStats(profile, posts, comments);
 
-  if (!profile) {
-    notFound();
-  }
+    return (
+        <div className="page-shell">
+            <div className="container mx-auto max-w-4xl px-6">
+                <ProfileHeader
+                    profile={profile}
+                    websiteHref={safeWebsiteHref(profile.website)}
+                    memberSince={formatMemberSince(profile.created_at)}
+                    topPost={stats.topPost}
+                />
 
-  const { data: posts } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('user_id', profile.id)
-    .eq('published', true)
-    .order('date', { ascending: false });
+                <div className="mt-6">
+                    <ProfileStats stats={stats} />
+                </div>
 
-  return (
-    <div className="page-shell">
-      <div className="container mx-auto max-w-4xl px-6">
-        <div className="flex flex-col md:flex-row items-center gap-8 mb-16 glass-card p-8">
-          <div className="relative w-32 h-32 rounded-full overflow-hidden ring-4 ring-white/20 shrink-0">
-            {profile.avatar_url ? (
-              <Image src={profile.avatar_url} alt={profile.username} fill className="object-cover" />
-            ) : (
-              <div className="w-full h-full bg-white/10" />
-            )}
-          </div>
-          <div className="text-center md:text-left">
-            <span className="eyebrow mb-2">Contributor</span>
-            <h1 className="text-4xl font-bold text-white">{profile.full_name || profile.username}</h1>
-            <p className="text-gray-400 mt-1">@{profile.username}</p>
-            {profile.bio && <p className="text-gray-300 mt-4 max-w-lg">{profile.bio}</p>}
-            {profile.website && (
-              <a href={profile.website} target="_blank" rel="noopener noreferrer" className="link-accent mt-3 inline-block text-sm">
-                {profile.website}
-              </a>
-            )}
-          </div>
+                <div className="mt-12">
+                    <ProfileContent
+                        username={profile.username}
+                        website={safeWebsiteHref(profile.website)}
+                        posts={posts}
+                        comments={comments}
+                    />
+                </div>
+            </div>
         </div>
-
-        <PageHero
-          eyebrow="Published work"
-          title={`Articles by ${profile.username}`}
-        />
-
-        <div className="space-y-4">
-          {posts && posts.length > 0 ? (
-            posts.map(post => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="block group">
-                <article className="glass-card-hover p-6">
-                  {post.topic && <span className="eyebrow text-[10px] mb-2">{post.topic}</span>}
-                  <h3 className="text-xl font-bold text-white mb-2 group-hover:underline underline-offset-4">{post.title}</h3>
-                  <p className="text-gray-400 text-sm line-clamp-2">{post.excerpt}</p>
-                </article>
-              </Link>
-            ))
-          ) : (
-            <p className="text-gray-500 text-center py-12">This user hasn&apos;t published any articles yet.</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+    );
 }

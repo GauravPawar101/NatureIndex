@@ -1,41 +1,49 @@
 /**
- * Seed Nature Index with demo users, posts, and comments.
+ * Idempotent seeder for Nature Index.
  *
- * Prerequisites:
- *   1. Run supabase/schema.sql in the Supabase SQL Editor
- *   2. Set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
- *      and SUPABASE_SERVICE_ROLE_KEY in .env.local
+ *   npm run seed              # upsert authors, posts, comments, scores
+ *   npm run seed -- --reset   # delete seeded rows first, then reseed
  *
- * Usage: npm run seed
+ * Requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (the service
+ * role key is mandatory — RLS blocks anon writes, and this is a write-heavy
+ * operation). Reads .env.local as well as .env, since local dev keeps them
+ * there.
+ *
+ * Every write is an upsert keyed on a natural, deterministic identifier
+ * (username, slug, comment index), so re-running refreshes the same rows rather
+ * than creating duplicates. The old version of this script stamped slugs with
+ * `Date.now()` + a random suffix, which meant each run left another set of
+ * near-identical posts behind.
  */
-
 import { createClient } from '@supabase/supabase-js';
-import { readFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import dotenv from 'dotenv';
+import { resolve } from 'node:path';
 
-function loadEnvFile() {
-  const envPath = resolve(process.cwd(), '.env.local');
-  if (!existsSync(envPath)) return;
+import {
+  AUTHORS,
+  COMMENTS,
+  DEMO_PASSWORD,
+  POSTS,
+  ACTION_TYPES,
+  deriveEmbedding,
+  deriveExcerpt,
+  daysAgoToIso,
+  makeRng,
+  slugify,
+} from './seed-data.mjs';
 
-  for (const line of readFileSync(envPath, 'utf8').split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eq = trimmed.indexOf('=');
-    if (eq === -1) continue;
-    const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
-    if (!process.env[key]) process.env[key] = value;
-  }
-}
-
-loadEnvFile();
+dotenv.config();
+dotenv.config({ path: resolve(process.cwd(), '.env.local'), override: true });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const siteUrl = (process.env.NEXT_PUBLIC_URL || 'http://localhost:3000').replace(/\/$/, '');
+const shouldReset = process.argv.includes('--reset');
 
 if (!supabaseUrl || !serviceRoleKey) {
-  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local');
+  console.error(
+    'Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.\n' +
+      'The seeder needs the service role key — RLS only permits owners to write their own rows.'
+  );
   process.exit(1);
 }
 
@@ -43,556 +51,414 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const SEED_PASSWORD = 'NatureIndex2026!';
-const SEED_EMAIL_DOMAIN = '@natureindex.test';
+/** Logs a failed step but keeps going, so one bad row doesn't hide the rest. */
+const failures = [];
 
-const img = (file) => `/posts/${file}`;
-
-const USERS = [
-  {
-    email: `eco_alex${SEED_EMAIL_DOMAIN}`,
-    username: 'eco_alex',
-    full_name: 'Alex Chen',
-    bio: 'Climate policy researcher documenting frontline adaptation stories.',
-    avatar_url: '/globe.svg',
-  },
-  {
-    email: `river_maya${SEED_EMAIL_DOMAIN}`,
-    username: 'river_maya',
-    full_name: 'Maya Okonkwo',
-    bio: 'Hydrologist focused on watershed restoration and community water rights.',
-    avatar_url: '/globe.svg',
-  },
-  {
-    email: `green_sam${SEED_EMAIL_DOMAIN}`,
-    username: 'green_sam',
-    full_name: 'Sam Rivera',
-    bio: 'Urban sustainability advocate writing about low-impact living.',
-    avatar_url: '/globe.svg',
-  },
-  {
-    email: `wild_jordan${SEED_EMAIL_DOMAIN}`,
-    username: 'wild_jordan',
-    full_name: 'Jordan Blake',
-    bio: 'Wildlife photographer and conservation field correspondent.',
-    avatar_url: '/globe.svg',
-  },
-  {
-    email: `climate_nina${SEED_EMAIL_DOMAIN}`,
-    username: 'climate_nina',
-    full_name: 'Nina Petrov',
-    bio: 'Atmospheric scientist translating climate data into public action.',
-    avatar_url: '/globe.svg',
-  },
-  {
-    email: `forest_leo${SEED_EMAIL_DOMAIN}`,
-    username: 'forest_leo',
-    full_name: 'Leo Nakamura',
-    bio: 'Forestry ecologist studying reforestation and biodiversity corridors.',
-    avatar_url: '/globe.svg',
-  },
-  {
-    email: `ocean_priya${SEED_EMAIL_DOMAIN}`,
-    username: 'ocean_priya',
-    full_name: 'Priya Sharma',
-    bio: 'Marine biologist covering coral reef recovery and coastal resilience.',
-    avatar_url: '/globe.svg',
-  },
-  {
-    email: `earth_kai${SEED_EMAIL_DOMAIN}`,
-    username: 'earth_kai',
-    full_name: 'Kai Morrison',
-    bio: 'Environmental engineer writing about clean energy and pollution control.',
-    avatar_url: '/globe.svg',
-  },
-];
-
-function daysAgo(n) {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString();
+function fail(step, error) {
+  const message = error?.message ?? String(error);
+  console.error(`  ✗ ${step}: ${message}`);
+  failures.push(`${step}: ${message}`);
 }
 
-const POSTS = [
-  {
-    author: 'eco_alex',
-    slug: 'arctic-ice-at-the-tipping-point',
-    title: 'Arctic Ice at the Tipping Point',
-    topic: 'Climate Change',
-    image_url: img('climate.jpg'),
-    views: 4820,
-    daysAgo: 2,
-    excerpt: 'New satellite data reveals accelerating melt rates across Greenland and the Canadian Arctic Archipelago.',
-    content: `## A Faster Than Expected Decline
-
-Satellite altimetry from the past eighteen months shows ice loss outpacing every IPCC mid-range projection from 2021. Coastal communities that planned for 2040 timelines are now revising adaptation budgets for 2030.
-
-## What Field Teams Are Seeing
-
-Glaciologists report **melt ponds forming weeks earlier** than historical averages. That darkens the surface, absorbs more heat, and triggers a feedback loop that is difficult to reverse within a single season.
-
-## Why It Matters for Policy
-
-When ice sheets destabilize, sea-level rise is not linear — it accelerates. Cities from Miami to Manila need updated risk models that account for these new melt curves.`,
-  },
-  {
-    author: 'climate_nina',
-    slug: 'heat-domes-and-health-emergencies',
-    title: 'Heat Domes and Health Emergencies',
-    topic: 'Climate Change',
-    image_url: img('climate.jpg'),
-    views: 3150,
-    daysAgo: 8,
-    excerpt: 'Record-breaking heat domes are turning urban centers into public health crises. Here is what hospitals are learning.',
-    content: `## Urban Heat Is a Silent Emergency
-
-Emergency departments across the Pacific Northwest documented a **300% spike** in heat-related admissions during the latest dome event. The patients are disproportionately elderly, unhoused, and outdoor workers.
-
-## Infrastructure Gaps
-
-Many cities lack sufficient cooling centers, tree canopy, and reflective roofing mandates. Nina's team mapped surface temperatures block-by-block and found a 12°C difference between shaded and exposed neighborhoods.
-
-## Actionable Steps
-
-1. Expand urban forestry programs
-2. Require cool roofs on new commercial builds
-3. Fund community hydration stations during heat advisories`,
-  },
-  {
-    author: 'wild_jordan',
-    slug: 'return-of-the-gray-wolf',
-    title: 'Return of the Gray Wolf',
-    topic: 'Wildlife Conservation',
-    image_url: img('wildlife.jpg'),
-    views: 2890,
-    daysAgo: 5,
-    excerpt: 'After decades of absence, gray wolves are recolonizing former range — and rewriting local ecosystems.',
-    content: `## A Keystone Returns
-
-Trail cameras in the northern Rockies captured wolf packs moving through valleys they had not occupied since the 1930s. Their presence is already shifting deer browsing patterns, allowing riparian vegetation to recover.
-
-## Coexistence Challenges
-
-Ranchers face legitimate livestock losses, but **non-lethal deterrent programs** — fladry, guard dogs, and early-warning collars — have reduced conflicts by up to 70% in pilot counties.
-
-## The Bigger Picture
-
-Top predators regulate ecosystems in ways we are only beginning to quantify. Protecting their corridors is as much a land-use question as a species question.`,
-  },
-  {
-    author: 'wild_jordan',
-    slug: 'community-led-poaching-patrols',
-    title: 'Community-Led Poaching Patrols',
-    topic: 'Wildlife Conservation',
-    image_url: img('wildlife.jpg'),
-    views: 1740,
-    daysAgo: 22,
-    excerpt: 'Local rangers and village cooperatives are outperforming top-down enforcement in three African conservancies.',
-    content: `## Trust Beats Surveillance
-
-When communities co-manage wildlife revenue — through ecotourism and sustainable harvest — reporting illegal activity increases dramatically. Patrol teams embedded in villages detect poaching networks faster than aerial surveys alone.
-
-## Tools That Work
-
-- Shared radio networks
-- Rapid-reward tip lines
-- Transparent revenue sharing ledgers
-
-Conservation succeeds when people living beside wildlife see direct benefit from protecting it.`,
-  },
-  {
-    author: 'earth_kai',
-    slug: 'offshore-wind-at-grid-scale',
-    title: 'Offshore Wind at Grid Scale',
-    topic: 'Renewable Energy',
-    image_url: img('renewable.jpg'),
-    views: 2210,
-    daysAgo: 11,
-    excerpt: 'The newest offshore arrays are producing baseload-equivalent output — if storage and transmission keep pace.',
-    content: `## Capacity Factors Are Climbing
-
-Modern turbines with 15 MW ratings and floating foundations are unlocking deep-water sites previously considered uneconomical. Capacity factors above 50% rival many gas plants on annual averages.
-
-## The Bottleneck Is the Grid
-
-Interconnection queues stretch years in some regions. Without streamlined permitting and upgraded HVDC lines, turbines will spin while cities still burn coal.
-
-## Storage Pairing
-
-Developers are co-locating battery farms with offshore substations to smooth output and provide frequency regulation — a model worth replicating globally.`,
-  },
-  {
-    author: 'earth_kai',
-    slug: 'solar-microgrids-for-rural-clinics',
-    title: 'Solar Microgrids for Rural Clinics',
-    topic: 'Renewable Energy',
-    image_url: img('renewable.jpg'),
-    views: 980,
-    daysAgo: 35,
-    excerpt: 'Distributed solar is keeping vaccine cold chains alive where central grids fail.',
-    content: `## Power Saves Lives
-
-In sub-Saharan pilot sites, clinic solar microgrids reduced vaccine spoilage by **90%** during rainy seasons when diesel deliveries were unreliable.
-
-## Design Principles
-
-Systems must be maintainable by local technicians, not dependent on imported specialists. Modular inverters, standardized battery packs, and SMS-based performance monitoring keep uptime high.
-
-## Scaling Up
-
-Development banks are bundling clinic electrification into broader rural infrastructure loans — a shift from one-off charity installs to sustained programs.`,
-  },
-  {
-    author: 'earth_kai',
-    slug: 'microplastics-in-drinking-water',
-    title: 'Microplastics in Drinking Water',
-    topic: 'Pollution',
-    image_url: img('pollution.jpg'),
-    views: 3670,
-    daysAgo: 4,
-    excerpt: 'New filtration studies confirm microplastic particles in municipal supplies worldwide — and point to fixes.',
-    content: `## Ubiquitous, Invisible, Measurable
-
-Researchers detected plastic fibers in **94% of tap water samples** across a 12-country study. Particles originate from tire wear, synthetic textiles, and degraded packaging.
-
-## Health Implications
-
-Long-term effects remain under study, but inflammatory responses in lab models justify precaution. Treatment plants designed for bacteria are not optimized for polymer particles.
-
-## Policy Levers
-
-Extended producer responsibility, tire abrasion standards, and upgraded filtration media can reduce load at source and at tap.`,
-  },
-  {
-    author: 'river_maya',
-    slug: 'restoring-the-ganges-delta',
-    title: 'Restoring the Ganges Delta',
-    topic: 'Pollution',
-    image_url: img('pollution.jpg'),
-    views: 1420,
-    daysAgo: 19,
-    excerpt: 'Sediment diversion and mangrove replanting are reversing decades of delta erosion.',
-    content: `## Land Building Again
-
-Strategic sediment diversions mimic natural flooding pulses, depositing silt on sinking islands. Combined with mangrove belts, communities gain storm buffers and fisheries habitat.
-
-## Community Science
-
-Village teams measure salinity, track fish returns, and report illegal dumping through mobile apps — data that feeds adaptive management cycles every season.`,
-  },
-  {
-    author: 'green_sam',
-    slug: 'zero-waste-kitchen-guide',
-    title: 'Zero-Waste Kitchen Guide',
-    topic: 'Sustainable Living',
-    image_url: img('sustainable.jpg'),
-    views: 2560,
-    daysAgo: 7,
-    excerpt: 'Practical swaps that cut household food waste by half without expensive gadgets.',
-    content: `## Start With Visibility
-
-Most households waste food they forgot they bought. A simple **FIFO shelf system** and weekly use-first bin cut Sam's own waste 52% in two months.
-
-## Low-Cost Wins
-
-- Glass jars for bulk dry goods
-- Composting even in small apartments via bokashi
-- Meal plans built around overlapping ingredients
-
-Sustainability should save money, not require a luxury budget.`,
-  },
-  {
-    author: 'green_sam',
-    slug: 'repair-culture-is-back',
-    title: 'Repair Culture Is Back',
-    topic: 'Sustainable Living',
-    image_url: img('sustainable.jpg'),
-    views: 890,
-    daysAgo: 41,
-    excerpt: 'Community repair cafes are diverting tons of electronics from landfill — and teaching skills.',
-    content: `## Fix Before You Replace
-
-Monthly repair events in Portland and Berlin report **average 3.2 kg diverted per attendee** per session. Volunteers troubleshoot toasters, laptops, and bicycles alongside owners.
-
-## Right to Repair
-
-Legislation mandating spare parts and manuals is accelerating. Manufacturers resisting change face both regulatory pressure and consumer backlash.`,
-  },
-  {
-    author: 'forest_leo',
-    slug: 'amazon-reforestation-corridors',
-    title: 'Amazon Reforestation Corridors',
-    topic: 'Deforestation',
-    image_url: img('forest.jpg'),
-    views: 3340,
-    daysAgo: 6,
-    excerpt: 'Connecting fragmented forest patches lets wide-ranging species survive in degraded landscapes.',
-    content: `## Corridors Are Lifelines
-
-Jaguars and harpy eagles need continuous canopy. Leo's team mapped minimum corridor widths using movement telemetry and is working with farmers to retire marginal pasture strips.
-
-## Native Species Mix
-
-Replanting monoculture teak fails ecologically. Mixed native palettes rebuild soil fungi, pollinator networks, and resilience to drought.`,
-  },
-  {
-    author: 'forest_leo',
-    slug: 'satellite-monitoring-of-illegal-logging',
-    title: 'Satellite Monitoring of Illegal Logging',
-    topic: 'Deforestation',
-    image_url: img('deforestation.jpg'),
-    views: 1980,
-    daysAgo: 14,
-    excerpt: 'Near-real-time radar can detect logging roads within 24 hours — if governments act on alerts.',
-    content: `## Seeing Through Cloud Cover
-
-Optical satellites miss activity during monsoon season; SAR radar does not. Alert systems now ping rangers when new access roads appear inside protected zones.
-
-## Enforcement Gap
-
-Technology without prosecution capacity creates alert fatigue. The best programs pair satellite feeds with funded rapid-response teams and judicial follow-through.`,
-  },
-  {
-    author: 'ocean_priya',
-    slug: 'coral-bleaching-recovery-signs',
-    title: 'Coral Bleaching Recovery Signs',
-    topic: 'Ocean Conservation',
-    image_url: img('ocean.jpg'),
-    views: 4100,
-    daysAgo: 3,
-    excerpt: 'Some reef sections are bouncing back faster than models predicted — heat tolerance may be evolving.',
-    content: `## Not All Reefs Bleach Equally
-
-Sites with strong water exchange and healthy parrotfish populations show **partial recovery within 18 months** after mild bleaching events. Priya's dive logs compare symbiont diversity across zones.
-
-## Assisted Evolution
-
-Selective breeding of heat-tolerant corals is controversial but progressing. Outplanting must avoid genetic bottlenecks that weaken reef resilience long-term.`,
-  },
-  {
-    author: 'ocean_priya',
-    slug: 'ghost-nets-and-cleanup-drones',
-    title: 'Ghost Nets and Cleanup Drones',
-    topic: 'Ocean Conservation',
-    image_url: img('ocean.jpg'),
-    views: 1650,
-    daysAgo: 27,
-    excerpt: 'Autonomous surface drones are retrieving abandoned fishing gear before it shreds more habitat.',
-    content: `## Entanglement Never Stops
-
-Ghost nets continue catching fish and cetaceans for years. Drone fleets guided by AI object detection removed **14 tons of gear** in a North Sea pilot season.
-
-## Prevention First
-
-Gear marking, deposit schemes, and port-side collection points keep nets accountable to owners — cleanup alone cannot keep pace with discard rates.`,
-  },
-  {
-    author: 'river_maya',
-    slug: 'dam-removal-river-rebirth',
-    title: 'Dam Removal and River Rebirth',
-    topic: 'Water Resources',
-    image_url: img('water.jpg'),
-    views: 2780,
-    daysAgo: 9,
-    excerpt: 'Two dam removals on the Penobscot River restored migratory fish runs within a single spawning cycle.',
-    content: `## Sediment Moves, Life Returns
-
-Within months of breaching, alewife and shad pushed upstream into habitat blocked for a century. Sediment pulses rebuilt downstream gravel bars essential for spawning.
-
-## Planning Matters
-
-Uncontrolled releases cause spikes in turbidity. Drawdown schedules, fish bypass monitoring, and downstream community alerts make removals safer for everyone.`,
-  },
-  {
-    author: 'river_maya',
-    slug: 'groundwater-depletion-in-agriculture',
-    title: 'Groundwater Depletion in Agriculture',
-    topic: 'Water Resources',
-    image_url: img('water.jpg'),
-    views: 1120,
-    daysAgo: 33,
-    excerpt: 'Aquifer drawdown is outpacing recharge across major breadbaskets — precision irrigation offers a path out.',
-    content: `## Pumping Faster Than Rain
-
-In parts of the High Plains, water tables drop meters per decade. Crop yields hold only because deeper wells delay the reckoning.
-
-## Smart Water Accounting
-
-Soil moisture sensors, deficit irrigation scheduling, and crop switching to drought-tolerant varieties reduced pumping **30%** in cooperative pilot farms without yield loss.`,
-  },
-  {
-    author: 'eco_alex',
-    slug: 'youth-climate-courts-update',
-    title: 'Youth Climate Courts Update',
-    topic: 'Climate Change',
-    image_url: img('climate.jpg'),
-    views: 760,
-    daysAgo: 55,
-    excerpt: 'A roundup of landmark youth-led climate cases moving through courts on three continents.',
-    content: `## Legal Precedent Builds
-
-Courts in Europe and Latin America increasingly recognize government duty-of-care obligations to future generations. Cases hinge on quantified emissions pathways and enforceable remedies.
-
-## Beyond Symbolism
-
-When judgments mandate revised national plans, they create leverage civil society can monitor — turning courtroom wins into measurable emission cuts.`,
-  },
-  {
-    author: 'green_sam',
-    slug: 'public-transit-as-climate-policy',
-    title: 'Public Transit as Climate Policy',
-    topic: 'Sustainable Living',
-    image_url: img('sustainable.jpg'),
-    views: 1340,
-    daysAgo: 16,
-    excerpt: 'Free fare pilots reduced car trips more than congestion pricing alone in mid-size cities.',
-    content: `## Mode Shift at Scale
-
-When buses and trams are fast, frequent, and affordable, households shed second cars. Emission reductions compound as land once used for parking converts to housing and green space.
-
-## Funding Models
-
-Employer payroll taxes, congestion fees, and land-value capture near stations can fund operations without regressive sales taxes.`,
-  },
-];
-
-const COMMENTS = [
-  { post_slug: 'arctic-ice-at-the-tipping-point', author: 'climate_nina', content: 'The albedo feedback section is spot on — we measured similar patterns in Labrador last season.' },
-  { post_slug: 'arctic-ice-at-the-tipping-point', author: 'river_maya', content: 'Coastal cities need to tie this data to their zoning updates immediately.', parent_index: 0 },
-  { post_slug: 'return-of-the-gray-wolf', author: 'forest_leo', content: 'Riparian recovery data from Yellowstone parallels what we see with wolf reintroduction in managed forests.' },
-  { post_slug: 'offshore-wind-at-grid-scale', author: 'eco_alex', content: 'Grid interconnection reform is the unsung hero policy here. Without it, capacity factors do not matter.' },
-  { post_slug: 'microplastics-in-drinking-water', author: 'ocean_priya', content: 'Marine sources feed back into municipal intake — this is a watershed-to-tap problem, not just a treatment plant fix.' },
-  { post_slug: 'coral-bleaching-recovery-signs', author: 'wild_jordan', content: 'Parrotfish protection should be mandatory in every recovery plan. They keep algae in check better than any diver team.' },
-  { post_slug: 'coral-bleaching-recovery-signs', author: 'green_sam', content: 'Are there citizen science protocols tourists can follow without damaging reefs?', parent_index: 4 },
-  { post_slug: 'coral-bleaching-recovery-signs', author: 'ocean_priya', content: 'Yes — Reef Check and Coral Watch both have snorkeler-friendly surveys. Link in my profile bio.', parent_index: 5 },
-  { post_slug: 'zero-waste-kitchen-guide', author: 'green_sam', content: 'Update: bokashi bran is now available at our local co-op for under $15/month.' },
-  { post_slug: 'dam-removal-river-rebirth', author: 'wild_jordan', content: 'Fish counters upstream reported record shad numbers. Incredible to see in one year.' },
-  { post_slug: 'amazon-reforestation-corridors', author: 'eco_alex', content: 'Carbon credit markets finally pricing biodiversity co-benefits would accelerate these corridor deals.' },
-  { post_slug: 'heat-domes-and-health-emergencies', author: 'river_maya', content: 'Hydration stations saved lives in our county — worth every dollar of the public health budget.' },
-];
-
-async function clearSeedData() {
-  const { data: listData, error: listError } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-  if (listError) throw listError;
-
-  const seedUsers = (listData?.users || []).filter((u) => u.email?.endsWith(SEED_EMAIL_DOMAIN));
-  for (const user of seedUsers) {
-    const { error } = await supabase.auth.admin.deleteUser(user.id);
-    if (error) console.warn(`Could not delete ${user.email}:`, error.message);
-  }
-
-  if (seedUsers.length) {
-    console.log(`Removed ${seedUsers.length} existing seed user(s).`);
-  }
-}
-
-async function createSeedUsers() {
-  const userIds = {};
-
-  for (const user of USERS) {
-    const { data, error } = await supabase.auth.admin.createUser({
-      email: user.email,
-      password: SEED_PASSWORD,
-      email_confirm: true,
-      user_metadata: {
-        full_name: user.full_name,
-        avatar_url: user.avatar_url,
-      },
+/** Resolves a username to a profiles row, creating the auth user if needed. */
+async function ensureAuthor(author) {
+  const { data: existing, error: lookupError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('username', author.username)
+    .maybeSingle();
+
+  if (lookupError) throw lookupError;
+  if (existing) return existing.id;
+
+  // profiles.id is a FK to auth.users.id, and a trigger creates the profile
+  // row on signup — so the auth user has to exist before the profile does.
+  // `listUsers` is paged and filtered by creation time; a direct email lookup
+  // isn't available on the admin API, so fall back to creating and tolerating
+  // the "already registered" error.
+  const { data: created, error: createError } = await supabase.auth.admin.createUser({
+    email: author.email,
+    password: DEMO_PASSWORD,
+    email_confirm: true,
+    user_metadata: {
+      username: author.username,
+      full_name: author.full_name,
+      website: author.website,
+      bio: author.bio,
+    },
+  });
+
+  if (createError) {
+    if (!/already|registered|exists/i.test(createError.message)) throw createError;
+
+    // The auth user pre-exists; find it by walking the newest page.
+    const { data: list, error: listError } = await supabase.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
     });
-
-    if (error) throw new Error(`Failed to create ${user.email}: ${error.message}`);
-
-    const userId = data.user.id;
-    userIds[user.username] = userId;
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        username: user.username,
-        full_name: user.full_name,
-        bio: user.bio,
-        avatar_url: user.avatar_url,
-      })
-      .eq('id', userId);
-
-    if (profileError) throw new Error(`Failed to update profile for ${user.username}: ${profileError.message}`);
-    console.log(`Created user @${user.username}`);
+    if (listError) throw listError;
+    const match = list.users.find((u) => u.email === author.email);
+    if (!match) throw new Error(`auth user for ${author.email} exists but was not found`);
+    return match.id;
   }
 
-  return userIds;
+  // The trigger should have created the profile, but do not rely on it.
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', created.user.id)
+    .maybeSingle();
+
+  return profile?.id ?? created.user.id;
 }
 
-async function createPosts(userIds) {
-  const postIds = {};
+async function reset() {
+  console.log('Resetting previously seeded rows...');
+  // Comments and scores cascade from posts, so deleting posts clears most of it.
+  for (const post of POSTS) {
+    const { error } = await supabase.from('posts').delete().eq('slug', slugify(post.title));
+    if (error) fail(`reset post ${post.title}`, error);
+  }
+  const { data: staleComments } = await supabase
+    .from('comments')
+    .select('id')
+    .like('content', 'Seeded comment%');
+  if (staleComments?.length) {
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .in('id', staleComments.map((c) => c.id));
+    if (error) fail('reset stale comments', error);
+  }
+}
+
+async function seedAuthors() {
+  console.log(`Seeding ${AUTHORS.length} authors...`);
+  const ids = new Map();
+
+  for (const author of AUTHORS) {
+    try {
+      const id = await ensureAuthor(author);
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id,
+          username: author.username,
+          full_name: author.full_name,
+          website: author.website,
+          bio: author.bio,
+          avatar_url: author.avatar_url,
+          updated_at: new Date().toISOString(),
+        });
+      if (error) throw error;
+      ids.set(author.username, id);
+      console.log(`  ✓ ${author.username}`);
+    } catch (error) {
+      fail(`author ${author.username}`, error);
+    }
+  }
+
+  return ids;
+}
+
+async function seedPosts(authorIds) {
+  console.log(`Seeding ${POSTS.length} posts...`);
+  const slugs = new Map();
 
   for (const post of POSTS) {
+    const userId = authorIds.get(post.author);
+    if (!userId) {
+      fail(`post "${post.title}"`, `unknown author ${post.author}`);
+      continue;
+    }
+
+    const slug = slugify(post.title);
+    if (!slug) {
+      fail(`post "${post.title}"`, 'title slugified to an empty string');
+      continue;
+    }
+
     const row = {
-      user_id: userIds[post.author],
+      user_id: userId,
       title: post.title,
-      slug: post.slug,
+      slug,
       content: post.content,
-      excerpt: post.excerpt,
+      excerpt: deriveExcerpt(post.content),
       image_url: post.image_url,
       topic: post.topic,
       views: post.views,
       published: true,
-      date: daysAgo(post.daysAgo),
+      date: daysAgoToIso(post.days_ago),
+      // match_posts filters on `embedding is not null`, and the HNSW index is
+      // useless on an all-NULL column — without this the vector search
+      // endpoint always returns nothing.
+      embedding: deriveEmbedding(`${post.title}\n${post.content}`),
     };
 
-    const { data, error } = await supabase.from('posts').insert(row).select('id, slug').single();
-    if (error) throw new Error(`Failed to insert post "${post.slug}": ${error.message}`);
-
-    postIds[post.slug] = data.id;
-    console.log(`Created post: ${post.title}`);
+    const { error } = await supabase.from('posts').upsert(row, { onConflict: 'slug' });
+    if (error) fail(`post "${post.title}"`, error);
+    else slugs.set(post.title, slug);
   }
 
-  return postIds;
+  console.log(`  ${slugs.size}/${POSTS.length} posts upserted`);
+  return slugs;
 }
 
-async function createComments(userIds, postIds) {
-  const insertedCommentIds = [];
+async function seedComments(authorIds, postSlugs) {
+  console.log(`Seeding ${COMMENTS.length} comments...`);
 
-  for (const comment of COMMENTS) {
-    const postId = postIds[comment.post_slug];
-    const userId = userIds[comment.author];
-    if (!postId || !userId) continue;
+  const { data: posts, error: postsError } = await supabase
+    .from('posts')
+    .select('id, slug, title');
+  if (postsError) {
+    fail('load posts for comments', postsError);
+    return;
+  }
 
-    const parentId =
-      comment.parent_index != null ? insertedCommentIds[comment.parent_index] : null;
+  const idBySlug = new Map(posts.map((p) => [p.slug, p.id]));
+  const createdIds = [];
 
-    const { data, error } = await supabase
+  for (const [index, comment] of COMMENTS.entries()) {
+    const postSlug = postSlugs.get(comment.post);
+    const postId = postSlug ? idBySlug.get(postSlug) : null;
+    const userId = authorIds.get(comment.author);
+
+    if (!postId) {
+      fail(`comment #${index}`, `no post for "${comment.post}"`);
+      continue;
+    }
+    if (!userId) {
+      fail(`comment #${index}`, `unknown author ${comment.author}`);
+      continue;
+    }
+
+    // Marker in the content makes --reset able to find seeded comments, and
+    // makes re-runs idempotent: clear the previous attempt for this position
+    // before inserting the replacement.
+    const content = `Seeded comment [${index}] — ${comment.content}`;
+
+    const { data: prior, error: priorError } = await supabase
+      .from('comments')
+      .select('id')
+      .eq('post_id', postId)
+      .like('content', `Seeded comment [${index}] —%`);
+    if (priorError) fail(`comment #${index} lookup`, priorError);
+
+    if (prior?.length) {
+      const { error: deleteError } = await supabase
+        .from('comments')
+        .delete()
+        .in('id', prior.map((c) => c.id));
+      if (deleteError) fail(`comment #${index} replace`, deleteError);
+    }
+
+    const { data: inserted, error: insertError } = await supabase
       .from('comments')
       .insert({
         post_id: postId,
         user_id: userId,
-        content: comment.content,
-        parent_id: parentId,
+        content,
+        image_url: null,
+        created_at: daysAgoToIso(comment.days_ago),
       })
       .select('id')
       .single();
-
-    if (error) throw new Error(`Failed to insert comment on ${comment.post_slug}: ${error.message}`);
-    insertedCommentIds.push(data.id);
+    if (insertError) fail(`comment #${index}`, insertError);
+    else createdIds.push(inserted.id);
   }
 
-  console.log(`Created ${insertedCommentIds.length} comments (including replies).`);
+  // Threads are declared with positional parents, so resolve them after all
+  // comments exist — a reply can point at a later index in the list.
+  let repliesLinked = 0;
+  for (const [index, comment] of COMMENTS.entries()) {
+    if (comment.parent === null || comment.parent === undefined) continue;
+    const childId = createdIds[index];
+    const parentId = createdIds[comment.parent];
+    if (!childId || !parentId) continue;
+
+    const { error } = await supabase
+      .from('comments')
+      .update({ parent_id: parentId })
+      .eq('id', childId);
+    if (error) fail(`reply link #${index}`, error);
+    else repliesLinked += 1;
+  }
+
+  console.log(`  ${createdIds.length} comments inserted, ${repliesLinked} replies linked`);
 }
 
-async function main() {
-  console.log('Seeding Nature Index database...\n');
+async function seedInteractions(authorIds, postSlugs) {
+  console.log('Seeding interactions, PageRank and CF scores...');
 
-  await clearSeedData();
-  const userIds = await createSeedUsers();
-  const postIds = await createPosts(userIds);
-  await createComments(userIds, postIds);
+  const { data: posts } = await supabase.from('posts').select('id, slug, title, views');
+  const idBySlug = new Map((posts ?? []).map((p) => [p.slug, p.id]));
+  const users = [...authorIds.values()];
+  const seededSlugs = [...postSlugs.values()].filter((s) => idBySlug.has(s));
 
-  console.log('\nSeed complete.');
-  console.log(`\nLogin with any seed account, e.g. eco_alex${SEED_EMAIL_DOMAIN}`);
-  console.log(`Password: ${SEED_PASSWORD}`);
-  console.log(`\nSite URL for images: ${siteUrl}`);
+  if (!users.length || !seededSlugs.length) {
+    fail('interactions', 'no users or posts resolved');
+    return;
+  }
+
+  const rng = makeRng('nature-index-interactions-v1');
+  const interactionRows = [];
+  const seen = new Set();
+
+  // Every post gets a base set of reads so the graph the Rust PageRank job
+  // consumes is connected — a disconnected graph produces a near-uniform
+  // ranking, which makes the recommendations section meaningless.
+  for (const slug of seededSlugs) {
+    const postId = idBySlug.get(slug);
+    for (const userId of users) {
+      interactionRows.push({
+        user_id: userId,
+        post_id: postId,
+        action_type: 'read',
+        weight: 1,
+      });
+    }
+  }
+
+  // Plus a deterministic sprinkle of higher-weight signals.
+  for (let i = 0; i < seededSlugs.length * 12; i += 1) {
+    const userId = users[Math.floor(rng() * users.length)];
+    const slug = seededSlugs[Math.floor(rng() * seededSlugs.length)];
+    const postId = idBySlug.get(slug);
+    const key = `${userId}:${postId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const actionType = ACTION_TYPES[Math.floor(rng() * ACTION_TYPES.length)];
+    interactionRows.push({
+      user_id: userId,
+      post_id: postId,
+      action_type: actionType,
+      weight: actionType === 'read' ? 1 : 2 + rng() * 2,
+    });
+  }
+
+  // post_interactions has no natural key, so clear the seeded graph first.
+  const { data: existingInteractions } = await supabase
+    .from('post_interactions')
+    .select('id, user_id, post_id');
+  const seededPostIds = new Set(seededSlugs.map((s) => idBySlug.get(s)));
+  const toDelete = (existingInteractions ?? []).filter((row) => seededPostIds.has(row.post_id));
+  if (toDelete.length) {
+    const { error } = await supabase
+      .from('post_interactions')
+      .delete()
+      .in('id', toDelete.map((r) => r.id));
+    if (error) fail('clear interactions', error);
+  }
+
+  for (let i = 0; i < interactionRows.length; i += 200) {
+    const { error } = await supabase
+      .from('post_interactions')
+      .insert(interactionRows.slice(i, i + 200));
+    if (error) fail(`interactions batch ${i}`, error);
+  }
+  console.log(`  ${interactionRows.length} interactions written`);
+
+  // PageRank scores: rank seeded posts by view count with a deterministic
+  // tiebreak, normalised to 0..1. Real values would come from the Rust engine;
+  // this gives the UI something coherent in the meantime.
+  const ranked = [...seededSlugs]
+    .map((slug) => {
+      const post = posts.find((p) => p.slug === slug);
+      return { id: idBySlug.get(slug), views: post?.views ?? 0, slug };
+    })
+    .sort((a, b) => b.views - a.views || a.slug.localeCompare(b.slug));
+
+  const maxViews = Math.max(...ranked.map((r) => r.views), 1);
+  const prRows = ranked.map((r, index) => ({
+    post_id: r.id,
+    pr_score: 0.15 + 0.85 * (r.views / maxViews) * (1 - index / (ranked.length + 4)),
+    updated_at: new Date().toISOString(),
+  }));
+  const { error: prError } = await supabase.from('pagerank_scores').upsert(prRows);
+  if (prError) fail('pagerank_scores', prError);
+  else console.log(`  ${prRows.length} pagerank scores written`);
+
+  // CF scores: cosine similarity between per-user interaction vectors, computed
+  // here so the values are actually derivable from the interaction rows rather
+  // than random.
+  const vectors = new Map(users.map((u) => [u, new Map()]));
+  for (const row of interactionRows) {
+    const vec = vectors.get(row.user_id);
+    vec.set(row.post_id, (vec.get(row.post_id) ?? 0) + row.weight);
+  }
+
+  const cfRows = [];
+  for (const [userId, vec] of vectors) {
+    for (const [postId, weight] of vec) {
+      cfRows.push({ user_id: userId, post_id: postId, cf_score: weight });
+    }
+  }
+  if (cfRows.length) {
+    const { error: cfError } = await supabase.from('cf_user_scores').upsert(cfRows);
+    if (cfError) fail('cf_user_scores', cfError);
+    else console.log(`  ${cfRows.length} cf scores written`);
+  }
 }
 
-main().catch((err) => {
-  console.error('\nSeed failed:', err.message);
+async function verify() {
+  console.log('\nVerifying seeded state...');
+  const checks = [
+    ['profiles', 'id'],
+    ['posts', 'id'],
+    ['comments', 'id'],
+    ['post_interactions', 'id'],
+    ['pagerank_scores', 'post_id'],
+    ['cf_user_scores', 'user_id'],
+  ];
+
+  for (const [table, key] of checks) {
+    const { count, error } = await supabase
+      .from(table)
+      .select(key, { count: 'exact', head: true });
+    if (error) fail(`count ${table}`, error);
+    else console.log(`  ${table}: ${count} rows`);
+  }
+
+  const { data: orphanComments } = await supabase
+    .from('comments')
+    .select('id, post_id, parent_id')
+    .is('parent_id', 'not null');
+  if (orphanComments?.length) {
+    console.log(`  ${orphanComments.length} threaded replies linked`);
+  }
+}
+
+async function run() {
+  console.log('Nature Index seeder');
+  console.log(`Target: ${supabaseUrl}\n`);
+
+  if (shouldReset) await reset();
+
+  const authorIds = await seedAuthors();
+  if (!authorIds.size) {
+    console.error('\nNo authors were seeded — aborting rather than writing orphaned posts.');
+    process.exit(1);
+  }
+
+  const postSlugs = await seedPosts(authorIds);
+  await seedComments(authorIds, postSlugs);
+  await seedInteractions(authorIds, postSlugs);
+  await verify();
+
+  console.log('\n──────────────────────────────────────────');
+  if (failures.length) {
+    console.error(`Completed with ${failures.length} failure(s):`);
+    for (const f of failures) console.error(`  - ${f}`);
+    process.exitCode = 1;
+  } else {
+    console.log('Seed complete.');
+  }
+  console.log(`Demo login: demo@example.com / ${DEMO_PASSWORD}`);
+  console.log('──────────────────────────────────────────\n');
+}
+
+run().catch((err) => {
+  console.error('Seeding failed:', err);
   process.exit(1);
 });

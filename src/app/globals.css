@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
 :root {
+  /* Opt the page into the browser's dark rendering for native UI. Without
+     this, form controls the browser draws itself — <select> option lists,
+     scrollbars, autofill, focus rings, spellcheck underlines — render with
+     light-theme defaults, which look broken on an otherwise black UI. */
+  color-scheme: dark;
+
   --background: #000000;
   --foreground: #d1d5db;
   --muted: #9ca3af;
@@ -11,11 +17,73 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-card: var(--card);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* --- Toast motion ---------------------------------------------------------
+   Tailwind v4 has no built-in `animate-in`, and toast entrance needs to
+   animate `opacity` + `transform` together from a starting state, so the
+   shorthand utilities cannot express it. */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+
+/* Drains left-to-right to show how long the toast has left. */
+@keyframes toast-drain {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.toast-enter {
+  animation: toast-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.toast-leave {
+  animation: toast-out 200ms ease-in both;
+}
+
+.toast-progress {
+  transform-origin: left center;
+  animation-name: toast-drain;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-enter,
+  .toast-leave,
+  .toast-progress {
+    animation: none;
+  }
 }
 
 @layer components {
@@ -39,8 +107,15 @@ body {
     @apply w-full bg-black/60 border border-white/20 text-white placeholder-gray-500 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-white/30 focus:border-white/40 focus:outline-none transition;
   }
 
+  /* Native select popups ignore most styling, so give the options an explicit
+     dark background/color — otherwise the OS renders a white dropdown with
+     white text on some platforms. */
+  .input-dark option {
+    @apply bg-zinc-900 text-white;
+  }
+
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-black px-8 py-3 rounded-full font-semibold shadow-lg transition-all hover:scale-[1.02];
+    @apply inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-black px-8 py-3 rounded-full font-semibold shadow-lg transition-all hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100;
   }
 
   .btn-secondary {
@@ -94,8 +169,35 @@ body {
     @apply text-gray-200 bg-white/10 px-1 py-0.5 rounded text-sm;
   }
 
+  /* react-markdown emits bare <pre> wrapping <code>; without this the inline
+     background/padding on `code` leaves a stray grey box around every block. */
+  .prose-nature pre code {
+    @apply bg-transparent p-0 rounded-none text-sm;
+  }
+
   .prose-nature pre {
     @apply bg-black/70 border border-white/10 rounded-lg p-4 overflow-x-auto mb-4;
+  }
+
+  .prose-nature img {
+    @apply rounded-xl my-4 max-w-full h-auto;
+  }
+
+  .prose-nature table {
+    @apply w-full mb-4 text-sm border-collapse;
+  }
+
+  .prose-nature th,
+  .prose-nature td {
+    @apply border border-white/15 px-3 py-2 text-left;
+  }
+
+  .prose-nature th {
+    @apply text-white font-semibold bg-white/5;
+  }
+
+  .prose-nature hr {
+    @apply border-white/15 my-6;
   }
 
   .pill-active {
@@ -104,5 +206,104 @@ body {
 
   .pill-inactive {
     @apply bg-white/5 text-gray-300 border-white/20 hover:bg-white/10 hover:border-white/40 hover:text-white;
+  }
+
+  /* --- EasyMDE dark theme -----------------------------------------------
+     EasyMDE ships a light theme, which renders as a bright white editor
+     inside the dark create-post card. These overrides restyle the wrapper,
+     toolbar, and the CodeMirror instance it mounts. */
+  .editor-dark .EasyMDEContainer .CodeMirror {
+    @apply bg-black/60 text-gray-200 border border-white/20 rounded-b-lg;
+    min-height: 240px;
+  }
+
+  .editor-dark .editor-toolbar {
+    @apply bg-white/5 border border-white/20 rounded-t-lg;
+  }
+
+  .editor-dark .editor-toolbar::before,
+  .editor-dark .editor-toolbar::after {
+    display: none;
+  }
+
+  .editor-dark .editor-toolbar a {
+    @apply text-gray-400 rounded;
+  }
+
+  .editor-dark .editor-toolbar a:hover,
+  .editor-dark .editor-toolbar a.active {
+    @apply text-white bg-white/10;
+    border-color: transparent;
+  }
+
+  .editor-dark .editor-toolbar i.separator {
+    @apply border-white/20;
+  }
+
+  .editor-dark .CodeMirror-cursor {
+    border-left: 1px solid #fff;
+  }
+
+  .editor-dark .CodeMirror-selected {
+    @apply bg-white/20;
+  }
+
+  .editor-dark .CodeMirror .cm-header {
+    @apply text-white font-bold;
+  }
+
+  .editor-dark .CodeMirror .cm-quote {
+    @apply text-gray-400 border-l-2 border-white/30 pl-2;
+  }
+
+  .editor-dark .CodeMirror .cm-link {
+    @apply text-white underline;
+  }
+
+  .editor-dark .CodeMirror .cm-url {
+    @apply text-gray-400;
+  }
+
+  .editor-dark .CodeMirror .cm-comment {
+    @apply text-gray-500;
+  }
+
+  .editor-dark .editor-preview,
+  .editor-dark .editor-side-by-side .CodeMirror {
+    @apply bg-black/60 text-gray-300;
+  }
+
+  /* markdown body rendered in EasyMDE's preview pane. Only the pieces that
+     differ from the article view — `@apply prose-nature` can't reference a
+     custom class, and the article's own `.prose-nature` rules are inherited by
+     this subtree's class list. */
+  .editor-dark .editor-preview {
+    @apply text-gray-300 leading-relaxed;
+  }
+
+  .editor-dark .editor-preview h1,
+  .editor-dark .editor-preview h2,
+  .editor-dark .editor-preview h3 {
+    @apply text-white font-bold mt-6 mb-3;
+  }
+
+  .editor-dark .editor-preview a {
+    @apply text-white underline underline-offset-4;
+  }
+
+  .editor-dark .editor-preview blockquote {
+    @apply border-l-4 border-white/40 bg-white/5 pl-4 py-2 rounded-r mb-4;
+  }
+
+  .editor-dark .editor-preview code {
+    @apply text-gray-200 bg-white/10 px-1 py-0.5 rounded text-sm;
+  }
+
+  .editor-dark .editor-preview pre {
+    @apply bg-black/70 border border-white/10 rounded-lg p-4 overflow-x-auto mb-4;
+  }
+
+  .editor-dark .editor-preview pre code {
+    @apply bg-transparent p-0 rounded-none;
   }
 }

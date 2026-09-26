@@ -1,18 +1,14 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [...compat.extends("next/core-web-vitals")];
-
-eslintConfig.unshift({
-  ignores: ['.next/**', 'node_modules/**'],
-});
+// eslint-config-next v16 ships a native flat config, so it is imported
+// directly. Wrapping it in FlatCompat (as this file used to) made the eslintrc
+// compat layer try to validate the plugin objects, which contain circular
+// references — every lint run died with "Converting circular structure to JSON".
+const eslintConfig = [
+  ...nextCoreWebVitals,
+  {
+    ignores: [".next/**", "node_modules/**"],
+  },
+];
 
 export default eslintConfig;
