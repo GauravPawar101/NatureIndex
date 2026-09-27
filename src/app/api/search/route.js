@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
 import { searchPosts } from '../../lib/posts';
+import { warmup } from '../../lib/embeddings';
 
 const MAX_LIMIT = 48;
 const DEFAULT_LIMIT = 12;
 const MAX_QUERY_LENGTH = 200;
+const MAX_AUTHOR_LENGTH = 80;
 const VALID_SORTS = new Set(['newest', 'oldest', 'popular']);
 
 /**
- * GET /api/search?q=&topic=&sort=&limit=&offset=
+ * GET /api/search?q=&topic=&author=&sort=&limit=&offset=
  *
  * Backs the blog page's "load more" button and powers the same query the server
  * component renders, so client paging and SSR agree on ordering.
@@ -20,6 +22,7 @@ export async function GET(request) {
     // on. The cut happens before the database sees it.
     const query = (searchParams.get('q') || '').slice(0, MAX_QUERY_LENGTH);
     const topic = (searchParams.get('topic') || 'All').slice(0, 80);
+    const author = (searchParams.get('author') || 'All').slice(0, MAX_AUTHOR_LENGTH);
     const sort = searchParams.get('sort') || 'newest';
 
     const requestedLimit = Number(searchParams.get('limit'));
@@ -40,10 +43,22 @@ export async function GET(request) {
         );
     }
 
-    const { posts, total, degraded, reason } = await searchPosts({ query, topic, sort, limit, offset });
+    // This endpoint is interactive, so it is the right place to pay the cost of
+    // loading the encoder: kick the load off now so the *next* keystroke can
+    // rank semantically, without making this response wait for it.
+    if (query.trim()) warmup();
+
+    const { posts, total, degraded, reason, semantic } = await searchPosts({
+        query,
+        topic,
+        author,
+        sort,
+        limit,
+        offset,
+    });
 
     return NextResponse.json(
-        { posts, total, degraded: Boolean(degraded), ...(reason ? { reason } : {}) },
+        { posts, total, degraded: Boolean(degraded), semantic: Boolean(semantic), ...(reason ? { reason } : {}) },
         {
             headers: {
                 // Search results are user-specific and cheap to recompute; a

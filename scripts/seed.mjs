@@ -32,6 +32,13 @@ import {
   slugify,
 } from './seed-data.mjs';
 
+// The same encoder the running app uses, so the vectors written here are
+// comparable with the vectors it later queries with. `seed-sql.mjs` cannot do
+// this — CI has no model download and no network — so it keeps the hash. That
+// asymmetry is deliberate: the rehearsal proves the schema accepts a vector,
+// not that the vectors mean anything.
+const { embed, isSemantic } = await import('../src/app/lib/embeddings.js');
+
 dotenv.config();
 dotenv.config({ path: resolve(process.cwd(), '.env.local'), override: true });
 
@@ -58,6 +65,28 @@ function fail(step, error) {
   const message = error?.message ?? String(error);
   console.error(`  ✗ ${step}: ${message}`);
   failures.push(`${step}: ${message}`);
+}
+
+/**
+ * Finds an auth user by email across every page of `listUsers`.
+ *
+ * The admin API has no getUserByEmail, and `listUsers` is paged in creation
+ * order, so a project with more accounts than one page cannot be searched in a
+ * single call. Returns null when the user genuinely does not exist.
+ */
+async function findUserByEmail(email) {
+  const PER_PAGE = 1000;
+  // Bounded so a misbehaving API cannot spin forever; 10k accounts is far more
+  // than any project this seeder is pointed at.
+  for (let page = 1; page <= 10; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: PER_PAGE });
+    if (error) throw error;
+
+    const match = data.users.find((u) => u.email === email);
+    if (match) return match;
+    if (data.users.length < PER_PAGE) return null;
+  }
+  return null;
 }
 
 /** Resolves a username to a profiles row, creating the auth user if needed. */
@@ -91,13 +120,12 @@ async function ensureAuthor(author) {
   if (createError) {
     if (!/already|registered|exists/i.test(createError.message)) throw createError;
 
-    // The auth user pre-exists; find it by walking the newest page.
-    const { data: list, error: listError } = await supabase.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
-    if (listError) throw listError;
-    const match = list.users.find((u) => u.email === author.email);
+    // The auth user pre-exists, so look it up. Every page has to be walked:
+    // `listUsers` orders by created_at ascending, so on a project that has
+    // accumulated test accounts the oldest user — which is exactly the demo
+    // account, created by the first ever seed — falls past the first page of
+    // 1000 and the lookup fails on a user that is demonstrably there.
+    const match = await findUserByEmail(author.email);
     if (!match) throw new Error(`auth user for ${author.email} exists but was not found`);
     return match.id;
   }
@@ -161,11 +189,48 @@ async function seedAuthors() {
   return ids;
 }
 
+/**
+ * One embedding per post, in POSTS order.
+ *
+ * Uses the app's real encoder so stored vectors are comparable with the ones
+ * the app computes at query time. Mixing the two is silently useless: cosine
+ * similarity between a meaningful vector and a hash vector is noise around
+ * zero, so a real query against hashed posts returns nothing and it looks like
+ * a broken database rather than mismatched vectors.
+ *
+ * Falls back to the deterministic hash if the model cannot load, so seeding
+ * still works offline — the result is then lexical only, and the caller is
+ * told so.
+ */
+async function embedPosts() {
+  const texts = POSTS.map((post) => `${post.title}\n${post.content}`);
+  try {
+    const vectors = await embed(texts);
+    if (vectors.length === texts.length) return vectors;
+    console.warn(`  encoder returned ${vectors.length} vectors for ${texts.length} posts; using hash`);
+  } catch (error) {
+    console.warn(`  encoder unavailable (${error.message}); using hash`);
+  }
+  return texts.map((text) => deriveEmbedding(text));
+}
+
 async function seedPosts(authorIds) {
   console.log(`Seeding ${POSTS.length} posts...`);
   const slugs = new Map();
 
-  for (const post of POSTS) {
+  // Embed every post up front, in one batch. The encoder loads a model on first
+  // use, so paying that cost once for the whole set is far cheaper than paying
+  // it per post.
+  const vectors = await embedPosts();
+  console.log(`  embeddings: ${isSemantic() ? 'semantic encoder' : 'hash fallback (lexical only)'}`);
+
+  // Keyed by the post's index in POSTS, because that is how the comment
+  // dataset refers to posts: `COMMENTS[i].post` is a number, not a title.
+  // Keying this by title instead meant every lookup missed, so all 41 comments
+  // were dropped on every run. The script does report that and exit 1, but CI
+  // only ever runs seed-sql.mjs, which maps the index correctly, so nothing
+  // caught it — and in a wall of identical per-comment lines it is easy to miss.
+  for (const [index, post] of POSTS.entries()) {
     const userId = authorIds.get(post.author);
     if (!userId) {
       fail(`post "${post.title}"`, `unknown author ${post.author}`);
@@ -192,12 +257,12 @@ async function seedPosts(authorIds) {
       // match_posts filters on `embedding is not null`, and the HNSW index is
       // useless on an all-NULL column — without this the vector search
       // endpoint always returns nothing.
-      embedding: deriveEmbedding(`${post.title}\n${post.content}`),
+      embedding: vectors[index],
     };
 
     const { error } = await supabase.from('posts').upsert(row, { onConflict: 'slug' });
     if (error) fail(`post "${post.title}"`, error);
-    else slugs.set(post.title, slug);
+    else slugs.set(index, slug);
   }
 
   console.log(`  ${slugs.size}/${POSTS.length} posts upserted`);

@@ -33,12 +33,15 @@ const SEARCH_DEBOUNCE_MS = 300;
 export default function BlogList({
     initialPosts = [],
     topics = [],
+    authors = [],
     initialTotal = 0,
     query = '',
     topic = 'All',
+    author = 'All',
     sort = 'newest',
     degraded = false,
     failed = false,
+    semantic = false,
     hasFilters = false,
     pageSize = 12,
 }) {
@@ -69,10 +72,12 @@ export default function BlogList({
 
         const nextQuery = (next.q ?? '').trim();
         const nextTopic = next.topic ?? 'All';
+        const nextAuthor = next.author ?? 'All';
         const nextSort = next.sort ?? 'newest';
 
         if (nextQuery) params.set('q', nextQuery);
         if (nextTopic !== 'All') params.set('topic', nextTopic);
+        if (nextAuthor !== 'All') params.set('author', nextAuthor);
         if (nextSort !== 'newest') params.set('sort', nextSort);
 
         const search = params.toString();
@@ -86,8 +91,8 @@ export default function BlogList({
     // Push the debounced input into the URL.
     useEffect(() => {
         if (debouncedQuery === query) return;
-        applyFilters({ q: debouncedQuery, topic, sort });
-    }, [debouncedQuery, query, topic, sort, applyFilters]);
+        applyFilters({ q: debouncedQuery, topic, author, sort });
+    }, [debouncedQuery, query, topic, author, sort, applyFilters]);
 
     const clearAll = useCallback(() => {
         setInputValue('');
@@ -103,6 +108,7 @@ export default function BlogList({
             const params = new URLSearchParams({ limit: String(pageSize), offset: String(initialPosts.length + extraPosts.length) });
             if (query) params.set('q', query);
             if (topic !== 'All') params.set('topic', topic);
+            if (author !== 'All') params.set('author', author);
             if (sort) params.set('sort', sort);
 
             const response = await fetch(`/api/search?${params.toString()}`);
@@ -124,9 +130,10 @@ export default function BlogList({
         } finally {
             setLoadingMore(false);
         }
-    }, [loadingMore, pageSize, initialPosts.length, extraPosts.length, query, topic, sort, toast]);
+    }, [loadingMore, pageSize, initialPosts.length, extraPosts.length, query, topic, author, sort, toast]);
 
-    const activeFilterCount = (query ? 1 : 0) + (topic !== 'All' ? 1 : 0) + (sort !== 'newest' ? 1 : 0);
+    const activeFilterCount =
+        (query ? 1 : 0) + (topic !== 'All' ? 1 : 0) + (author !== 'All' ? 1 : 0) + (sort !== 'newest' ? 1 : 0);
 
     return (
         <div>
@@ -137,18 +144,40 @@ export default function BlogList({
                         value={inputValue}
                         onChange={setInputValue}
                         onClear={() => setInputValue('')}
-                        placeholder="Search titles, topics and full text..."
+                        placeholder="Search by keyword or meaning..."
                         label="Search articles"
                         isPending={isPending}
                         className="flex-1"
                     />
 
-                    <div className="relative sm:w-56">
+                    <div className="relative sm:w-48">
+                        <label htmlFor="blog-author" className="sr-only">Filter by author</label>
+                        <select
+                            id="blog-author"
+                            value={author}
+                            onChange={(event) => applyFilters({ q: inputValue, topic, author: event.target.value, sort })}
+                            className="input-dark w-full appearance-none cursor-pointer pr-10"
+                        >
+                            <option value="All">All authors</option>
+                            {authors.map((entry) => (
+                                <option key={entry.username} value={entry.username}>
+                                    {entry.fullName} ({entry.count})
+                                </option>
+                            ))}
+                        </select>
+                        <ChevronDown
+                            size={16}
+                            aria-hidden="true"
+                            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                        />
+                    </div>
+
+                    <div className="relative sm:w-48">
                         <label htmlFor="blog-sort" className="sr-only">Sort articles</label>
                         <select
                             id="blog-sort"
                             value={sort}
-                            onChange={(event) => applyFilters({ q: inputValue, topic, sort: event.target.value })}
+                            onChange={(event) => applyFilters({ q: inputValue, topic, author, sort: event.target.value })}
                             className="input-dark w-full appearance-none cursor-pointer pr-10"
                         >
                             {SORT_OPTIONS.map((option) => (
@@ -187,7 +216,7 @@ export default function BlogList({
                         label="All"
                         count={null}
                         active={topic === 'All'}
-                        onClick={() => applyFilters({ q: inputValue, topic: 'All', sort })}
+                        onClick={() => applyFilters({ q: inputValue, topic: 'All', author, sort })}
                     />
                     {topics.map(({ topic: name, count }) => (
                         <TopicPill
@@ -195,7 +224,7 @@ export default function BlogList({
                             label={name}
                             count={count}
                             active={topic === name}
-                            onClick={() => applyFilters({ q: inputValue, topic: topic === name ? 'All' : name, sort })}
+                            onClick={() => applyFilters({ q: inputValue, topic: topic === name ? 'All' : name, author, sort })}
                         />
                     ))}
                 </div>
@@ -214,6 +243,14 @@ export default function BlogList({
                                     {` ${total === 1 ? 'story' : 'stories'}`}
                                     {query && <> matching <span className="text-white">&ldquo;{query}&rdquo;</span></>}
                                     {topic !== 'All' && <> in <span className="text-white">{topic}</span></>}
+                                    {author !== 'All' && (
+                                        <>
+                                            {' by '}
+                                            <span className="text-white">
+                                                {authors.find((a) => a.username === author)?.fullName ?? author}
+                                            </span>
+                                        </>
+                                    )}
                                 </>
                                 : 'No stories found'}
                 </p>
@@ -229,11 +266,24 @@ export default function BlogList({
                     </button>
                 )}
 
-                {/* Honest about weaker results: the substring fallback cannot
-                    rank, so saying nothing would overstate the quality. */}
+                {/* Honest about weaker results. "Basic matching" means the
+                    semantic tier did not contribute — either the encoder is
+                    cold, or the match_posts function is not installed — so
+                    these are keyword matches only and saying nothing would
+                    overstate the quality. */}
                 {degraded && hasResults && !isPending && (
                     <span className="rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-200">
-                        Basic matching
+                        Keyword matching only
+                    </span>
+                )}
+
+                {/* Confirms the search understood meaning, not just words. */}
+                {semantic && !isPending && hasResults && (
+                    <span
+                        className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-200"
+                        title="Results combine keyword relevance with semantic similarity"
+                    >
+                        Semantic search
                     </span>
                 )}
             </div>
@@ -246,20 +296,26 @@ export default function BlogList({
                             label={`"${query}"`}
                             onRemove={() => {
                                 setInputValue('');
-                                applyFilters({ q: '', topic, sort });
+                                applyFilters({ q: '', topic, author, sort });
                             }}
                         />
                     )}
                     {topic !== 'All' && (
                         <FilterChip
                             label={topic}
-                            onRemove={() => applyFilters({ q: inputValue, topic: 'All', sort })}
+                            onRemove={() => applyFilters({ q: inputValue, topic: 'All', author, sort })}
+                        />
+                    )}
+                    {author !== 'All' && (
+                        <FilterChip
+                            label={authors.find((a) => a.username === author)?.fullName ?? author}
+                            onRemove={() => applyFilters({ q: inputValue, topic, author: 'All', sort })}
                         />
                     )}
                     {sort !== 'newest' && (
                         <FilterChip
                             label={SORT_OPTIONS.find((option) => option.value === sort)?.label ?? sort}
-                            onRemove={() => applyFilters({ q: inputValue, topic, sort: 'newest' })}
+                            onRemove={() => applyFilters({ q: inputValue, topic, author, sort: 'newest' })}
                         />
                     )}
                 </div>

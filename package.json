@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "seed": "node scripts/seed.mjs",
     "seed:sql": "node scripts/seed-sql.mjs",
+    "truncate": "node scripts/truncate.mjs",
     "db:verify": "bash scripts/verify-db.sh",
     "check:env": "node scripts/check-env.mjs"
   },
@@ -16,6 +17,7 @@
     "node": ">=20.9.0"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.3.0",
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/ssr": "^0.6.1",

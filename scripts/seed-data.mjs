@@ -698,50 +698,9 @@ export function daysAgoToIso(daysAgo, base = Date.now()) {
   return new Date(base - daysAgo * 86_400_000).toISOString();
 }
 
-export const EMBEDDING_DIM = 384;
-
-/**
- * Deterministic 384-dimension vector derived from a post's text.
- *
- * This is feature hashing (the "hashing trick"): each token is hashed to a
- * bucket and a sign, buckets are accumulated, and the vector is L2-normalised.
- * Cosine similarity between two such vectors approximates weighted token
- * overlap, so posts on the same subject genuinely rank near each other under
- * match_posts and the HNSW index has real data to index.
- *
- * It is a lexical representation, not a semantic one: it matches shared words,
- * not shared meaning. That is the right trade-off for seed data because it
- * needs no model download, no API key and no network, so it reproduces exactly
- * in CI and on every machine. Replace it with a real encoder when wiring up
- * production embedding generation.
- */
-export function deriveEmbedding(text, dim = EMBEDDING_DIM) {
-  const vec = new Array(dim).fill(0);
-  const tokens = String(text)
-    .toLowerCase()
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/[^a-z0-9\s-]/g, ' ')
-    .split(/\s+/)
-    .filter((t) => t.length > 2);
-
-  for (const token of tokens) {
-    // FNV-1a, 32-bit. Stable across runs and platforms.
-    let hash = 0x811c9dc5;
-    for (let i = 0; i < token.length; i += 1) {
-      hash ^= token.charCodeAt(i);
-      hash = Math.imul(hash, 0x01000193) >>> 0;
-    }
-    const index = hash % dim;
-    const sign = (hash >>> 31) & 1 ? -1 : 1;
-    vec[index] += sign;
-  }
-
-  const norm = Math.sqrt(vec.reduce((sum, v) => sum + v * v, 0));
-  if (norm === 0) return vec;
-  return vec.map((v) => Number((v / norm).toFixed(6)));
-}
-
-/** Postgres `vector` literal for an array of numbers. */
-export function toVectorLiteral(vec) {
-  return `[${vec.join(',')}]`;
-}
+// The vector helpers live in the app so the runtime and the seeder cannot drift
+// apart. Re-exported here because `seed-sql.mjs` and the database rehearsal in
+// CI import them from this module, and they must stay dependency-free: CI has
+// no model download and no network, so the deterministic hash is the only
+// encoder available there.
+export { EMBEDDING_DIM, deriveEmbedding, toVectorLiteral } from '../src/app/lib/embedding-hash.mjs';

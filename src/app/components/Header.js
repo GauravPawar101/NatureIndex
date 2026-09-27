@@ -90,10 +90,16 @@ export default function Header() {
         window.location.href = '/';
     }, [supabase, loggingOut, toast]);
 
+    // One list drives both the desktop bar and the mobile panel, so a page can
+    // never end up linked in one and missing from the other.
     const navLinks = [
         { href: '/', label: 'Home' },
-        { href: '/about', label: 'About' },
         { href: '/blog', label: 'Blog' },
+        { href: '/discover', label: 'Discover' },
+        { href: '/feed', label: 'Feed' },
+        { href: '/leaderboards', label: 'Leaderboards' },
+        { href: '/analytics', label: 'Analytics' },
+        { href: '/about', label: 'About' },
     ];
 
     return (
@@ -109,8 +115,11 @@ export default function Header() {
                     <span className="text-xl font-bold text-white drop-shadow-lg">Nature Index</span>
                 </Link>
 
-                <div className="hidden lg:flex items-center gap-3 flex-1 justify-center px-6">
-                    <nav className="flex items-center gap-6">
+                {/* `xl` rather than `lg`: six links at gap-6 stop fitting before
+                    the auth buttons do, and wrapping the nav looks worse than
+                    moving it to the mobile panel a breakpoint earlier. */}
+                <div className="hidden xl:flex items-center gap-3 flex-1 justify-center px-6">
+                    <nav className="flex items-center gap-5">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.href}
@@ -187,11 +196,11 @@ export default function Header() {
                         </div>
                     )}
 
-                    {/* Mobile nav toggle — Home/About/Blog are otherwise unreachable below `lg` */}
+                    {/* Mobile nav toggle — the nav links are otherwise unreachable below `xl` */}
                     <button
                         type="button"
                         onClick={() => setMobileMenuOpen((open) => !open)}
-                        className="lg:hidden flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-black/20 text-white"
+                        className="xl:hidden flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-black/20 text-white"
                         aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
                         aria-expanded={mobileMenuOpen}
                     >
@@ -202,7 +211,7 @@ export default function Header() {
 
             {/* Mobile nav panel */}
             {mobileMenuOpen && (
-                <nav className="lg:hidden mx-4 mb-4 flex flex-col gap-1 bg-black/95 backdrop-blur-md rounded-2xl border border-white/10 p-3">
+                <nav className="xl:hidden mx-4 mb-4 flex flex-col gap-1 bg-black/95 backdrop-blur-md rounded-2xl border border-white/10 p-3">
                     {/* Search is in the bar at every breakpoint, but the bar is
                         hidden below `lg`, so mobile gets its own field here. */}
                     <form

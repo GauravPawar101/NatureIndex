@@ -100,7 +100,7 @@ if [ "$ready" -ne 1 ]; then
   exit 1
 fi
 
-for f in supabase/tests/local_fixture.sql supabase/schema.sql supabase/tests/verify.sql; do
+for f in supabase/tests/local_fixture.sql supabase/schema.sql supabase/tests/verify.sql supabase/tests/embedding_semantics.sql; do
   docker cp "$ROOT/$f" "$CONTAINER_NAME:/tmp/$(basename "$f")" >/dev/null
 done
 docker cp /tmp/seed-verify.sql "$CONTAINER_NAME:/tmp/seed.sql" >/dev/null
@@ -118,5 +118,15 @@ psql_step "seed data" /tmp/seed.sql
 
 echo "==> Running assertions"
 psql_step "assertions" /tmp/verify.sql
+
+# Runs last: it depends on the seed having written embeddings.
+#
+# The CI seed (`seed-sql.mjs`) uses the deterministic hash, not the real
+# encoder, because it has no model download and no network. The assertions
+# below only check that vectors are present, correctly shaped and queryable —
+# never that they encode meaning, which a hash cannot. Quality of the
+# embeddings themselves is verified against the live database, not here.
+echo "==> Asserting the vector search tier is wired up"
+psql_step "embedding semantics" /tmp/embedding_semantics.sql
 
 echo "==> Database verification passed"
