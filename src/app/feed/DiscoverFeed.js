@@ -91,8 +91,17 @@ export default function DiscoverFeed({ initialPosts, pageSize = 12, hasMore: ini
     return (
         <div>
             <div className="space-y-6">
-                {posts.map((post) => (
-                    <PostCard key={post.slug} post={post} />
+                {posts.map((post, index) => (
+                    <div
+                        key={post.slug}
+                        className="animate-card-in"
+                        // Only the first screen staggers. Re-animating appended
+                        // pages on every scroll would make the feed feel like it
+                        // is reloading rather than extending.
+                        style={index < posts.length - pageSize ? { '--card-index': Math.min(index, 8) } : undefined}
+                    >
+                        <PostCard post={post} />
+                    </div>
                 ))}
             </div>
 

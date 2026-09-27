@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, useTransition } from 'react';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronDown, Filter, RotateCcw, SearchX, X } from 'lucide-react';
@@ -95,9 +95,35 @@ export default function BlogList({
         applyFilters({ q: debouncedQuery, topic, author, sort });
     }, [debouncedQuery, query, topic, author, sort, applyFilters]);
 
+    // Report what a search actually found.
+    //
+    // A silent result change is the part of search that feels broken: the
+    // reader types, the page updates, and nothing tells them whether it matched
+    // anything or the query was too narrow. `total` is the server's count, so
+    // this waits for the transition to settle rather than announcing
+    // optimistically and then contradicting itself.
+    const announcedFor = useRef(null);
+    useEffect(() => {
+        if (isPending || failed) return;
+        if (!query.trim()) return;
+        if (total === 0) return; // the empty state already says so, in place
+
+        const signature = `${query}|${topic}|${author}|${sort}|${total}`;
+        if (announcedFor.current === signature) return;
+        announcedFor.current = signature;
+
+        toast.success(
+            total === 1 ? '1 story matches' : `${total} stories match`,
+            { message: 'Ranked by keyword relevance and meaning.' }
+        );
+    }, [query, topic, author, sort, total, isPending, failed, toast]);
+
     const clearAll = useCallback(() => {
         setInputValue('');
         setExtraPosts([]);
+        // Reset the announcement guard, or the next search after a clear is
+        // silently swallowed as a duplicate signature.
+        announcedFor.current = null;
         startTransition(() => router.replace(pathname, { scroll: false }));
     }, [pathname, router]);
 
@@ -342,16 +368,37 @@ export default function BlogList({
                             the others, which is not a claim worth making about
                             a filtered set — a search for "kelp" should look
                             like a result list, not a front page. */}
-                        <div className="space-y-4">
+                        {/* `isPending` dims and desaturates the existing
+                            results rather than replacing them with a
+                            skeleton. A skeleton on every keystroke is a flash
+                            of grey; the cards are already on screen and still
+                            say something useful, so they stay and the dimming
+                            is what communicates "this is updating". */}
+                        <div
+                            className={`space-y-4 transition-all duration-200 ease-out ${
+                                isPending ? 'pointer-events-none opacity-40 blur-[1px]' : 'opacity-100'
+                            }`}
+                        >
                             {(hasFilters ? [] : all.slice(0, 1)).map((post) => (
-                                <PostCard key={post.slug} post={post} query={query} variant="lead" />
+                                <div key={post.slug} className="animate-card-in" style={{ '--card-index': 0 }}>
+                                    <PostCard post={post} query={query} variant="lead" />
+                                </div>
                             ))}
 
                             <div className="space-y-4">
                                 {all
                                     .slice(hasFilters ? 0 : 1)
-                                    .map((post) => (
-                                        <PostCard key={post.slug} post={post} query={query} />
+                                    .map((post, index) => (
+                                        <div
+                                            key={post.slug}
+                                            className="animate-card-in"
+                                            // Capped so a long list does not leave
+                                            // the last card waiting a second to
+                                            // appear.
+                                            style={{ '--card-index': Math.min(index, 8) }}
+                                        >
+                                            <PostCard post={post} query={query} />
+                                        </div>
                                     ))}
                             </div>
                         </div>
