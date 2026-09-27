@@ -85,10 +85,33 @@ body {
   animation-fill-mode: both;
 }
 
+/* --- Card entrance ------------------------------------------------------
+   Cards rise and fade in on mount, staggered by index so a grid resolves
+   top-left to bottom-right rather than appearing all at once. That ordering is
+   what makes a static list read as having loaded in sequence. */
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-card-in {
+  animation: card-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* Stagger driven by a CSS variable, so the delay lives in the markup rather
+     than in a repeated inline style. */
+  animation-delay: calc(var(--card-index, 0) * 35ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .toast-enter,
   .toast-leave,
-  .toast-progress {
+  .toast-progress,
+  .animate-card-in {
     animation: none;
   }
 }
