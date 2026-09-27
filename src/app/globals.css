@@ -12,6 +12,13 @@
   --muted: #9ca3af;
   --border: rgba(255, 255, 255, 0.1);
   --card: rgba(255, 255, 255, 0.1);
+
+  /* Secondary text. Deliberately not Tailwind's gray-500 (#6b7280): that is
+     4.34:1 on pure black and only 3.60:1 on a card surface, so it fails WCAG
+     AA for body text (4.5:1) everywhere it appears on a card — and it is where
+     the author, date and reading time live. This value clears 4.5:1 on both.
+     Measured, not eyeballed; see the note in PostCard. */
+  --text-secondary: #9ca3af;
 }
 
 @theme inline {
@@ -95,12 +102,17 @@ body {
     @apply min-h-screen bg-black pt-28 pb-20;
   }
 
+  /* The card surface is kept deliberately faint. At bg-white/10 over black the
+     backdrop-blur has almost nothing to blur, so the fill does the visual work
+     and a 12-card page reads as a wall of grey blocks. Dropping the fill and
+     leaning on the border keeps the cards separated without the heaviness, and
+     is what makes the density changes in PostCard legible. */
   .glass-card {
-    @apply bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-lg;
+    @apply bg-white/[0.04] backdrop-blur-md rounded-2xl border border-white/15;
   }
 
   .glass-card-hover {
-    @apply bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-lg transition-colors hover:bg-white/15 hover:border-white/30;
+    @apply bg-white/[0.04] backdrop-blur-md rounded-2xl border border-white/15 transition-colors hover:bg-white/[0.08] hover:border-white/30;
   }
 
   .input-dark {
