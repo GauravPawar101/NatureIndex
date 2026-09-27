@@ -612,9 +612,9 @@ async function verify() {
     .select('post_id', { count: 'exact', head: true });
 
   if (mediaError) {
-    console.log(`  post_media: skipped (${mediaError.message})`);
+    console.log(`  post_media: absent — ${mediaError.message}`);
   } else {
-    console.log(`  post_media: ${mediaAssets} assets`);
+    console.log(`  post_media: ${mediaAssets ?? 0} assets`);
   }
 
   const { data: typeCounts } = await supabase
