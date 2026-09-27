@@ -28,12 +28,18 @@
   --ink-faint: rgba(0, 0, 0, 0.4);
 
   --bg: #ffffff;
-  --surface: rgba(255, 255, 255, 0.72);
-  --surface-raised: rgba(255, 255, 255, 0.9);
-  --surface-sunken: rgba(0, 0, 0, 0.03);
 
-  --line: rgba(0, 0, 0, 0.1);
-  --line-strong: rgba(0, 0, 0, 0.2);
+  /* Light-mode surfaces are *not* white. Over a white page, a 72%-white panel
+     is invisible — the earlier values were invisible and the cards read as plain
+     text on a sheet. These are a faint warm white with enough tint, and enough
+     opacity, to separate from the ground photograph while still letting the
+     blurred image read through. */
+  --surface: rgba(255, 255, 255, 0.62);
+  --surface-raised: rgba(255, 255, 255, 0.82);
+  --surface-sunken: rgba(0, 0, 0, 0.035);
+
+  --line: rgba(0, 0, 0, 0.12);
+  --line-strong: rgba(0, 0, 0, 0.22);
 
   /* Medium's green. Used sparingly: active pills, focus rings, links. */
   --accent: #0f9d76;
@@ -41,18 +47,21 @@
   --warn: #b45309;
   --danger: #c0392b;
 
-  /* Over a light ground the scrim is inverted: the photograph sits behind the
-     hero only, and the wash is white so text stays dark-on-light. */
+  /* The scrim inverts in light mode: a white wash so text stays dark-on-light.
+     Kept far more transparent than the dark equivalent — an earlier version ran
+     86-96% opaque white, which erased the photograph entirely and left the page
+     looking like a flat white sheet. The ground has to be visible to be worth
+     having; these values let it read through without fighting the text. */
   --scrim: linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0.96) 0%,
-    rgba(255, 255, 255, 0.86) 40%,
-    rgba(255, 255, 255, 0.92) 100%
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 255, 255, 0.58) 45%,
+    rgba(255, 255, 255, 0.74) 100%
   );
 
   --ground-image: url('/posts/forest.jpg');
-  --ground-blur: 20px;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --ground-blur: 18px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.05), 0 6px 20px rgba(0, 0, 0, 0.07);
 }
 
 /* --- Dark ----------------------------------------------------------------
@@ -81,9 +90,9 @@
 
   --scrim: linear-gradient(
     to bottom,
-    rgba(10, 10, 10, 0.94) 0%,
-    rgba(10, 10, 10, 0.8) 40%,
-    rgba(10, 10, 10, 0.92) 100%
+    rgba(10, 10, 10, 0.82) 0%,
+    rgba(10, 10, 10, 0.66) 45%,
+    rgba(10, 10, 10, 0.84) 100%
   );
 
   --ground-image: url('/posts/forest.jpg');
@@ -103,15 +112,28 @@
   --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
 }
 
-body {
+/* The background is painted on <html>, and <body> is left with no background
+   at all (transparent is the initial value, so declaring it is unnecessary —
+   and the CSS minifier was mangling an explicit `transparent` into `00`, which
+   is invalid and gets dropped).
+
+   This is not cosmetic. `body` is not a stacking context by default, so a
+   `z-index: -2` descendant escapes behind the *viewport* canvas — meaning the
+   ground photograph was rendering underneath body's own background and was
+   never visible at all. Painting the base colour on the root element is what
+   makes the ground layer actually appear. */
+html {
   background: var(--bg);
+}
+
+body {
   color: var(--ink-muted);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   /* The theme flips the ground image and the surfaces; a hard transition on the
      body would make the flip feel like a page reload. */
-  transition: background-color 240ms ease, color 240ms ease;
+  transition: color 240ms ease;
 }
 
 
@@ -123,11 +145,13 @@ body {
 .ground {
   position: fixed;
   inset: 0;
-  z-index: -2;
+  /* -1, not -2: with the base colour on <html> and <body> transparent this
+     sits directly above the canvas and below all content. */
+  z-index: -1;
   background-image: var(--ground-image);
   background-size: cover;
   background-position: center;
-  filter: blur(var(--ground-blur)) saturate(0.85);
+  filter: blur(var(--ground-blur)) saturate(0.9);
   transform: scale(1.08); /* hides the blur's edge bleed */
 }
 

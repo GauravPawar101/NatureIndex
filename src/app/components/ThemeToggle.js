@@ -99,15 +99,17 @@ function readTheme() {
  * browser paints the wrong theme first.
  *
  * Kept as a string because it is injected with dangerouslySetInnerHTML.
- * Reads three things, in priority order: an explicit stored choice, then the
- * OS preference, then light.
+ *
+ * Defaults to **light**, not to the OS preference. This site is a publication
+ * and light is the mode it is designed in; silently inheriting a dark OS meant
+ * most visitors never saw the intended design, which is exactly the bug that
+ * made this look broken. The toggle is right there for anyone who prefers dark.
  */
 export const THEME_INIT_SCRIPT = `
 (function () {
   try {
     var stored = localStorage.getItem('ni-theme');
-    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    var theme = stored === 'dark' || stored === 'light' ? stored : (prefersDark ? 'dark' : 'light');
+    var theme = stored === 'dark' || stored === 'light' ? stored : 'light';
     document.documentElement.setAttribute('data-theme', theme);
   } catch (e) {
     document.documentElement.setAttribute('data-theme', 'light');
