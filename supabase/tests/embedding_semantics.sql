@@ -29,9 +29,16 @@ begin
 
   -- A vector of the wrong width cannot be indexed, and the column is fixed at
   -- 384, so this only trips if the column definition itself drifted.
+  --
+  -- The width is read out of the vector's own text form rather than via
+  -- `vector_dims()`: pgvector installs into the `extensions` schema here, so
+  -- that function is `extensions.vector_dims()` and is not on the search_path
+  -- in CI. Counting commas is exact for the canonical `[a,b,c]` output and does
+  -- not depend on the extension's schema at all.
   select count(*) into bad_dims
     from public.posts
-   where embedding is not null and vector_dims(embedding) <> 384;
+   where embedding is not null
+     and (length(embedding::text) - length(replace(embedding::text, ',', ''))) + 1 <> 384;
 
   if bad_dims > 0 then
     raise exception '% posts have an embedding that is not 384-dimensional', bad_dims;

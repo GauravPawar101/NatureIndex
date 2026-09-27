@@ -7,6 +7,8 @@ import ReactMarkdown from 'react-markdown';
 import CommentsSection from './CommentSection';
 import TableOfContents from '../../components/TableOfContents';
 import ReadingProgress from '../../components/ReadingProgress';
+import PostMedia from '../../components/PostMedia';
+import { getPostMedia, getPostVideo } from '../../lib/media';
 import ArticleActions from '../../components/ArticleActions';
 import RecommendedPosts from '../../components/Recommendposts';
 import { extractHeadings, slugifyHeading } from '../../lib/headings';
@@ -120,6 +122,13 @@ export default async function BlogPostPage({ params }) {
     const markdownComponents = buildMarkdownComponents(new Map(headings.map((h) => [h.line, h.id])));
     const comments = Array.isArray(post.comments) ? post.comments : [];
 
+    // Only fetched for posts that can actually have media. Both helpers degrade
+    // to empty, so an unreachable media table leaves an article rendering
+    // normally rather than failing the page.
+    const [media, video] = post.content_type && post.content_type !== 'article'
+        ? await Promise.all([getPostMedia(post.id), getPostVideo(post.id)])
+        : [[], null];
+
     return (
         <article className="page-shell">
             <ReadingProgress />
@@ -152,23 +161,37 @@ export default async function BlogPostPage({ params }) {
                             </ol>
                         </nav>
 
-                        {post.image_url && (
-                            <div className="relative mb-8 h-64 w-full overflow-hidden rounded-2xl border border-white/20 md:h-80">
-                                <Image
-                                    src={post.image_url}
-                                    alt={post.title}
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, 768px"
-                                    className="object-cover"
-                                    // Cover URLs are user-supplied at publish time, so they
-                                    // can point at any host. Without this, next/image
-                                    // throws on hosts missing from images.remotePatterns
-                                    // and takes the whole article page down with it.
-                                    unoptimized
-                                    priority
+                        {/* A video post shows its player in place of the cover:
+                            a still cover above a player two scrolls down is worse
+                            than the video first. Photo and article posts keep the
+                            existing cover treatment. */}
+                        {post.content_type === 'video' ? (
+                            <div className="mb-8">
+                                <PostMedia
+                                    media={media}
+                                    video={video}
+                                    title={post.title}
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                             </div>
+                        ) : (
+                            post.image_url && (
+                                <div className="relative mb-8 h-64 w-full overflow-hidden rounded-2xl border border-white/20 md:h-80">
+                                    <Image
+                                        src={post.image_url}
+                                        alt={post.title}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 768px"
+                                        className="object-cover"
+                                        // Cover URLs are user-supplied at publish time, so they
+                                        // can point at any host. Without this, next/image
+                                        // throws on hosts missing from images.remotePatterns
+                                        // and takes the whole article page down with it.
+                                        unoptimized
+                                        priority
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                </div>
+                            )
                         )}
 
                         {post.topic && (
@@ -215,6 +238,15 @@ export default async function BlogPostPage({ params }) {
                         </div>
 
                         <TableOfContents headings={headings} variant="accordion" />
+
+                        {/* Photo posts get their gallery after the header. A video
+                            post already rendered its player at the top, so it is
+                            not repeated here. */}
+                        {post.content_type === 'photo' && media.length > 0 && (
+                            <div className="mb-12">
+                                <PostMedia media={media} title={post.title} />
+                            </div>
+                        )}
 
                         {/* Comments are already nested by CommentSection, so a flat
                             <ReactMarkdown> here would render nothing for them —

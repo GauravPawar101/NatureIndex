@@ -24,16 +24,36 @@ export const UPLOAD_TARGETS = {
         bucket: 'avatars',
         maxBytes: 5 * 1024 * 1024,
         label: 'avatar',
+        accepts: 'image',
     },
     'post-image': {
         bucket: 'post-images',
         maxBytes: 8 * 1024 * 1024,
         label: 'image',
+        accepts: 'image',
     },
     'comment-image': {
         bucket: 'comment-images',
         maxBytes: 5 * 1024 * 1024,
         label: 'image',
+        accepts: 'image',
+    },
+    // Separate buckets from the images above, because a video is two orders of
+    // magnitude larger than a photo. Sharing one bucket would force the limit
+    // for both to be whichever is larger, which would let a 100MB "image"
+    // through to be rejected by the MIME list.
+    'post-photo': {
+        bucket: 'post-photos',
+        maxBytes: 8 * 1024 * 1024,
+        label: 'photo',
+        accepts: 'image',
+    },
+    'post-video': {
+        bucket: 'post-videos',
+        // Matches the 104857600 on the post-videos bucket in schema.sql.
+        maxBytes: 100 * 1024 * 1024,
+        label: 'video',
+        accepts: 'video',
     },
 };
 
@@ -41,8 +61,12 @@ export const UPLOAD_TARGETS = {
  * MIME type -> extension. The buckets also enforce an `allowed_mime_types`
  * list, but failing here first produces a message a person can act on instead
  * of a raw storage error.
+ *
+ * Split by media kind because the accepted sets are disjoint: no container is
+ * both a still image and a video, and `video/mp4` must not resolve to a `.mp4`
+ * that some image decoder later tries to parse.
  */
-const EXTENSION_BY_TYPE = new Map([
+const IMAGE_EXTENSIONS = new Map([
     ['image/png', 'png'],
     ['image/jpeg', 'jpg'],
     ['image/webp', 'webp'],
@@ -50,7 +74,19 @@ const EXTENSION_BY_TYPE = new Map([
     ['image/avif', 'avif'],
 ]);
 
-const HUMAN_TYPES = 'PNG, JPEG, WebP, GIF or AVIF';
+const VIDEO_EXTENSIONS = new Map([
+    ['video/mp4', 'mp4'],
+    ['video/webm', 'webm'],
+    ['video/quicktime', 'mov'],
+    ['video/ogg', 'ogv'],
+]);
+
+const HUMAN_IMAGE_TYPES = 'PNG, JPEG, WebP, GIF or AVIF';
+const HUMAN_VIDEO_TYPES = 'MP4, WebM, QuickTime or Ogg';
+
+function humanTypesFor(accepts) {
+    return accepts === 'video' ? HUMAN_VIDEO_TYPES : HUMAN_IMAGE_TYPES;
+}
 
 // One year. Object names embed a timestamp and random suffix, so a given URL
 // always refers to the same bytes and is safe to cache indefinitely.
@@ -67,8 +103,16 @@ export function validateImageFile(file, targetKey) {
 
     if (!file) throw new Error('No file was selected.');
 
-    if (!EXTENSION_BY_TYPE.has(file.type)) {
-        throw new Error(`Unsupported file type. Use a ${HUMAN_TYPES} image.`);
+    const allowed = target.accepts === 'video' ? VIDEO_EXTENSIONS : IMAGE_EXTENSIONS;
+
+    if (!allowed.has(file.type)) {
+        // A video arriving at an image target is the most likely mistake, so it
+        // gets a message that says so rather than a generic "unsupported type".
+        const wrongKind = target.accepts === 'image' && VIDEO_EXTENSIONS.has(file.type);
+        if (wrongKind) {
+            throw new Error(`That is a video. ${label(target.label)}s must be a ${humanTypesFor('image')} image.`);
+        }
+        throw new Error(`Unsupported file type. Use a ${humanTypesFor(target.accepts)} file.`);
     }
 
     if (file.size === 0) {
@@ -94,9 +138,14 @@ function label(word) {
  * millisecond cannot collide — which would otherwise fail the second one with
  * "The resource already exists".
  */
-export function buildObjectName(userId, file) {
-    const extension = EXTENSION_BY_TYPE.get(file.type);
-    if (!extension) throw new Error(`Unsupported file type. Use a ${HUMAN_TYPES} image.`);
+export function buildObjectName(userId, file, targetKey) {
+    const target = UPLOAD_TARGETS[targetKey];
+    const allowed = target?.accepts === 'video' ? VIDEO_EXTENSIONS : IMAGE_EXTENSIONS;
+
+    const extension = allowed.get(file.type);
+    if (!extension) {
+        throw new Error(`Unsupported file type. Use a ${humanTypesFor(target?.accepts)} file.`);
+    }
 
     const safeUserId = String(userId || '').replace(/[^a-zA-Z0-9-]/g, '');
     if (!safeUserId) throw new Error('Could not determine your user id.');
@@ -106,13 +155,13 @@ export function buildObjectName(userId, file) {
 }
 
 /**
- * Upload an image and return its public URL.
+ * Upload media and return its public URL.
  *
  * @param {object} args
  * @param {object} args.supabase
  * @param {string} args.userId
  * @param {File}   args.file
- * @param {'avatar'|'post-image'|'comment-image'} args.target
+ * @param {'avatar'|'post-image'|'comment-image'|'post-photo'|'post-video'} args.target
  * @param {(path: string) => void} [args.onUploaded] receives the object name so
  *   the caller can clean up the object it is replacing.
  * @returns {Promise<{ publicUrl: string, path: string }>}
@@ -125,7 +174,7 @@ export async function uploadImage({ supabase, userId, file, target, onUploaded }
 
     validateImageFile(file, target);
 
-    const objectName = buildObjectName(userId, file);
+    const objectName = buildObjectName(userId, file, target);
 
     const { error } = await supabase.storage
         .from(config.bucket)
@@ -214,7 +263,7 @@ function cleanStorageError(error, config) {
         return `${label(config.label)}s must be under ${formatBytes(config.maxBytes)}.`;
     }
     if (/mime type|not allowed|invalid/i.test(message)) {
-        return `Unsupported file type. Use a ${HUMAN_TYPES} image.`;
+        return `Unsupported file type. Use a ${humanTypesFor(config.accepts)} file.`;
     }
     if (/bucket not found/i.test(message)) {
         return `The "${config.bucket}" storage bucket is missing. Run supabase/schema.sql against this project.`;

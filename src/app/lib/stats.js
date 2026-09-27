@@ -21,6 +21,7 @@ import { createClient } from './supabase/server';
 
 const POST_FIELDS = `
   id, slug, title, excerpt, image_url, topic, views, date, published,
+  content_type, video_duration_s,
   profiles!posts_user_id_fkey(username, full_name, avatar_url)
 `;
 

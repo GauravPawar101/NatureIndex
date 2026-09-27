@@ -69,3 +69,29 @@ create or replace function auth.role()
 returns text language sql stable as $$
   select coalesce(nullif(current_setting('request.jwt.claim.role', true), ''), 'anon');
 $$;
+
+-- pg_catalog views the assertion suite reads to prove RLS is actually enabled
+-- and policies actually exist. They are views over pg_class/pg_policy rather
+-- than tables, so a plain CREATE TABLE would break the column shapes the
+-- assertions select. Defining them as views keeps the assertions identical
+-- whether they run here or against a real Supabase project.
+create or replace view pg_policies as
+  select
+    n.nspname as schemaname,
+    c.relname as tablename,
+    p.polname as policyname,
+    p.polcmd as cmd,
+    p.polpermissive as permissive,
+    p.polroles::text[] as roles
+  from pg_policy p
+  join pg_class c on c.oid = p.polrelid
+  join pg_namespace n on n.oid = c.relnamespace;
+
+create or replace view pg_tables as
+  select
+    n.nspname as schemaname,
+    c.relname as tablename,
+    c.relrowsecurity as rowsecurity
+  from pg_class c
+  join pg_namespace n on n.oid = c.relnamespace
+  where c.relkind = 'r';

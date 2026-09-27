@@ -32,8 +32,14 @@ import { embedOne, isReady, toVectorLiteral } from './embeddings';
  *                      instead of pretending there were no matches
  */
 
+// `content_type` and `video_duration_s` are selected so PostCard can label a
+// video post. They are `not null default 'article'` / nullable, so this keeps
+// working against a database where the media addendum has not been applied —
+// PostgREST returns null for a column that is not in the table's schema cache
+// rather than failing the whole select.
 const POST_SELECT = `
     id, slug, title, excerpt, content, image_url, topic, views, date, published,
+    content_type, video_duration_s,
     profiles!posts_user_id_fkey(username, avatar_url, full_name)
 `;
 

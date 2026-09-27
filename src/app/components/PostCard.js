@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Eye, MessageSquare } from 'lucide-react';
+import { Eye, MessageSquare, Video, ImageIcon } from 'lucide-react';
 import { excerptAroundMatch, tokenizeMatches } from '../lib/highlight';
+import { formatDuration } from '../lib/media-format';
 import {
     formatCompactNumber,
     formatDate,
@@ -30,6 +31,7 @@ export default function PostCard({ post, query = '', variant = 'row', compact = 
     const authorUsername = post.profiles?.username;
     const readingTime = formatReadingTime(post.content);
     const commentCount = Array.isArray(post.comments) ? post.comments.length : Number(post.comment_count) || 0;
+    const mediaDuration = formatDuration(post.video_duration_s);
 
     // Prefer a window around the match; fall back to the stored excerpt.
     const body = query
@@ -66,6 +68,22 @@ export default function PostCard({ post, query = '', variant = 'row', compact = 
                         )}
                         {readingTime && (
                             <span className="text-[10px] font-medium text-gray-500">{readingTime}</span>
+                        )}
+                        {/* A video post is worth flagging on a card: a reader
+                            scanning the list is deciding whether to spend time,
+                            and a two-minute clip and a long read are not the
+                            same commitment. */}
+                        {post.content_type === 'video' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-red-300">
+                                <Video size={10} aria-hidden="true" />
+                                Video{mediaDuration ? ` · ${mediaDuration}` : ''}
+                            </span>
+                        )}
+                        {post.content_type === 'photo' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300">
+                                <ImageIcon size={10} aria-hidden="true" />
+                                Photo set
+                            </span>
                         )}
                     </div>
 
