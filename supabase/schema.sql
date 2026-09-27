@@ -491,35 +491,39 @@ on conflict (id) do update
 -- policies match on: `(storage.foldername(name))[1] = auth.uid()`. The underscore
 -- form is wrong here for the same reason it is wrong everywhere else — a UUID is
 -- full of hyphens, so splitting on '-' never yields the id.
-drop policy if exists "post_videos_owner_insert" on storage.objects;
-create policy "post_videos_owner_insert" on storage.objects
-  for insert to authenticated
-  with check (bucket_id = 'post-videos' and (storage.foldername(name))[1] = auth.uid()::text);
+--
+-- The role test is `auth.role() = 'authenticated'` inside the USING clause, not
+-- a role grant on the policy, because that is what every other storage policy in
+-- this file does. A role-granted clause needs the role to exist, and it does not
+-- in the CI container — the fixture stubs only the auth *functions* — so the
+-- database rehearsal would fail on a policy that is perfectly valid on Supabase.
+-- The predicate is equivalent in practice: GoTrue sets that claim for any
+-- signed-in session.
+drop policy if exists "post_videos_auth_insert" on storage.objects;
+create policy "post_videos_auth_insert" on storage.objects for insert
+  with check (bucket_id = 'post-videos' and auth.role() = 'authenticated'
+              and auth.uid()::text = (storage.foldername(name))[1]);
 
 drop policy if exists "post_videos_owner_update" on storage.objects;
-create policy "post_videos_owner_update" on storage.objects
-  for update to authenticated
-  using (bucket_id = 'post-videos' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "post_videos_owner_update" on storage.objects for update
+  using (bucket_id = 'post-videos' and auth.uid()::text = (storage.foldername(name))[1]);
 
 drop policy if exists "post_videos_owner_delete" on storage.objects;
-create policy "post_videos_owner_delete" on storage.objects
-  for delete to authenticated
-  using (bucket_id = 'post-videos' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "post_videos_owner_delete" on storage.objects for delete
+  using (bucket_id = 'post-videos' and auth.uid()::text = (storage.foldername(name))[1]);
 
-drop policy if exists "post_photos_owner_insert" on storage.objects;
-create policy "post_photos_owner_insert" on storage.objects
-  for insert to authenticated
-  with check (bucket_id = 'post-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "post_photos_auth_insert" on storage.objects;
+create policy "post_photos_auth_insert" on storage.objects for insert
+  with check (bucket_id = 'post-photos' and auth.role() = 'authenticated'
+              and auth.uid()::text = (storage.foldername(name))[1]);
 
 drop policy if exists "post_photos_owner_update" on storage.objects;
-create policy "post_photos_owner_update" on storage.objects
-  for update to authenticated
-  using (bucket_id = 'post-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "post_photos_owner_update" on storage.objects for update
+  using (bucket_id = 'post-photos' and auth.uid()::text = (storage.foldername(name))[1]);
 
 drop policy if exists "post_photos_owner_delete" on storage.objects;
-create policy "post_photos_owner_delete" on storage.objects
-  for delete to authenticated
-  using (bucket_id = 'post-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "post_photos_owner_delete" on storage.objects for delete
+  using (bucket_id = 'post-photos' and auth.uid()::text = (storage.foldername(name))[1]);
 
 -- ------------------------------------------------------------
 -- 11. Collaborative Filtering Scores
