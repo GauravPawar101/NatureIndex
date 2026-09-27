@@ -36,7 +36,7 @@ export default async function FeedPage() {
 
   return (
     <div className="page-shell">
-      <div className="container mx-auto max-w-3xl px-6">
+      <div className="container-page">
         <PageHero
           eyebrow="Feed"
           title="Everything, newest first"
@@ -44,7 +44,7 @@ export default async function FeedPage() {
         />
 
         {initialPosts.length === 0 ? (
-          <div className="glass-card p-8">
+          <div className="glass p-8">
             <EmptyState
               icon={Flame}
               title="The feed is empty"

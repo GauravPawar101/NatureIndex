@@ -169,8 +169,8 @@ export default function ArticleActions({ postId, title }) {
                 title={bookmarked ? 'Remove bookmark' : 'Save for later'}
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
                     bookmarked
-                        ? 'border-white bg-white text-black'
-                        : 'border-white/20 text-gray-200 hover:bg-white/10 hover:border-white/40'
+                        ? 'border-[var(--line-strong)] bg-white text-black'
+                        : 'border-[var(--line-strong)] text-[var(--ink)] hover:bg-[var(--surface)] hover:border-[var(--line-strong)]'
                 }`}
             >
                 <Bookmark size={15} fill={bookmarked ? 'currentColor' : 'none'} aria-hidden="true" />
@@ -180,7 +180,7 @@ export default function ArticleActions({ postId, title }) {
             <button
                 type="button"
                 onClick={share}
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-gray-200 transition-colors hover:bg-white/10 hover:border-white/40"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--line-strong)] px-4 py-2 text-sm font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface)] hover:border-[var(--line-strong)]"
             >
                 <Share2 size={15} aria-hidden="true" />
                 Share

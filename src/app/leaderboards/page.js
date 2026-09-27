@@ -32,13 +32,13 @@ export default async function LeaderboardsPage() {
   if (byPosts.length === 0) {
     return (
       <div className="page-shell">
-        <div className="container mx-auto max-w-5xl px-6">
+        <div className="container-page">
           <PageHero
             eyebrow="Leaderboards"
             title="Who is writing"
             description="The contributors behind the field reports on this site."
           />
-          <div className="glass-card p-8">
+          <div className="glass p-8">
             <EmptyState
               icon={Trophy}
               title="No contributors yet"
@@ -52,7 +52,7 @@ export default async function LeaderboardsPage() {
 
   return (
     <div className="page-shell">
-      <div className="container mx-auto max-w-5xl px-6">
+      <div className="container-page">
         <PageHero
           eyebrow="Leaderboards"
           title="Who is writing"
@@ -76,7 +76,7 @@ export default async function LeaderboardsPage() {
           />
         </div>
 
-        <p className="mt-10 text-center text-sm text-gray-500">
+        <p className="mt-10 text-center text-sm text-[var(--ink-faint)]">
           These rankings count published stories only. Drafts are never included.
         </p>
       </div>
@@ -87,10 +87,10 @@ export default async function LeaderboardsPage() {
 /** One leaderboard table. `metric` decides which number is emphasised. */
 function Board({ title, icon: Icon, caption, entries, metric }) {
   return (
-    <section className="glass-card overflow-hidden" aria-labelledby={`board-${metric}`}>
-      <div className="flex items-center gap-3 border-b border-white/10 p-5">
+    <section className="glass overflow-hidden" aria-labelledby={`board-${metric}`}>
+      <div className="flex items-center gap-3 border-b border-[var(--line)] p-5">
         <Icon size={18} className="text-amber-400" aria-hidden="true" />
-        <h2 id={`board-${metric}`} className="text-lg font-bold text-white">
+        <h2 id={`board-${metric}`} className="text-lg font-bold text-[var(--ink)]">
           {title}
         </h2>
       </div>
@@ -104,27 +104,27 @@ function Board({ title, icon: Icon, caption, entries, metric }) {
             <li key={entry.userId}>
               <Link
                 href={`/profile/${entry.handle}`}
-                className="flex items-center gap-4 p-4 transition-colors hover:bg-white/5"
+                className="flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]"
               >
                 <span
                   aria-hidden="true"
                   className={`w-7 shrink-0 text-center font-bold ${
-                    entry.rank <= 3 ? 'text-amber-400' : 'text-gray-600'
+                    entry.rank <= 3 ? 'text-amber-400' : 'text-[var(--ink-faint)]'
                   }`}
                 >
                   {entry.rank}
                 </span>
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-white">{entry.fullName}</p>
-                  <p className="truncate text-xs text-gray-500">@{entry.handle}</p>
+                  <p className="truncate font-semibold text-[var(--ink)]">{entry.fullName}</p>
+                  <p className="truncate text-xs text-[var(--ink-faint)]">@{entry.handle}</p>
                 </div>
 
                 <div className="shrink-0 text-right">
-                  <p className="font-bold text-white">
+                  <p className="font-bold text-[var(--ink)]">
                     {primary.toLocaleString('en-GB')}
                   </p>
-                  <p className="text-[11px] text-gray-500">
+                  <p className="text-[11px] text-[var(--ink-faint)]">
                     {metric === 'views'
                       ? `${secondary} ${secondary === 1 ? 'story' : 'stories'}`
                       : `${secondary.toLocaleString('en-GB')} views`}
@@ -136,7 +136,7 @@ function Board({ title, icon: Icon, caption, entries, metric }) {
         })}
       </ol>
 
-      <p className="border-t border-white/10 p-3 text-center text-xs text-gray-500">{caption}</p>
+      <p className="border-t border-[var(--line)] p-3 text-center text-xs text-[var(--ink-faint)]">{caption}</p>
     </section>
   );
 }

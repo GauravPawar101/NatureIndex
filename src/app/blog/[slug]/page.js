@@ -133,17 +133,17 @@ export default async function BlogPostPage({ params }) {
         <article className="page-shell">
             <ReadingProgress />
 
-            <div className="container mx-auto max-w-6xl px-6">
+            <div className="container-page">
                 <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_220px]">
                     <div className="min-w-0 max-w-3xl">
                         <nav aria-label="Breadcrumb" className="mb-6">
-                            <ol className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                            <ol className="flex flex-wrap items-center gap-2 text-xs text-[var(--ink-faint)]">
                                 <li>
-                                    <Link href="/" className="transition-colors hover:text-white">Home</Link>
+                                    <Link href="/" className="transition-colors hover:text-[var(--ink)]">Home</Link>
                                 </li>
                                 <li aria-hidden="true">/</li>
                                 <li>
-                                    <Link href="/blog" className="transition-colors hover:text-white">Field Journal</Link>
+                                    <Link href="/blog" className="transition-colors hover:text-[var(--ink)]">Field Journal</Link>
                                 </li>
                                 {post.topic && (
                                     <>
@@ -151,7 +151,7 @@ export default async function BlogPostPage({ params }) {
                                         <li>
                                             <Link
                                                 href={`/blog?topic=${encodeURIComponent(post.topic)}`}
-                                                className="transition-colors hover:text-white"
+                                                className="transition-colors hover:text-[var(--ink)]"
                                             >
                                                 {post.topic}
                                             </Link>
@@ -175,7 +175,7 @@ export default async function BlogPostPage({ params }) {
                             </div>
                         ) : (
                             post.image_url && (
-                                <div className="relative mb-8 h-64 w-full overflow-hidden rounded-2xl border border-white/20 md:h-80">
+                                <div className="relative mb-8 h-64 w-full overflow-hidden rounded-2xl border border-[var(--line-strong)] md:h-80">
                                     <Image
                                         src={post.image_url}
                                         alt={post.title}
@@ -195,17 +195,17 @@ export default async function BlogPostPage({ params }) {
                         )}
 
                         {post.topic && (
-                            <Link href={`/blog?topic=${encodeURIComponent(post.topic)}`} className="eyebrow mb-4 inline-block hover:text-white">
+                            <Link href={`/blog?topic=${encodeURIComponent(post.topic)}`} className="eyebrow mb-4 inline-block hover:text-[var(--ink)]">
                                 {post.topic}
                             </Link>
                         )}
 
-                        <h1 className="mb-6 break-words text-4xl font-bold leading-tight text-white lg:text-5xl">
+                        <h1 className="mb-6 break-words text-4xl font-bold leading-tight text-[var(--ink)] lg:text-5xl">
                             {post.title}
                         </h1>
 
-                        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-400">
+                        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] pb-6">
+                            <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--ink-muted)]">
                                 <span>By</span>
                                 {authorUsername ? (
                                     <Link href={`/profile/${authorUsername}`} className="link-accent">
@@ -216,19 +216,19 @@ export default async function BlogPostPage({ params }) {
                                 )}
                                 {formattedDate && (
                                     <>
-                                        <span className="text-gray-600" aria-hidden="true">•</span>
+                                        <span className="text-[var(--ink-faint)]" aria-hidden="true">•</span>
                                         <time dateTime={toISODate(post.date)}>{formattedDate}</time>
                                     </>
                                 )}
                                 {readingTime && (
                                     <>
-                                        <span className="text-gray-600" aria-hidden="true">•</span>
+                                        <span className="text-[var(--ink-faint)]" aria-hidden="true">•</span>
                                         <span>{readingTime}</span>
                                     </>
                                 )}
                                 {Number(post.views) > 0 && (
                                     <>
-                                        <span className="text-gray-600" aria-hidden="true">•</span>
+                                        <span className="text-[var(--ink-faint)]" aria-hidden="true">•</span>
                                         <span>{formatCompactNumber(post.views)} views</span>
                                     </>
                                 )}
@@ -251,12 +251,12 @@ export default async function BlogPostPage({ params }) {
                         {/* Comments are already nested by CommentSection, so a flat
                             <ReactMarkdown> here would render nothing for them —
                             instead make the article body markdown fully styled. */}
-                        <div id="article-body" className="glass-card mb-12 p-6 md:p-8">
+                        <div id="article-body" className="glass mb-12 p-6 md:p-8">
                             <div className="prose-nature">
                                 {post.content ? (
                                     <ReactMarkdown components={markdownComponents}>{post.content}</ReactMarkdown>
                                 ) : (
-                                    <p className="text-gray-400">This post has no content yet.</p>
+                                    <p className="text-[var(--ink-muted)]">This post has no content yet.</p>
                                 )}
                             </div>
                         </div>

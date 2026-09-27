@@ -215,12 +215,12 @@ export default function SignupPage() {
                     title="Create your contributor account"
                     description="Set up your profile once, confirm your email, and add your avatar later from your profile settings."
                 />
-                <div className="glass-card p-8">
+                <div className="glass p-8">
                     <ConnectionNotice enabled={!!supabase} recheckToken={recheckToken} />
 
                     <form onSubmit={handleSignUp} className="grid gap-5 md:grid-cols-2" noValidate>
                         <div>
-                            <label htmlFor="signup-email" className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                            <label htmlFor="signup-email" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Email</label>
                             <input
                                 id="signup-email"
                                 type="email"
@@ -235,7 +235,7 @@ export default function SignupPage() {
                                 required
                                 aria-invalid={emailError ? 'true' : undefined}
                                 aria-describedby={emailError ? 'signup-email-error' : undefined}
-                                className={`input-dark ${emailError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${emailError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
                             />
                             {emailError && (
                                 <p id="signup-email-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
@@ -258,7 +258,7 @@ export default function SignupPage() {
                         />
 
                         <div>
-                            <label htmlFor="signup-username" className="block text-sm font-medium text-gray-300 mb-1">Username</label>
+                            <label htmlFor="signup-username" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Username</label>
                             <input
                                 id="signup-username"
                                 type="text"
@@ -273,7 +273,7 @@ export default function SignupPage() {
                                 required
                                 aria-invalid={usernameError ? 'true' : undefined}
                                 aria-describedby={usernameError ? 'signup-username-error' : 'signup-username-hint'}
-                                className={`input-dark ${usernameError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${usernameError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
                             />
                             {usernameError ? (
                                 <p id="signup-username-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
@@ -281,14 +281,14 @@ export default function SignupPage() {
                                     {usernameError}
                                 </p>
                             ) : (
-                                <p id="signup-username-hint" className="mt-1.5 text-xs text-gray-400">
+                                <p id="signup-username-hint" className="mt-1.5 text-xs text-[var(--ink-muted)]">
                                     Lowercase letters, numbers, dots and underscores. This becomes your profile URL.
                                 </p>
                             )}
                         </div>
 
                         <div>
-                            <label htmlFor="signup-full-name" className="block text-sm font-medium text-gray-300 mb-1">Full name</label>
+                            <label htmlFor="signup-full-name" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Full name</label>
                             <input
                                 id="signup-full-name"
                                 type="text"
@@ -296,12 +296,12 @@ export default function SignupPage() {
                                 onChange={(event) => setFullName(event.target.value)}
                                 autoComplete="name"
                                 disabled={loading}
-                                className="input-dark"
+                                className="field"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="signup-website" className="block text-sm font-medium text-gray-300 mb-1">Website</label>
+                            <label htmlFor="signup-website" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Website</label>
                             <input
                                 id="signup-website"
                                 type="url"
@@ -313,7 +313,7 @@ export default function SignupPage() {
                                 disabled={loading}
                                 aria-invalid={websiteError ? 'true' : undefined}
                                 aria-describedby={websiteError ? 'signup-website-error' : undefined}
-                                className={`input-dark ${websiteError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${websiteError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
                             />
                             {websiteError && (
                                 <p id="signup-website-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
@@ -324,13 +324,13 @@ export default function SignupPage() {
                         </div>
 
                         <div className="md:col-span-2">
-                            <label htmlFor="signup-bio" className="block text-sm font-medium text-gray-300 mb-1">Bio</label>
+                            <label htmlFor="signup-bio" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Bio</label>
                             <textarea
                                 id="signup-bio"
                                 value={bio}
                                 onChange={(event) => setBio(event.target.value)}
                                 disabled={loading}
-                                className="input-dark min-h-28"
+                                className="field min-h-28"
                                 placeholder="Tell people what you work on and why it matters."
                                 rows={4}
                             />
@@ -359,7 +359,7 @@ export default function SignupPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="btn-primary w-full disabled:opacity-50 disabled:hover:scale-100"
+                                className="btn btn-primary w-full disabled:opacity-50 disabled:hover:scale-100"
                             >
                                 {loading ? (
                                     <>
@@ -374,7 +374,7 @@ export default function SignupPage() {
                                 )}
                             </button>
 
-                            <p className="text-center text-xs text-gray-500" aria-live="polite">
+                            <p className="text-center text-xs text-[var(--ink-faint)]" aria-live="polite">
                                 {loading
                                     ? 'Setting up your account...'
                                     : formReady
@@ -382,9 +382,9 @@ export default function SignupPage() {
                                         : `${MIN_PASSWORD_LENGTH}+ characters and a mix of cases, numbers and symbols.`}
                             </p>
 
-                            <p className="text-sm text-gray-400 text-center">
+                            <p className="text-sm text-[var(--ink-muted)] text-center">
                                 Already have an account?{' '}
-                                <Link href="/login" className="text-white hover:underline underline-offset-4">
+                                <Link href="/login" className="text-[var(--ink)] hover:underline underline-offset-4">
                                     Sign in
                                 </Link>
                             </p>

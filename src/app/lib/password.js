@@ -88,7 +88,7 @@ export function scorePassword(value) {
     const result = (score, label, hint, color) => ({ score, label, hint, color });
 
     if (!password) {
-        return result(0, '', 'Pick something a person would not guess.', 'bg-white/20');
+        return result(0, '', 'Pick something a person would not guess.', 'bg-[var(--surface-raised)]');
     }
 
     if (isCommonPassword(password)) {

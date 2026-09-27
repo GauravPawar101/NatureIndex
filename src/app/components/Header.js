@@ -1,295 +1,292 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { Leaf, LogOut, PlusCircle, Menu, Search, X } from 'lucide-react';
-import { createClient } from '../lib/supabase/client';
+import { Leaf, Menu, X, Search, LogOut } from 'lucide-react';
 import { useToast } from './ToastProvider';
-import { useCallback, useEffect, useState } from 'react';
+import ThemeToggle from './ThemeToggle';
 
-const DEFAULT_AVATAR = '/images/default-avatar.svg';
+const NAV_LINKS = [
+    { href: '/blog', label: 'Stories' },
+    { href: '/media', label: 'Media' },
+    { href: '/discover', label: 'Discover' },
+    { href: '/feed', label: 'Feed' },
+    { href: '/leaderboards', label: 'Leaderboards' },
+    { href: '/analytics', label: 'Analytics' },
+    { href: '/about', label: 'About' },
+];
 
 export default function Header() {
-    const pathname = usePathname();
-    const router = useRouter();
-    const toast = useToast();
-    // Memoized so it isn't recreated (and re-triggering the auth subscription
-    // effect below) on every render.
-    const [supabase] = useState(() => createClient());
-    const [user, setUser] = useState(null);
-    const [avatarUrl, setAvatarUrl] = useState(DEFAULT_AVATAR);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
-    const [loggingOut, setLoggingOut] = useState(false);
-    const [headerQuery, setHeaderQuery] = useState('');
+  const pathname = usePathname();
+  const router = useRouter();
+  const toast = useToast();
 
-    // The header is `fixed`, so anything scrolled underneath it sits directly
-    // behind the logo and the auth buttons. Fade in an opaque backdrop once the
-    // page is scrolled to keep them legible; over the home hero (at scroll
-    // top) the header stays transparent so the full-bleed image shows through.
-    useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 8);
-        onScroll();
-        window.addEventListener('scroll', onScroll, { passive: true });
-        return () => window.removeEventListener('scroll', onScroll);
-    }, []);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [headerQuery, setHeaderQuery] = useState('');
+  const [user, setUser] = useState(null);
 
-    useEffect(() => {
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Resolves the signed-in user for the header affordances. Silent on failure:
+  // a header is chrome, and a logged-out visitor should see the same layout
+  // rather than an error. The dashboard itself reports its own failures.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { createClient } = await import('../lib/supabase/client');
+        const supabase = createClient();
         if (!supabase) return;
 
-        const getUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
+        const { data } = await supabase.auth.getUser();
+        if (cancelled || !data?.user) return;
 
-            if (user) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('avatar_url')
-                    .eq('id', user.id)
-                    .single();
-
-                setAvatarUrl(profile?.avatar_url || DEFAULT_AVATAR);
-            } else {
-                setAvatarUrl(DEFAULT_AVATAR);
-            }
-        };
-        getUser();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-            if (!session?.user) {
-                setAvatarUrl(DEFAULT_AVATAR);
-            }
+        setUser({
+          email: data.user.email,
+          username:
+            data.user.user_metadata?.username ??
+            data.user.email?.split('@')[0] ??
+            'account',
         });
+      } catch {
+        // Not signed in, or Supabase unreachable. Either way, no header chrome.
+      }
+    })();
 
-        return () => subscription.unsubscribe();
-    }, [supabase]);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-    const handleLogout = useCallback(async () => {
-        if (!supabase || loggingOut) return;
+  const signOut = async () => {
+    try {
+      const { createClient } = await import('../lib/supabase/client');
+      const supabase = createClient();
+      await supabase?.auth.signOut();
+      // A full navigation, not a client push: the middleware and the RLS-backed
+      // server components both re-evaluate on a fresh document, and a push would
+      // leave cached server components rendered under the old session.
+      window.location.href = '/';
+      toast.success('Signed out');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+      toast.error('Could not sign you out', {
+        message: 'Check your connection and try again.',
+      });
+    }
+  };
 
-        setLoggingOut(true);
-        const { error } = await supabase.auth.signOut();
+  const isActive = (href) => pathname === href;
 
-        if (error) {
-            // A failed signOut usually means the session was already gone
-            // server-side. Clearing local state is still the right move, but say
-            // what happened rather than pretending it worked.
-            toast.error('Could not sign out cleanly', {
-                message: 'Your session may already have expired. Try again.',
-            });
-            setLoggingOut(false);
-            return;
-        }
+  // The mobile panel is dismissed from the link handlers rather than by an
+  // effect on `pathname`. An effect that closes a menu after every navigation
+  // is a setState in an effect — a cascading render for something the click that
+  // triggered the navigation can do directly.
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
-        toast.success('Signed out');
-        // A full navigation (rather than a client push) is required: the server
-        // components on the next page read the auth cookie, and a client-side
-        // transition would render them with the old session.
-        window.location.href = '/';
-    }, [supabase, loggingOut, toast]);
-
-    // One list drives both the desktop bar and the mobile panel, so a page can
-    // never end up linked in one and missing from the other.
-    const navLinks = [
-        { href: '/', label: 'Home' },
-        { href: '/blog', label: 'Blog' },
-        { href: '/media', label: 'Media' },
-        { href: '/discover', label: 'Discover' },
-        { href: '/feed', label: 'Feed' },
-        { href: '/leaderboards', label: 'Leaderboards' },
-        { href: '/analytics', label: 'Analytics' },
-        { href: '/about', label: 'About' },
-    ];
-
-    return (
-        <header
-            className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${scrolled
-                ? 'bg-black/80 backdrop-blur-md border-b border-white/10'
-                : 'bg-transparent border-b border-transparent'
-                }`}
+  return (
+    <header
+      className={`sticky top-0 z-50 border-b transition-colors duration-200 ${
+        scrolled
+          ? 'border-[var(--line)] bg-[var(--surface)] backdrop-blur-xl'
+          : 'border-transparent bg-transparent'
+      }`}
+    >
+      <div className="container-page flex h-16 items-center gap-4">
+        <Link
+          href="/"
+          className="flex shrink-0 items-center gap-2 font-[family-name:var(--font-serif)] text-lg font-semibold tracking-tight text-[var(--ink)]"
         >
-            <div className="container mx-auto flex items-center justify-between gap-4 p-4">
-                <Link href="/" className="flex items-center gap-2">
-                    <Leaf className="w-7 h-7 text-white drop-shadow-lg" />
-                    <span className="text-xl font-bold text-white drop-shadow-lg">Nature Index</span>
+          <Leaf size={20} className="text-[var(--accent)]" aria-hidden="true" />
+          <span>Nature Index</span>
+        </Link>
+
+        <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={isActive(link.href) ? 'page' : undefined}
+              className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                isActive(link.href)
+                  ? 'bg-[var(--surface-raised)] text-[var(--ink)]'
+                  : 'text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="ml-auto flex items-center gap-2 lg:ml-0">
+          {/* Site-wide search that hands off to the blog index, where the full
+              filter/sort UI lives. Submitting navigates with the query in the
+              URL so results stay shareable. */}
+          <form
+            role="search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const value = headerQuery.trim();
+              router.push(value ? `/blog?q=${encodeURIComponent(value)}` : '/blog');
+              setHeaderQuery('');
+              setMobileMenuOpen(false);
+            }}
+            className="relative hidden w-56 md:block"
+          >
+            <label htmlFor="header-search" className="sr-only">
+              Search stories
+            </label>
+            <Search
+              size={15}
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-faint)]"
+            />
+            <input
+              id="header-search"
+              type="search"
+              value={headerQuery}
+              onChange={(event) => setHeaderQuery(event.target.value)}
+              placeholder="Search stories"
+              spellCheck={false}
+              className="field py-1.5 pl-9 pr-3 text-sm"
+            />
+          </form>
+
+          <ThemeToggle />
+
+          <div className="hidden items-center gap-2 md:flex">
+            {user ? (
+              <>
+                <Link href="/create-post" className="btn btn btn-primary px-4 py-2 text-sm">
+                  Write
                 </Link>
-
-                {/* `xl` rather than `lg`: six links at gap-6 stop fitting before
-                    the auth buttons do, and wrapping the nav looks worse than
-                    moving it to the mobile panel a breakpoint earlier. */}
-                <div className="hidden xl:flex items-center gap-3 flex-1 justify-center px-6">
-                    <nav className="flex items-center gap-5">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                aria-current={pathname === link.href ? 'page' : undefined}
-                                className={`font-medium transition-colors ${pathname === link.href ? 'text-white' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                {link.label}
-                            </Link>
-                        ))}
-                    </nav>
-
-                    {/* Site-wide search that hands off to the blog index, where
-                        the full filter/sort UI lives. Submitting navigates with
-                        the query in the URL so results are shareable. */}
-                    <form
-                        role="search"
-                        onSubmit={(event) => {
-                            event.preventDefault();
-                            const value = headerQuery.trim();
-                            router.push(value ? `/blog?q=${encodeURIComponent(value)}` : '/blog');
-                            setHeaderQuery('');
-                            setMobileMenuOpen(false);
-                        }}
-                        className="relative w-64"
-                    >
-                        <label htmlFor="header-search" className="sr-only">Search stories</label>
-                        <Search
-                            size={15}
-                            aria-hidden="true"
-                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-                        />
-                        <input
-                            id="header-search"
-                            type="search"
-                            value={headerQuery}
-                            onChange={(event) => setHeaderQuery(event.target.value)}
-                            placeholder="Search stories..."
-                            spellCheck={false}
-                            className="w-full rounded-full border border-white/15 bg-black/30 py-1.5 pl-9 pr-3 text-sm text-white placeholder-gray-500 outline-none transition-colors focus:border-white/40 [&::-webkit-search-cancel-button]:appearance-none"
-                        />
-                    </form>
-                </div>
-                <div className="flex items-center gap-4">
-                    {user ? (
-                        <>
-                            <Link href="/create-post" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-full font-semibold text-sm hover:bg-gray-200 transition-colors">
-                                <PlusCircle size={16} />
-                                Create Post
-                            </Link>
-                            <Link href="/account" className="flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-2 text-sm font-medium text-gray-200 hover:border-white/30 hover:text-white transition-colors">
-                                <span className="relative h-8 w-8 overflow-hidden rounded-full ring-1 ring-white/15">
-                                    <Image src={avatarUrl || DEFAULT_AVATAR} alt="Account avatar" fill className="object-cover" sizes="32px" unoptimized />
-                                </span>
-                                <span>Account</span>
-                            </Link>
-                            <button
-                                onClick={handleLogout}
-                                disabled={loggingOut}
-                                className="hidden items-center gap-1.5 text-gray-300 transition-colors hover:text-white text-sm font-medium disabled:opacity-50 sm:flex"
-                            >
-                                <LogOut size={14} aria-hidden="true" />
-                                {loggingOut ? 'Signing out...' : 'Logout'}
-                            </button>
-                        </>
-                    ) : (
-                        <div className="flex items-center gap-3">
-                            <Link href="/login" className="px-5 py-2 border border-white/20 text-white rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-300 font-medium text-sm">
-                                Login
-                            </Link>
-                            <Link href="/signup" className="px-5 py-2 bg-white text-black rounded-full font-semibold text-sm hover:bg-gray-200 transition-colors">
-                                Sign up
-                            </Link>
-                        </div>
-                    )}
-
-                    {/* Mobile nav toggle — the nav links are otherwise unreachable below `xl` */}
-                    <button
-                        type="button"
-                        onClick={() => setMobileMenuOpen((open) => !open)}
-                        className="xl:hidden flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-black/20 text-white"
-                        aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-                        aria-expanded={mobileMenuOpen}
-                    >
-                        {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-                    </button>
-                </div>
-            </div>
-
-            {/* Mobile nav panel */}
-            {mobileMenuOpen && (
-                <nav className="xl:hidden mx-4 mb-4 flex flex-col gap-1 bg-black/95 backdrop-blur-md rounded-2xl border border-white/10 p-3">
-                    {/* Search is in the bar at every breakpoint, but the bar is
-                        hidden below `lg`, so mobile gets its own field here. */}
-                    <form
-                        role="search"
-                        onSubmit={(event) => {
-                            event.preventDefault();
-                            const value = headerQuery.trim();
-                            router.push(value ? `/blog?q=${encodeURIComponent(value)}` : '/blog');
-                            setHeaderQuery('');
-                            setMobileMenuOpen(false);
-                        }}
-                        className="relative mb-2"
-                    >
-                        <label htmlFor="header-search-mobile" className="sr-only">Search stories</label>
-                        <Search
-                            size={15}
-                            aria-hidden="true"
-                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-                        />
-                        <input
-                            id="header-search-mobile"
-                            type="search"
-                            value={headerQuery}
-                            onChange={(event) => setHeaderQuery(event.target.value)}
-                            placeholder="Search stories..."
-                            spellCheck={false}
-                            className="w-full rounded-xl border border-white/15 bg-black/40 py-2 pl-9 pr-3 text-sm text-white placeholder-gray-500 outline-none focus:border-white/40 [&::-webkit-search-cancel-button]:appearance-none"
-                        />
-                    </form>
-
-                    {/* Every link closes the panel — otherwise it stays open on
-                        top of the destination page. */}
-                    {navLinks.map((link) => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={`px-4 py-2 rounded-xl font-medium transition-colors ${pathname === link.href ? 'text-white bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/5'
-                                }`}
-                        >
-                            {link.label}
-                        </Link>
-                    ))}
-                    {/* Auth actions live in the bar at every breakpoint, but on
-                        small screens that bar gets crowded — repeat them here
-                        so the panel is a complete navigation on its own. */}
-                    <div className="mt-2 pt-2 border-t border-white/10 flex flex-col gap-1">
-                        {user ? (
-                            <>
-                                <Link href="/create-post" className="px-4 py-2 rounded-xl font-medium text-white hover:bg-white/5 transition-colors">
-                                    Create Post
-                                </Link>
-                                <Link href="/account" className="px-4 py-2 rounded-xl font-medium text-white hover:bg-white/5 transition-colors">
-                                    Account
-                                </Link>
-                                <button
-                                    type="button"
-                                    onClick={handleLogout}
-                                    disabled={loggingOut}
-                                    className="px-4 py-2 rounded-xl text-left font-medium text-red-300 hover:bg-white/5 transition-colors disabled:opacity-50"
-                                >
-                                    {loggingOut ? 'Signing out...' : 'Logout'}
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <Link href="/login" className="px-4 py-2 rounded-xl font-medium text-white hover:bg-white/5 transition-colors">
-                                    Login
-                                </Link>
-                                <Link href="/signup" className="px-4 py-2 rounded-xl font-medium text-white hover:bg-white/5 transition-colors">
-                                    Sign up
-                                </Link>
-                            </>
-                        )}
-                    </div>
-                </nav>
+                <Link href="/account" className="btn btn btn-ghost text-sm">
+                  {user.username}
+                </Link>
+                <button
+                  type="button"
+                  onClick={signOut}
+                  aria-label="Sign out"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-raised)] hover:text-[var(--ink)]"
+                >
+                  <LogOut size={16} aria-hidden="true" />
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="btn btn btn-ghost text-sm">
+                  Sign in
+                </Link>
+                <Link href="/signup" className="btn btn btn-primary px-4 py-2 text-sm">
+                  Start writing
+                </Link>
+              </>
             )}
-        </header>
-    );
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-nav"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[var(--ink)] transition-colors hover:bg-[var(--surface-raised)] lg:hidden"
+          >
+            {mobileMenuOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+          </button>
+        </div>
+      </div>
+
+      {/* The mobile panel is a complete navigation on its own: every nav link
+          plus search plus the auth actions, so nothing is only reachable at one
+          breakpoint. */}
+      {mobileMenuOpen && (
+        <div
+          id="mobile-nav"
+          className="glass-raised mx-3 mb-3 overflow-hidden p-2 lg:hidden"
+        >
+          <form
+            role="search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const value = headerQuery.trim();
+              router.push(value ? `/blog?q=${encodeURIComponent(value)}` : '/blog');
+              setHeaderQuery('');
+              setMobileMenuOpen(false);
+            }}
+            className="relative mb-2 md:hidden"
+          >
+            <label htmlFor="mobile-search" className="sr-only">
+              Search stories
+            </label>
+            <Search
+              size={15}
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-faint)]"
+            />
+            <input
+              id="mobile-search"
+              type="search"
+              value={headerQuery}
+              onChange={(event) => setHeaderQuery(event.target.value)}
+              placeholder="Search stories"
+              spellCheck={false}
+              className="field py-2 pl-9 pr-3 text-sm"
+            />
+          </form>
+
+          <nav className="flex flex-col">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={closeMobileMenu}
+                aria-current={isActive(link.href) ? 'page' : undefined}
+                className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                  isActive(link.href)
+                    ? 'bg-[var(--surface-raised)] text-[var(--ink)]'
+                    : 'text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="mt-2 flex flex-col gap-1 border-t border-[var(--line)] pt-2 md:hidden">
+            {user ? (
+              <>
+                <Link href="/create-post" onClick={closeMobileMenu} className="btn btn btn-primary w-full">
+                  Write a story
+                </Link>
+                <Link href="/account" onClick={closeMobileMenu} className="btn btn btn-secondary w-full">
+                  Your account
+                </Link>
+                <button type="button" onClick={signOut} className="btn btn btn-ghost w-full">
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" onClick={closeMobileMenu} className="btn btn btn-secondary w-full">
+                  Sign in
+                </Link>
+                <Link href="/signup" onClick={closeMobileMenu} className="btn btn btn-primary w-full">
+                  Start writing
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
+  );
 }

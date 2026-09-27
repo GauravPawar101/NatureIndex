@@ -54,7 +54,7 @@ export default function ConnectionNotice({ enabled = true, recheckToken = 0 }) {
 
     if (checking && !result) {
         return (
-            <p className="mb-5 flex items-center gap-2 text-xs text-gray-500" role="status">
+            <p className="mb-5 flex items-center gap-2 text-xs text-[var(--ink-faint)]" role="status">
                 <RefreshCw size={13} className="animate-spin" aria-hidden="true" />
                 Checking connection to the sign-in service...
             </p>

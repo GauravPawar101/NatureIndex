@@ -35,7 +35,7 @@ export default async function DiscoverPage() {
 
   return (
     <div className="page-shell">
-      <div className="container mx-auto max-w-5xl px-6">
+      <div className="container-page">
         <PageHero
           eyebrow="Discover"
           title="What people are reading"
@@ -43,7 +43,7 @@ export default async function DiscoverPage() {
         />
 
         {nothing ? (
-          <div className="glass-card p-8">
+          <div className="glass p-8">
             <EmptyState
               icon={Sparkles}
               title="Nothing to discover yet"
@@ -56,10 +56,10 @@ export default async function DiscoverPage() {
               <section className="mb-14" aria-labelledby="trending-heading">
                 <div className="mb-6 flex items-center gap-3">
                   <Flame size={20} className="text-orange-400" aria-hidden="true" />
-                  <h2 id="trending-heading" className="text-2xl font-bold text-white">
+                  <h2 id="trending-heading" className="text-2xl font-bold text-[var(--ink)]">
                     Trending
                   </h2>
-                  <span className="text-sm text-gray-500">recent, weighted by readership</span>
+                  <span className="text-sm text-[var(--ink-faint)]">recent, weighted by readership</span>
                 </div>
 
                 {/* A rank badge on each card, because "trending" is a claim and
@@ -86,28 +86,28 @@ export default async function DiscoverPage() {
               <section aria-labelledby="mostread-heading">
                 <div className="mb-6 flex items-center gap-3">
                   <Eye size={20} className="text-sky-400" aria-hidden="true" />
-                  <h2 id="mostread-heading" className="text-2xl font-bold text-white">
+                  <h2 id="mostread-heading" className="text-2xl font-bold text-[var(--ink)]">
                     Most read
                   </h2>
-                  <span className="text-sm text-gray-500">all time</span>
+                  <span className="text-sm text-[var(--ink-faint)]">all time</span>
                 </div>
 
-                <div className="glass-card divide-y divide-white/10">
+                <div className="glass divide-y divide-white/10">
                   {mostRead.map((post, index) => (
                     <Link
                       key={post.slug}
                       href={`/blog/${post.slug}`}
-                      className="flex items-center gap-4 p-4 transition-colors hover:bg-white/5"
+                      className="flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]"
                     >
                       <span
                         aria-hidden="true"
-                        className="w-6 shrink-0 text-right font-bold text-gray-600"
+                        className="w-6 shrink-0 text-right font-bold text-[var(--ink-faint)]"
                       >
                         {index + 1}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-white">{post.title}</p>
-                        <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                        <p className="truncate font-semibold text-[var(--ink)]">{post.title}</p>
+                        <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--ink-faint)]">
                           {post.topic && <span>{post.topic}</span>}
                           {post.profiles?.full_name && <span>by {post.profiles.full_name}</span>}
                           <span className="inline-flex items-center gap-1">
@@ -122,13 +122,13 @@ export default async function DiscoverPage() {
               </section>
             )}
 
-            <p className="mt-10 text-center text-sm text-gray-500">
+            <p className="mt-10 text-center text-sm text-[var(--ink-faint)]">
               Looking for everything published?{' '}
-              <Link href="/blog" className="font-semibold text-white underline underline-offset-4">
+              <Link href="/blog" className="font-semibold text-[var(--ink)] underline underline-offset-4">
                 Browse the field journal
               </Link>{' '}
               or see{' '}
-              <Link href="/leaderboards" className="font-semibold text-white underline underline-offset-4">
+              <Link href="/leaderboards" className="font-semibold text-[var(--ink)] underline underline-offset-4">
                 who is writing it
               </Link>
               .

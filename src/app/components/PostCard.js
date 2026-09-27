@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Eye, MessageSquare, Video, ImageIcon } from 'lucide-react';
+import { Eye, MessageSquare, Video, ImageIcon, Clock } from 'lucide-react';
 import { excerptAroundMatch, tokenizeMatches } from '../lib/highlight';
 import { formatDuration } from '../lib/media-format';
 import {
@@ -14,22 +14,26 @@ import {
 } from '../lib/format';
 
 /**
- * The post card used by the blog index, the discovery shelves, the feed and
- * related-post rails.
+ * The post card, used by the blog index, the discovery shelves, the feed and
+ * the related-post rails.
  *
- * Three variants, because the same component in three densities is what made
- * the old index feel like a list of a database rather than a front page:
+ * Built on Medium's card rather than a generic one. The things that matter:
  *
- *   lead    One large story, image above the text. Used for the first result
- *           only, so the page has a focal point instead of twelve peers.
- *   row     Image beside the text. The dense default; fits far more stories in
- *           the same scroll.
- *   grid    Image above the text, tight. For shelves where the images are the
- *           point, like /discover and the profile page.
+ *   the image leads, because a story is identified by its picture before its
+ *     title is read;
+ *   the title is set in the editorial serif at a fixed size per variant, so a
+ *     grid has a consistent voice rather than twelve different ones;
+ *   the author is a real link with an avatar, not a grey byline string;
+ *   metadata is quiet — read time and date only, small and low contrast. Medium
+ *     deliberately does not put view counts on a card, and neither do we: a
+ *     number nobody can act on is noise.
  *
- * Metadata is `text-gray-400`, not gray-500: gray-500 on a card surface is
- * 3.6:1, which fails WCAG AA for body text, and it is where the author name and
- * reading time live. See the contrast note in globals.css.
+ * Three variants, because the same component at three densities is what made
+ * the old index feel like a list of a database:
+ *
+ *   lead    One large story. Used for the first result only.
+ *   row     Image beside the text. The dense default.
+ *   grid    Image above the text, tight. For image-led shelves.
  */
 export default function PostCard({
     post,
@@ -54,26 +58,20 @@ export default function PostCard({
     const isLead = variant === 'lead';
     const isGrid = variant === 'grid';
 
-    // Type scale per variant. The lead is the only place a title is allowed to
-    // be large; everything else stays at or below text-lg so the page keeps a
-    // single dominant voice.
     const titleClass = isLead
-        ? 'text-2xl md:text-3xl line-clamp-3'
+        ? 'display-1'
         : isGrid
-            ? 'text-base line-clamp-2 leading-snug'
-            : 'text-lg line-clamp-2 leading-snug';
-
-    const labelClass = 'text-[11px] font-medium';
-    const metaClass = 'text-xs text-gray-400';
+            ? 'display-3'
+            : 'display-3';
 
     const imageWrap = post.image_url && (
         <div
-            className={`relative shrink-0 overflow-hidden bg-white/5 ${
+            className={`relative shrink-0 overflow-hidden bg-[var(--surface-sunken)] ${
                 isLead
-                    ? 'aspect-[16/9] w-full'
+                    ? 'aspect-[16/10] w-full sm:aspect-auto sm:min-h-full'
                     : isGrid
                         ? 'aspect-[4/3] w-full'
-                        : 'w-full sm:w-44 aspect-[4/3] sm:aspect-auto sm:min-h-full'
+                        : 'aspect-[4/3] w-full sm:aspect-auto sm:min-h-full sm:w-56'
             }`}
         >
             <Image
@@ -85,12 +83,12 @@ export default function PostCard({
                 priority={priority || isLead}
                 sizes={
                     isLead
-                        ? '(max-width: 768px) 100vw, 900px'
+                        ? '(max-width: 640px) 100vw, 640px'
                         : isGrid
                             ? '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
-                            : '(max-width: 640px) 100vw, 176px'
+                            : '(max-width: 640px) 100vw, 224px'
                 }
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 // Cover URLs are user-supplied, so they can point at any host.
                 // Without `unoptimized`, next/image throws for hosts missing
                 // from images.remotePatterns and takes the whole page down.
@@ -102,10 +100,10 @@ export default function PostCard({
             {post.content_type === 'video' && (
                 <span
                     aria-hidden="true"
-                    className="absolute inset-0 flex items-center justify-center bg-black/25"
+                    className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30"
                 >
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/65 text-white backdrop-blur-sm">
-                        <Video size={18} />
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/60 text-[var(--ink)] backdrop-blur-sm">
+                        <Video size={20} />
                     </span>
                 </span>
             )}
@@ -113,58 +111,57 @@ export default function PostCard({
     );
 
     return (
-        <article
-            className={`glass-card-hover group overflow-hidden ${
-                isLead ? 'sm:grid sm:grid-cols-2 sm:items-stretch' : ''
-            }`}
-        >
+        <article className="glass glass-hover group relative overflow-hidden">
             <div
                 className={
                     isLead
-                        ? 'flex h-full flex-col'
-                        : isGrid
-                            ? 'flex h-full flex-col'
-                            : 'flex h-full flex-col sm:flex-row'
+                        ? 'flex h-full flex-col sm:grid sm:grid-cols-2'
+                        : 'flex h-full flex-col sm:flex-row'
                 }
             >
                 {imageWrap}
 
                 <div
-                    className={`flex flex-1 flex-col ${
-                        isLead ? 'p-6 md:p-8' : isGrid ? 'p-4' : 'p-5'
-                    }`}
+                    className={`flex flex-1 flex-col ${isLead ? 'p-6 md:p-8' : 'p-5 md:p-6'}`}
                 >
-                    <div className="mb-2 flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                        {post.topic && <span className="eyebrow text-[11px]">{post.topic}</span>}
-                        {readingTime && (
-                            <span className={`${labelClass} text-gray-400`}>{readingTime}</span>
+                    <div className="mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                        {post.topic && (
+                            <Link
+                                href={`/blog?topic=${encodeURIComponent(post.topic)}`}
+                                className="eyebrow transition-colors hover:text-[var(--accent)]"
+                            >
+                                {post.topic}
+                            </Link>
                         )}
                         {post.content_type === 'video' && (
-                            <span className={`inline-flex items-center gap-1 ${labelClass} text-red-300`}>
+                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--ink-faint)]">
                                 <Video size={11} aria-hidden="true" />
                                 Video{mediaDuration ? ` · ${mediaDuration}` : ''}
                             </span>
                         )}
                         {post.content_type === 'photo' && (
-                            <span className={`inline-flex items-center gap-1 ${labelClass} text-emerald-300`}>
+                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--ink-faint)]">
                                 <ImageIcon size={11} aria-hidden="true" />
                                 Photo set
                             </span>
                         )}
                     </div>
 
-                    <Link href={`/blog/${post.slug}`} className="block">
-                        <h2
-                            className={`font-bold text-white transition-colors group-hover:text-white/90 break-words ${titleClass}`}
-                        >
-                            <Highlighted text={post.title} query={query} />
-                        </h2>
-                    </Link>
+                    <h2 className={titleClass}>
+                        <Link href={`/blog/${post.slug}`} className="block">
+                            {/* No underline on hover: on a serif display face it
+                                looks like a mistake. The card lift and the
+                                title colour shift carry the affordance. */}
+                            <span className="text-[var(--ink)] transition-colors group-hover:text-[var(--accent)]">
+                                <Highlighted text={post.title} query={query} />
+                            </span>
+                        </Link>
+                    </h2>
 
                     {body && !compact && (
                         <p
-                            className={`mt-2 leading-relaxed text-gray-400 ${
-                                isLead ? 'line-clamp-4 text-[15px]' : 'line-clamp-2 text-sm'
+                            className={`mt-3 leading-relaxed text-[var(--ink-muted)] ${
+                                isLead ? 'line-clamp-4 text-base' : 'line-clamp-2 text-sm'
                             }`}
                         >
                             <Highlighted text={body} query={query} />
@@ -173,47 +170,67 @@ export default function PostCard({
 
                     {/* mt-auto pins the meta row to the bottom so cards in a grid
                         line up regardless of excerpt length. */}
-                    <div className={`mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-4 ${metaClass}`}>
+                    <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 pt-5 text-[13px] text-[var(--ink-faint)]">
                         {authorUsername ? (
-                            <>
-                                <span>
-                                    By{' '}
-                                    <Link
-                                        href={`/profile/${authorUsername}`}
-                                        className="font-medium text-gray-300 transition-colors hover:text-white hover:underline underline-offset-2"
+                            <Link
+                                href={`/profile/${authorUsername}`}
+                                className="group/author inline-flex items-center gap-2"
+                            >
+                                {post.profiles?.avatar_url ? (
+                                    <Image
+                                        src={post.profiles.avatar_url}
+                                        alt=""
+                                        width={24}
+                                        height={24}
+                                        unoptimized
+                                        className="h-6 w-6 shrink-0 rounded-full object-cover"
+                                    />
+                                ) : (
+                                    <span
+                                        aria-hidden="true"
+                                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--surface-raised)] text-[10px] font-semibold text-[var(--ink-muted)]"
                                     >
-                                        {authorName}
-                                    </Link>
+                                        {(authorName || '?').charAt(0).toUpperCase()}
+                                    </span>
+                                )}
+                                <span className="font-medium text-[var(--ink-muted)] transition-colors group-hover/author:text-[var(--ink)]">
+                                    {authorName}
                                 </span>
-                                <span aria-hidden="true">•</span>
-                            </>
+                            </Link>
                         ) : (
-                            <>
-                                <span>By {authorName || 'Unknown author'}</span>
-                                <span aria-hidden="true">•</span>
-                            </>
+                            <span className="font-medium text-[var(--ink-muted)]">
+                                {authorName || 'Unknown author'}
+                            </span>
                         )}
 
-                        <time dateTime={toISODate(post.date)} title={formatDate(post.date)}>
+                        <span aria-hidden="true">·</span>
+
+                        {readingTime && (
+                            <span className="inline-flex items-center gap-1">
+                                <Clock size={12} aria-hidden="true" />
+                                {readingTime}
+                            </span>
+                        )}
+
+                        <span aria-hidden="true">·</span>
+
+                        <time
+                            dateTime={toISODate(post.date)}
+                            title={formatDate(post.date)}
+                        >
                             {formatRelativeTime(post.date, formatDate(post.date, ''))}
                         </time>
 
-                        <span className="ml-auto flex items-center gap-3">
-                            {Number(post.views) > 0 && (
-                                <span className="inline-flex items-center gap-1" title={`${post.views} views`}>
-                                    <Eye size={12} aria-hidden="true" />
-                                    {formatCompactNumber(post.views)}
-                                    <span className="sr-only">views</span>
-                                </span>
-                            )}
-                            {commentCount > 0 && (
-                                <span className="inline-flex items-center gap-1" title={`${commentCount} comments`}>
-                                    <MessageSquare size={12} aria-hidden="true" />
-                                    {formatCompactNumber(commentCount)}
-                                    <span className="sr-only">comments</span>
-                                </span>
-                            )}
-                        </span>
+                        {/* View counts are deliberately absent from the card.
+                            Medium omits them, and a number the reader cannot act
+                            on is noise in a grid of twelve. */}
+                        {commentCount > 0 && (
+                            <span className="ml-auto inline-flex items-center gap-1">
+                                <MessageSquare size={13} aria-hidden="true" />
+                                {formatCompactNumber(commentCount)}
+                                <span className="sr-only">comments</span>
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
@@ -230,7 +247,10 @@ export function Highlighted({ text, query }) {
 
     return tokenizeMatches(text, query).map((token, index) =>
         token.match ? (
-            <mark key={index} className="rounded bg-white/20 px-0.5 text-white">
+            <mark
+                key={index}
+                className="rounded bg-[var(--accent-dim)] px-0.5 text-[var(--ink)]"
+            >
                 {token.text}
             </mark>
         ) : (

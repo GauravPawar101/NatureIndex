@@ -1,82 +1,548 @@
 @import "tailwindcss";
 
-:root {
-  /* Opt the page into the browser's dark rendering for native UI. Without
-     this, form controls the browser draws itself — <select> option lists,
-     scrollbars, autofill, focus rings, spellcheck underlines — render with
-     light-theme defaults, which look broken on an otherwise black UI. */
+/* ============================================================================
+   Nature Index — design system
+
+   Editorial, in Medium's sense of the word: serif headlines, a generous
+   measure, one idea per card, an image that leads, metadata that stays quiet.
+   Glass surfaces sit over a photographic ground so a card reads as a pane of
+   light rather than a rectangle.
+
+   Dual theme. Every colour is a token, never a literal, so the two modes are
+   one set of components rather than two sets. Light is the default because
+   that is the mode a publication is designed in; dark is not an afterthought
+   filter but its own palette.
+
+   Light values are Medium's: #fff ground, #292929 ink, 60%/40% black for
+   secondary and tertiary text, rgba(0,0,0,0.1) hairlines.
+   ========================================================================== */
+
+/* --- Light (default) ------------------------------------------------------
+   Medium's actual palette, not a guess at it. */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --ink: #292929;
+  --ink-muted: rgba(0, 0, 0, 0.6);
+  --ink-faint: rgba(0, 0, 0, 0.4);
+
+  --bg: #ffffff;
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-raised: rgba(255, 255, 255, 0.9);
+  --surface-sunken: rgba(0, 0, 0, 0.03);
+
+  --line: rgba(0, 0, 0, 0.1);
+  --line-strong: rgba(0, 0, 0, 0.2);
+
+  /* Medium's green. Used sparingly: active pills, focus rings, links. */
+  --accent: #0f9d76;
+  --accent-dim: rgba(15, 157, 118, 0.12);
+  --warn: #b45309;
+  --danger: #c0392b;
+
+  /* Over a light ground the scrim is inverted: the photograph sits behind the
+     hero only, and the wash is white so text stays dark-on-light. */
+  --scrim: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(255, 255, 255, 0.86) 40%,
+    rgba(255, 255, 255, 0.92) 100%
+  );
+
+  --ground-image: url('/posts/forest.jpg');
+  --ground-blur: 20px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* --- Dark ----------------------------------------------------------------
+   Medium's own dark mode is #0a0a0a rather than pure black, and softens its
+   text to white-at-70% instead of near-full white. Pure #000 with #fff text
+   is a terminal, not a publication. */
+[data-theme='dark'] {
   color-scheme: dark;
 
-  --background: #000000;
-  --foreground: #d1d5db;
-  --muted: #9ca3af;
-  --border: rgba(255, 255, 255, 0.1);
-  --card: rgba(255, 255, 255, 0.1);
+  --ink: #f2f2f0;
+  --ink-muted: rgba(255, 255, 255, 0.68);
+  --ink-faint: rgba(255, 255, 255, 0.42);
 
-  /* Secondary text. Deliberately not Tailwind's gray-500 (#6b7280): that is
-     4.34:1 on pure black and only 3.60:1 on a card surface, so it fails WCAG
-     AA for body text (4.5:1) everywhere it appears on a card — and it is where
-     the author, date and reading time live. This value clears 4.5:1 on both.
-     Measured, not eyeballed; see the note in PostCard. */
-  --text-secondary: #9ca3af;
+  --bg: #0a0a0a;
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-raised: rgba(255, 255, 255, 0.08);
+  --surface-sunken: rgba(0, 0, 0, 0.35);
+
+  --line: rgba(255, 255, 255, 0.11);
+  --line-strong: rgba(255, 255, 255, 0.22);
+
+  --accent: #34d399;
+  --accent-dim: rgba(52, 211, 153, 0.16);
+  --warn: #f0b429;
+  --danger: #ff7b72;
+
+  --scrim: linear-gradient(
+    to bottom,
+    rgba(10, 10, 10, 0.94) 0%,
+    rgba(10, 10, 10, 0.8) 40%,
+    rgba(10, 10, 10, 0.92) 100%
+  );
+
+  --ground-image: url('/posts/forest.jpg');
+  --ground-blur: 28px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-bg: var(--bg);
+  --color-accent: var(--accent);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --font-serif: var(--font-editorial), Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--ink-muted);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* The theme flips the ground image and the surfaces; a hard transition on the
+     body would make the flip feel like a page reload. */
+  transition: background-color 240ms ease, color 240ms ease;
 }
 
-/* --- Toast motion ---------------------------------------------------------
-   Tailwind v4 has no built-in `animate-in`, and toast entrance needs to
-   animate `opacity` + `transform` together from a starting state, so the
-   shorthand utilities cannot express it. */
+
+/* --- The ground -----------------------------------------------------------
+   A fixed, blurred photograph behind everything. Fixed rather than absolute so
+   it does not scroll away and leave bare background at the bottom of a long
+   page; blurred because a sharp ground competes with the foreground text, and
+   this is a ground, not a picture. */
+.ground {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image: var(--ground-image);
+  background-size: cover;
+  background-position: center;
+  filter: blur(var(--ground-blur)) saturate(0.85);
+  transform: scale(1.08); /* hides the blur's edge bleed */
+}
+
+.ground::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+}
+
+
+/* --- Type -----------------------------------------------------------------
+   Display sizes use the serif. `text-balance` on headlines stops a two-word
+   title from breaking across three lines at a wide measure. */
+.display-1 {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
+  line-height: 1.04;
+  letter-spacing: -0.022em;
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+.display-2 {
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.018em;
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+.display-3 {
+  font-family: var(--font-serif);
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+  line-height: 1.22;
+  letter-spacing: -0.012em;
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+.lede {
+  font-size: clamp(1.0625rem, 1.5vw, 1.1875rem);
+  line-height: 1.6;
+  color: var(--ink-muted);
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* --- Glass ----------------------------------------------------------------
+   The one rule that makes glass work: there must be something behind it to
+   blur. On a flat page a translucent panel is just grey, so every glass surface
+   here sits over the ground image rather than over nothing.
+
+   Backdrop-filter is also why the surface must be *slightly* transparent rather
+   than fully opaque — at 0.72 in light mode the photograph still reads through,
+   which is the entire effect. */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+}
+
+.glass-raised {
+  background: var(--surface-raised);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+}
+
+.glass-hover {
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease;
+}
+
+.glass-hover:hover {
+  background: var(--surface-raised);
+  border-color: var(--line-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* A hairline of light along the top edge. Glass without one reads as a flat
+   rectangle; the highlight is what suggests a curved surface catching light.
+   Direction flips per theme — a light highlight would be invisible on light. */
+.lit::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--line-strong),
+    transparent
+  );
+  pointer-events: none;
+}
+
+
+/* --- Glass fields ---------------------------------------------------------
+   Inputs get a sunken interior against a blurred exterior, so they read as a
+   recess in the page. The focus ring is a glow rather than a hard outline,
+   which is what a physical lens would do. */
+.field {
+  width: 100%;
+  background: var(--surface-sunken);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  color: var(--ink);
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.field::placeholder {
+  color: var(--ink-faint);
+}
+
+.field:hover {
+  border-color: var(--line-strong);
+}
+
+.field:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+/* Native <select> popups are drawn by the OS and ignore most styling, so they
+   need an explicit background matching the current theme or the dropdown
+   renders as a white box on a dark page (or the reverse). */
+.field option {
+  background: #fff;
+  color: #292929;
+}
+
+[data-theme='dark'] .field option {
+  background: #1a1a1a;
+  color: #f2f2f0;
+}
+
+
+/* --- Buttons --------------------------------------------------------------
+   Pill shapes throughout, matching the header. One primary weight: if
+   everything is loud, nothing is. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  padding: 0.6875rem 1.5rem;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.btn-primary:hover {
+  background: var(--ink);
+  filter: brightness(1.08);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-raised);
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.btn-ghost {
+  color: var(--ink-muted);
+  padding: 0.5rem 0.875rem;
+}
+
+.btn-ghost:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+/* --- Pills ---------------------------------------------------------------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.375rem 0.875rem;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.pill:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.pill[aria-pressed='true'],
+.pill-active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+/* --- Layout --------------------------------------------------------------- */
+.page-shell {
+  min-height: 100vh;
+  /* pt for the fixed header, pb so the last card clears the footer. */
+  padding-top: 6.5rem;
+  padding-bottom: 6rem;
+}
+
+/* A measure cap on prose. Long lines are the single most reliable way to make
+   a page look unfinished. */
+.measure {
+  max-width: 68ch;
+}
+
+.container-page {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+  max-width: 76rem;
+}
+
+/* --- Article body --------------------------------------------------------- */
+.prose-nature {
+  color: var(--ink-muted);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.prose-nature > * + * {
+  margin-top: 1.5em;
+}
+
+.prose-nature h1,
+.prose-nature h2,
+.prose-nature h3 {
+  font-family: var(--font-serif);
+  color: var(--ink);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.014em;
+  margin-top: 2.25em;
+  margin-bottom: 0.6em;
+}
+
+.prose-nature h1 { font-size: 1.875rem; }
+.prose-nature h2 { font-size: 1.5rem; }
+.prose-nature h3 { font-size: 1.1875rem; }
+
+.prose-nature a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(126, 231, 135, 0.6);
+}
+
+.prose-nature strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.prose-nature ul,
+.prose-nature ol {
+  padding-left: 1.5rem;
+}
+
+.prose-nature li + li {
+  margin-top: 0.5em;
+}
+
+.prose-nature li::marker {
+  color: var(--ink-faint);
+}
+
+.prose-nature blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 1.25rem;
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-style: italic;
+  color: var(--ink);
+}
+
+.prose-nature code {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.875em;
+}
+
+.prose-nature pre {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  overflow-x: auto;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.prose-nature pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: 0.8125rem;
+}
+
+.prose-nature img {
+  border-radius: 0.75rem;
+  margin-block: 1.5em;
+  max-width: 100%;
+  height: auto;
+}
+
+.prose-nature hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin-block: 3em;
+}
+
+.prose-nature table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.prose-nature th,
+.prose-nature td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.75rem 0.875rem;
+  text-align: left;
+}
+
+.prose-nature th {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* --- Motion ---------------------------------------------------------------
+   Every animation here is opted out under prefers-reduced-motion. Motion that
+   ignores the setting is a bug, not a preference. */
 @keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes toast-out {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(8px) scale(0.97);
-  }
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.97); }
 }
 
-/* Drains left-to-right to show how long the toast has left. */
 @keyframes toast-drain {
-  from {
-    transform: scaleX(1);
-  }
-  to {
-    transform: scaleX(0);
-  }
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 
-.toast-enter {
-  animation: toast-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.toast-leave {
-  animation: toast-out 200ms ease-in both;
-}
+.toast-enter { animation: toast-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.toast-leave { animation: toast-out 200ms ease-in both; }
 
 .toast-progress {
   transform-origin: left center;
@@ -85,175 +551,64 @@ body {
   animation-fill-mode: both;
 }
 
-/* --- Card entrance ------------------------------------------------------
-   Cards rise and fade in on mount, staggered by index so a grid resolves
-   top-left to bottom-right rather than appearing all at once. That ordering is
-   what makes a static list read as having loaded in sequence. */
 @keyframes card-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-card-in {
-  animation: card-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  /* Stagger driven by a CSS variable, so the delay lives in the markup rather
-     than in a repeated inline style. */
-  animation-delay: calc(var(--card-index, 0) * 35ms);
+  animation: card-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--card-index, 0) * 40ms);
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 25%,
+    var(--surface-raised) 50%,
+    var(--surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .toast-enter,
   .toast-leave,
   .toast-progress,
-  .animate-card-in {
+  .animate-card-in,
+  .skeleton {
     animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }
 
+/* --- Editor (EasyMDE) -----------------------------------------------------
+   The stock theme is light and renders as a white block inside a dark page. */
 @layer components {
-  .eyebrow {
-    @apply inline-block text-xs font-semibold tracking-[0.2em] uppercase text-gray-400;
-  }
-
-  .page-shell {
-    @apply min-h-screen bg-black pt-28 pb-20;
-  }
-
-  /* The card surface is kept deliberately faint. At bg-white/10 over black the
-     backdrop-blur has almost nothing to blur, so the fill does the visual work
-     and a 12-card page reads as a wall of grey blocks. Dropping the fill and
-     leaning on the border keeps the cards separated without the heaviness, and
-     is what makes the density changes in PostCard legible. */
-  .glass-card {
-    @apply bg-white/[0.04] backdrop-blur-md rounded-2xl border border-white/15;
-  }
-
-  .glass-card-hover {
-    @apply bg-white/[0.04] backdrop-blur-md rounded-2xl border border-white/15 transition-colors hover:bg-white/[0.08] hover:border-white/30;
-  }
-
-  .input-dark {
-    @apply w-full bg-black/60 border border-white/20 text-white placeholder-gray-500 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-white/30 focus:border-white/40 focus:outline-none transition;
-  }
-
-  /* Native select popups ignore most styling, so give the options an explicit
-     dark background/color — otherwise the OS renders a white dropdown with
-     white text on some platforms. */
-  .input-dark option {
-    @apply bg-zinc-900 text-white;
-  }
-
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-black px-8 py-3 rounded-full font-semibold shadow-lg transition-all hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100;
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 border border-white/40 hover:border-white text-white px-8 py-3 rounded-full font-semibold transition-all hover:bg-white/10;
-  }
-
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors;
-  }
-
-  .link-accent {
-    @apply font-semibold text-white hover:underline underline-offset-4 transition-colors;
-  }
-
-  .prose-nature {
-    @apply max-w-none text-gray-300 leading-relaxed;
-  }
-
-  .prose-nature h1,
-  .prose-nature h2,
-  .prose-nature h3 {
-    @apply text-white font-bold mt-8 mb-4;
-  }
-
-  .prose-nature p {
-    @apply mb-4;
-  }
-
-  .prose-nature a {
-    @apply text-white underline underline-offset-4;
-  }
-
-  .prose-nature strong {
-    @apply text-white font-semibold;
-  }
-
-  .prose-nature ul,
-  .prose-nature ol {
-    @apply mb-4 pl-6;
-  }
-
-  .prose-nature li {
-    @apply mb-2;
-  }
-
-  .prose-nature blockquote {
-    @apply border-l-4 border-white/40 bg-white/5 pl-4 py-2 rounded-r mb-4;
-  }
-
-  .prose-nature code {
-    @apply text-gray-200 bg-white/10 px-1 py-0.5 rounded text-sm;
-  }
-
-  /* react-markdown emits bare <pre> wrapping <code>; without this the inline
-     background/padding on `code` leaves a stray grey box around every block. */
-  .prose-nature pre code {
-    @apply bg-transparent p-0 rounded-none text-sm;
-  }
-
-  .prose-nature pre {
-    @apply bg-black/70 border border-white/10 rounded-lg p-4 overflow-x-auto mb-4;
-  }
-
-  .prose-nature img {
-    @apply rounded-xl my-4 max-w-full h-auto;
-  }
-
-  .prose-nature table {
-    @apply w-full mb-4 text-sm border-collapse;
-  }
-
-  .prose-nature th,
-  .prose-nature td {
-    @apply border border-white/15 px-3 py-2 text-left;
-  }
-
-  .prose-nature th {
-    @apply text-white font-semibold bg-white/5;
-  }
-
-  .prose-nature hr {
-    @apply border-white/15 my-6;
-  }
-
-  .pill-active {
-    @apply bg-white text-black border-white font-semibold;
-  }
-
-  .pill-inactive {
-    @apply bg-white/5 text-gray-300 border-white/20 hover:bg-white/10 hover:border-white/40 hover:text-white;
-  }
-
-  /* --- EasyMDE dark theme -----------------------------------------------
-     EasyMDE ships a light theme, which renders as a bright white editor
-     inside the dark create-post card. These overrides restyle the wrapper,
-     toolbar, and the CodeMirror instance it mounts. */
   .editor-dark .EasyMDEContainer .CodeMirror {
-    @apply bg-black/60 text-gray-200 border border-white/20 rounded-b-lg;
-    min-height: 240px;
+    @apply text-ink-muted;
+    background: var(--surface-sunken);
+    border: 1px solid var(--line);
+    border-radius: 0 0 0.75rem 0.75rem;
+    min-height: 260px;
   }
 
   .editor-dark .editor-toolbar {
-    @apply bg-white/5 border border-white/20 rounded-t-lg;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem 0.75rem 0 0;
   }
 
   .editor-dark .editor-toolbar::before,
@@ -262,83 +617,57 @@ body {
   }
 
   .editor-dark .editor-toolbar a {
-    @apply text-gray-400 rounded;
+    color: var(--ink-faint);
+    border-radius: 0.375rem;
   }
 
   .editor-dark .editor-toolbar a:hover,
   .editor-dark .editor-toolbar a.active {
-    @apply text-white bg-white/10;
+    background: var(--surface-raised);
+    color: var(--ink);
     border-color: transparent;
   }
 
   .editor-dark .editor-toolbar i.separator {
-    @apply border-white/20;
+    border-color: var(--line);
   }
 
   .editor-dark .CodeMirror-cursor {
-    border-left: 1px solid #fff;
+    border-left: 1px solid var(--ink);
   }
 
   .editor-dark .CodeMirror-selected {
-    @apply bg-white/20;
+    background: rgba(126, 231, 135, 0.18);
   }
 
   .editor-dark .CodeMirror .cm-header {
-    @apply text-white font-bold;
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-weight: 500;
   }
 
   .editor-dark .CodeMirror .cm-quote {
-    @apply text-gray-400 border-l-2 border-white/30 pl-2;
+    color: var(--ink-muted);
+    border-left: 2px solid var(--line-strong);
+    padding-left: 0.5rem;
   }
 
   .editor-dark .CodeMirror .cm-link {
-    @apply text-white underline;
+    color: var(--ink);
+    text-decoration: underline;
   }
 
   .editor-dark .CodeMirror .cm-url {
-    @apply text-gray-400;
+    color: var(--ink-faint);
   }
 
   .editor-dark .CodeMirror .cm-comment {
-    @apply text-gray-500;
+    color: var(--ink-faint);
   }
 
   .editor-dark .editor-preview,
   .editor-dark .editor-side-by-side .CodeMirror {
-    @apply bg-black/60 text-gray-300;
-  }
-
-  /* markdown body rendered in EasyMDE's preview pane. Only the pieces that
-     differ from the article view — `@apply prose-nature` can't reference a
-     custom class, and the article's own `.prose-nature` rules are inherited by
-     this subtree's class list. */
-  .editor-dark .editor-preview {
-    @apply text-gray-300 leading-relaxed;
-  }
-
-  .editor-dark .editor-preview h1,
-  .editor-dark .editor-preview h2,
-  .editor-dark .editor-preview h3 {
-    @apply text-white font-bold mt-6 mb-3;
-  }
-
-  .editor-dark .editor-preview a {
-    @apply text-white underline underline-offset-4;
-  }
-
-  .editor-dark .editor-preview blockquote {
-    @apply border-l-4 border-white/40 bg-white/5 pl-4 py-2 rounded-r mb-4;
-  }
-
-  .editor-dark .editor-preview code {
-    @apply text-gray-200 bg-white/10 px-1 py-0.5 rounded text-sm;
-  }
-
-  .editor-dark .editor-preview pre {
-    @apply bg-black/70 border border-white/10 rounded-lg p-4 overflow-x-auto mb-4;
-  }
-
-  .editor-dark .editor-preview pre code {
-    @apply bg-transparent p-0 rounded-none;
+    background: var(--surface-sunken);
+    color: var(--ink-muted);
   }
 }

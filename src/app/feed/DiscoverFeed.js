@@ -110,12 +110,12 @@ export default function DiscoverFeed({ initialPosts, pageSize = 12, hasMore: ini
             {hasMore && (
                 <div ref={sentinel} className="mt-8 text-center" aria-hidden="true">
                     {loading ? (
-                        <div className="glass-card h-24 animate-pulse" />
+                        <div className="glass h-24 animate-pulse" />
                     ) : (
                         <button
                             type="button"
                             onClick={loadMore}
-                            className="btn-secondary"
+                            className="btn btn-secondary"
                         >
                             Load more
                         </button>
@@ -124,7 +124,7 @@ export default function DiscoverFeed({ initialPosts, pageSize = 12, hasMore: ini
             )}
 
             {!hasMore && posts.length > 0 && (
-                <p className="mt-8 text-center text-sm text-gray-500">
+                <p className="mt-8 text-center text-sm text-[var(--ink-faint)]">
                     That is everything published so far.
                 </p>
             )}

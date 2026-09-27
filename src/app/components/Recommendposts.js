@@ -66,18 +66,18 @@ export default function RecommendedPosts({
 
     return (
         <section className="mt-16">
-            <h2 className="text-2xl font-bold text-white mb-6">{title}</h2>
+            <h2 className="text-2xl font-bold text-[var(--ink)] mb-6">{title}</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {status === 'loading'
                     ? Array.from({ length: limit }).map((_, i) => (
-                        <div key={i} className="glass-card h-48 animate-pulse" />
+                        <div key={i} className="glass h-48 animate-pulse" />
                     ))
                     : posts.map((post) => (
                         <Link
                             key={post.slug || post.id}
                             href={`/blog/${post.slug || post.id}`}
-                            className="glass-card-hover overflow-hidden group block"
+                            className="glass glass-hover overflow-hidden group block"
                         >
                             {post.image_url && (
                                 <div className="relative w-full h-36">
@@ -95,7 +95,7 @@ export default function RecommendedPosts({
                                 {post.topic && (
                                     <span className="eyebrow text-[10px] mb-2 block w-fit">{post.topic}</span>
                                 )}
-                                <h3 className="text-base font-semibold text-white group-hover:underline underline-offset-4 line-clamp-2">
+                                <h3 className="text-base font-semibold text-[var(--ink)] group-hover:underline underline-offset-4 line-clamp-2">
                                     {post.title || 'Untitled Post'}
                                 </h3>
                             </div>

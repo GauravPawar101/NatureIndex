@@ -216,14 +216,14 @@ function LoginForm() {
                     title="Sign in to Nature Index"
                     description="Access your account, publish articles, and manage your profile."
                 />
-                <div className="glass-card p-8">
+                <div className="glass p-8">
                     {/* Probes Supabase on mount, and again after a network
                         failure, so a broken URL is named up front. */}
                     <ConnectionNotice enabled={!!supabase} recheckToken={recheckToken} />
 
                     <form onSubmit={handleSignIn} className="space-y-5" noValidate>
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                            <label htmlFor="email" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Email</label>
                             <input
                                 id="email"
                                 type="email"
@@ -238,7 +238,7 @@ function LoginForm() {
                                 required
                                 aria-invalid={emailError ? 'true' : undefined}
                                 aria-describedby={emailError ? 'email-error' : undefined}
-                                className={`input-dark ${emailError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${emailError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
                             />
                             {emailError && (
                                 <p id="email-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
@@ -287,7 +287,7 @@ function LoginForm() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="btn-primary w-full disabled:opacity-50 disabled:hover:scale-100"
+                                className="btn btn-primary w-full disabled:opacity-50 disabled:hover:scale-100"
                             >
                                 {loading ? (
                                     <>
@@ -302,7 +302,7 @@ function LoginForm() {
                                 )}
                             </button>
 
-                            <p className="text-center text-xs text-gray-500" aria-live="polite">
+                            <p className="text-center text-xs text-[var(--ink-faint)]" aria-live="polite">
                                 {loading
                                     ? 'Checking your details...'
                                     : formReady
@@ -310,9 +310,9 @@ function LoginForm() {
                                         : ''}
                             </p>
 
-                            <p className="text-sm text-gray-400 text-center">
+                            <p className="text-sm text-[var(--ink-muted)] text-center">
                                 New here?{' '}
-                                <Link href="/signup" className="text-white hover:underline underline-offset-4">
+                                <Link href="/signup" className="text-[var(--ink)] hover:underline underline-offset-4">
                                     Create an account
                                 </Link>
                             </p>

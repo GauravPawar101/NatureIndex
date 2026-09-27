@@ -3,11 +3,12 @@ import { Leaf, Twitter, Linkedin, Github } from 'lucide-react';
 
 const SECTIONS = [
   {
-    title: 'Explore',
+    title: 'Read',
     links: [
-      { href: '/blog', label: 'Field Journal' },
-      { href: '/blog?sort=popular', label: 'Most read' },
-      { href: '/blog?q=conservation', label: 'Conservation' },
+      { href: '/blog', label: 'Field journal' },
+      { href: '/discover', label: 'Discover' },
+      { href: '/feed', label: 'Feed' },
+      { href: '/media', label: 'Photos and video' },
     ],
   },
   {
@@ -16,6 +17,7 @@ const SECTIONS = [
       { href: '/signup', label: 'Create an account' },
       { href: '/login', label: 'Sign in' },
       { href: '/create-post', label: 'Publish a story' },
+      { href: '/leaderboards', label: 'Leaderboards' },
     ],
   },
   {
@@ -23,6 +25,7 @@ const SECTIONS = [
     links: [
       { href: '/', label: 'Home' },
       { href: '/about', label: 'Our mission' },
+      { href: '/analytics', label: 'Analytics' },
     ],
   },
 ];
@@ -35,18 +38,22 @@ const SOCIALS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-black border-t border-white/10 py-14">
-      <div className="container mx-auto max-w-6xl px-6">
-        <div className="grid gap-10 md:grid-cols-[1.5fr_repeat(3,1fr)]">
+    <footer className="mt-20 border-t border-[var(--line)] py-14">
+      <div className="container-page">
+        <div className="grid gap-10 md:grid-cols-[1.6fr_repeat(3,1fr)]">
           <div className="text-center md:text-left">
-            <div className="mb-4 flex items-center justify-center gap-2 md:justify-start">
-              <Leaf className="w-6 h-6 text-white" />
-              <span className="text-lg font-bold text-white">Nature Index</span>
-            </div>
-            <p className="text-sm text-gray-400 md:max-w-xs">
-              An open platform for conservation science, field discoveries, and community action.
+            <Link
+              href="/"
+              className="mb-4 inline-flex items-center gap-2 font-[family-name:var(--font-serif)] text-lg font-semibold text-[var(--ink)]"
+            >
+              <Leaf size={20} className="text-[var(--accent)]" aria-hidden="true" />
+              <span>Nature Index</span>
+            </Link>
+            <p className="mx-auto max-w-xs text-sm leading-relaxed text-[var(--ink-muted)] md:mx-0">
+              An open platform for conservation science, field discoveries, and
+              community action.
             </p>
-            <div className="mt-5 flex justify-center gap-4 md:justify-start">
+            <div className="mt-5 flex justify-center gap-3 md:justify-start">
               {SOCIALS.map(({ href, label, Icon }) => (
                 <a
                   key={label}
@@ -54,9 +61,9 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="text-gray-400 transition-colors hover:text-white"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--line)] text-[var(--ink-muted)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--surface-raised)] hover:text-[var(--ink)]"
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon size={15} aria-hidden="true" />
                 </a>
               ))}
             </div>
@@ -64,13 +71,19 @@ export default function Footer() {
 
           {SECTIONS.map((section) => (
             <nav key={section.title} aria-labelledby={`footer-${section.title}`}>
-              <h2 id={`footer-${section.title}`} className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
+              <h2
+                id={`footer-${section.title}`}
+                className="eyebrow mb-4"
+              >
                 {section.title}
               </h2>
-              <ul className="space-y-2 text-sm">
+              <ul className="space-y-2.5">
                 {section.links.map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="text-gray-400 transition-colors hover:text-white">
+                    <Link
+                      href={link.href}
+                      className="text-sm text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
+                    >
                       {link.label}
                     </Link>
                   </li>
@@ -80,10 +93,9 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 border-t border-white/10 pt-6 text-center">
-          <p className="text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} Nature Index. All rights reserved.
-          </p>
+        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-[var(--line)] pt-6 text-xs text-[var(--ink-faint)] sm:flex-row">
+          <p>© {new Date().getFullYear()} Nature Index. All rights reserved.</p>
+          <p>Field reports are published by their authors.</p>
         </div>
       </div>
     </footer>

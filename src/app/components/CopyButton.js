@@ -83,7 +83,7 @@ export default function CopyButton({
                     ? 'text-emerald-300'
                     : failed
                         ? 'text-amber-300'
-                        : 'text-gray-400 hover:text-white'
+                        : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
             } ${className}`}
         >
             {copied ? <Check size={14} aria-hidden="true" /> : <Link2 size={14} aria-hidden="true" />}

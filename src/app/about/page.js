@@ -12,7 +12,7 @@ export const metadata = {
 export default function AboutPage() {
     return (
         <div className="page-shell">
-            <div className="container mx-auto max-w-5xl px-6">
+            <div className="container-page">
                 <PageHero
                     eyebrow="Who We Are"
                     title="A Collective for Conservation"
@@ -22,15 +22,15 @@ export default function AboutPage() {
                 <div className="grid md:grid-cols-2 gap-10 items-center mb-24">
                     <div>
                         <span className="eyebrow mb-4 block">Our Mission</span>
-                        <h2 className="text-3xl font-bold text-white mb-4">Knowledge for Action</h2>
-                        <p className="text-gray-300 leading-relaxed mb-4">
+                        <h2 className="text-3xl font-bold text-[var(--ink)] mb-4">Knowledge for Action</h2>
+                        <p className="text-[var(--ink-muted)] leading-relaxed mb-4">
                             We provide an open, collaborative platform where scientists, activists, and nature enthusiasts unite to share crucial information, inspire dialogue, and drive meaningful conservation action.
                         </p>
-                        <p className="text-gray-400 leading-relaxed">
+                        <p className="text-[var(--ink-muted)] leading-relaxed">
                             Founded in 2025, Nature Index was born from the idea that conservation cannot be confined to labs and academic papers. It must be accessible, collaborative, and actionable for everyone who wishes to contribute to a sustainable future.
                         </p>
                     </div>
-                    <div className="relative h-80 rounded-2xl overflow-hidden border border-white/20">
+                    <div className="relative h-80 rounded-2xl overflow-hidden border border-[var(--line-strong)]">
                         <Image
                             src="https://images.pexels.com/photos/957024/forest-trees-perspective-bright-957024.jpeg?auto=compress&cs=tinysrgb&w=1200"
                             alt="Forest canopy"
@@ -46,7 +46,7 @@ export default function AboutPage() {
                 <section className="mb-24">
                     <div className="text-center mb-12">
                         <span className="eyebrow mb-4 block">Principles</span>
-                        <h2 className="text-4xl font-bold text-white">Our Manifesto</h2>
+                        <h2 className="text-4xl font-bold text-[var(--ink)]">Our Manifesto</h2>
                     </div>
                     <div className="grid md:grid-cols-3 gap-8">
                         {[
@@ -63,20 +63,20 @@ export default function AboutPage() {
                                 text: 'Information without action remains inert. We translate global insights into tangible tools so every person can become an effective guardian of their natural world.',
                             },
                         ].map((item) => (
-                            <div key={item.title} className="glass-card p-8">
-                                <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
-                                <p className="text-gray-300 leading-relaxed text-sm">{item.text}</p>
+                            <div key={item.title} className="glass p-8">
+                                <h3 className="text-xl font-bold text-[var(--ink)] mb-3">{item.title}</h3>
+                                <p className="text-[var(--ink-muted)] leading-relaxed text-sm">{item.text}</p>
                             </div>
                         ))}
                     </div>
                 </section>
 
-                <section className="text-center glass-card p-10 md:p-14">
-                    <h2 className="text-3xl font-bold text-white mb-4">Join the conversation</h2>
-                    <p className="text-gray-300 mb-8 max-w-xl mx-auto">
+                <section className="text-center glass p-10 md:p-14">
+                    <h2 className="text-3xl font-bold text-[var(--ink)] mb-4">Join the conversation</h2>
+                    <p className="text-[var(--ink-muted)] mb-8 max-w-xl mx-auto">
                         Read field reports, share your research, and connect with a global community of conservation stewards.
                     </p>
-                    <Link href="/blog" className="btn-primary">
+                    <Link href="/blog" className="btn btn-primary">
                         Explore the Field Journal
                         <ChevronRight className="w-4 h-4" />
                     </Link>

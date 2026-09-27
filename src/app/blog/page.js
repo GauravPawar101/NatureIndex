@@ -80,14 +80,14 @@ export default async function BlogPage({ searchParams }) {
 
     return (
         <div className="page-shell">
-            <div className="container mx-auto max-w-5xl px-6">
+            <div className="container-page">
                 <PageHero
                     eyebrow="The Field Journal"
                     title="Stories from the Frontlines"
                     description="Conservation science, field discoveries, and community action — documented by researchers and stewards worldwide."
                 />
 
-                <div className="glass-card mb-12 p-6 md:p-10">
+                <div className="glass mb-12 p-6 md:p-10">
                     <BlogList
                         key={`${query}|${topic}|${author}|${sort}`}
                         initialPosts={posts}

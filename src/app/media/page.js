@@ -33,7 +33,7 @@ export default async function MediaPage() {
 
   return (
     <div className="page-shell">
-      <div className="container mx-auto max-w-6xl px-6">
+      <div className="container-page">
         <PageHero
           eyebrow="Media"
           title="From the field"
@@ -41,13 +41,13 @@ export default async function MediaPage() {
         />
 
         {nothing ? (
-          <div className="glass-card p-8">
+          <div className="glass p-8">
             <EmptyState
               icon={ImageIcon}
               title="No media published yet"
               description="When a contributor publishes a photo set or a video it appears here. Written field reports stay in the journal."
               action={
-                <Link href="/blog" className="btn-primary">
+                <Link href="/blog" className="btn btn-primary">
                   Read the field journal
                 </Link>
               }
@@ -59,10 +59,10 @@ export default async function MediaPage() {
               <section className="mb-14" aria-labelledby="video-heading">
                 <div className="mb-6 flex items-center gap-3">
                   <Video size={20} className="text-red-400" aria-hidden="true" />
-                  <h2 id="video-heading" className="text-2xl font-bold text-white">
+                  <h2 id="video-heading" className="text-2xl font-bold text-[var(--ink)]">
                     Video
                   </h2>
-                  <span className="text-sm text-gray-500">{counts.video}</span>
+                  <span className="text-sm text-[var(--ink-faint)]">{counts.video}</span>
                 </div>
 
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -77,10 +77,10 @@ export default async function MediaPage() {
               <section aria-labelledby="photo-heading">
                 <div className="mb-6 flex items-center gap-3">
                   <ImageIcon size={20} className="text-emerald-400" aria-hidden="true" />
-                  <h2 id="photo-heading" className="text-2xl font-bold text-white">
+                  <h2 id="photo-heading" className="text-2xl font-bold text-[var(--ink)]">
                     Photographs
                   </h2>
-                  <span className="text-sm text-gray-500">{counts.photo}</span>
+                  <span className="text-sm text-[var(--ink-faint)]">{counts.photo}</span>
                 </div>
 
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -109,7 +109,7 @@ function MediaCard({ post }) {
   const duration = formatDuration(post.video_duration_s);
 
   return (
-    <article className="glass-card-hover group overflow-hidden">
+    <article className="glass glass-hover group overflow-hidden">
       <Link href={`/blog/${post.slug}`} className="block">
         <div className="relative aspect-[4/3] overflow-hidden bg-black/40">
           {post.image_url ? (
@@ -121,7 +121,7 @@ function MediaCard({ post }) {
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-gray-600">
+            <div className="flex h-full items-center justify-center text-[var(--ink-faint)]">
               {isVideo ? <Video size={32} aria-hidden="true" /> : <ImageIcon size={32} aria-hidden="true" />}
             </div>
           )}
@@ -132,12 +132,12 @@ function MediaCard({ post }) {
                 aria-hidden="true"
                 className="absolute inset-0 flex items-center justify-center"
               >
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition-transform duration-200 group-hover:scale-110">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/60 text-[var(--ink)] backdrop-blur transition-transform duration-200 group-hover:scale-110">
                   <Play size={22} />
                 </span>
               </span>
               {duration && (
-                <span className="absolute bottom-2 right-2 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-white tabular-nums">
+                <span className="absolute bottom-2 right-2 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-[var(--ink)] tabular-nums">
                   {duration}
                 </span>
               )}
@@ -147,10 +147,10 @@ function MediaCard({ post }) {
 
         <div className="p-4">
           {post.topic && <span className="eyebrow mb-2 block text-[10px]">{post.topic}</span>}
-          <h3 className="line-clamp-2 font-bold text-white group-hover:underline underline-offset-4">
+          <h3 className="line-clamp-2 font-bold text-[var(--ink)] group-hover:underline underline-offset-4">
             {post.title}
           </h3>
-          <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+          <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--ink-faint)]">
             {post.profiles?.full_name && <span>by {post.profiles.full_name}</span>}
             {isVideo && duration && (
               <span className="inline-flex items-center gap-1">
