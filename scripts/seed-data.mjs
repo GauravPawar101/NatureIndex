@@ -649,6 +649,194 @@ export const COMMENTS = [
   { post: 16, author: 'aisha_okafor', content: 'The 3.1-year median gear age is the figure I would put in the summary. It reframes one storm event as several fish-years of mortality.', parent: 39, days_ago: 276 },
 ];
 
+/**
+ * Photo sets and video posts.
+ *
+ * A separate list rather than extra entries in POSTS, because these need
+ * `content_type` and asset rows, and keeping them apart means the article seed
+ * (which CI and `seed-sql.mjs` both rely on) is unchanged by anything media.
+ *
+ * `content_type` is what posts.content_type expects: 'photo' or 'video'.
+ * `media` becomes rows in public.post_media. Covers reuse the same local files
+ * the article posts use, so the seed stays free of binary assets and works
+ * offline — CI has no network.
+ */
+export const MEDIA_POSTS = [
+  {
+    author: 'kenji_watanabe',
+    content_type: 'photo',
+    topic: 'Deforestation',
+    image_url: '/posts/deforestation.jpg',
+    days_ago: 6,
+    views: 3180,
+    title: 'Four Years of Direct Seeding, Photographed Monthly',
+    excerpt:
+      'The same twelve plots, photographed from the same fixed point every month since planting. Most of them failed. The sequence is more useful than the summary.',
+    content: `Twelve plots, one camera position, one timestamp a month. That is the entire method, and it is deliberately dull: anyone can repeat it, and repeating it is the only way the record means anything four years later.
+
+The honest summary is that most of these did not work. Nine of the twelve are dead or effectively dead. Two are ambiguous. One is doing well, and it is not the site everyone is proud of — it is the one on the worst soil, which is the finding that took us two years to accept.
+
+What the photographs show that a survival table does not: erosion. Site 7 reads as "surviving" in the count and is visibly losing its uphill edge every month. The seedlings are fine. The ground they are standing on is not.
+
+We kept going because of site 11. If the sequence had ended in 2023, when the first count came back at 31%, we would have stopped.`,
+    media: [
+      { kind: 'image', url: '/posts/deforestation.jpg', alt_text: 'Twelve planting plots on a cleared slope, photographed from a fixed point', position: 0 },
+      { kind: 'image', url: '/posts/forest.jpg', alt_text: 'Two-year-old saplings in the surviving plot', position: 1 },
+      { kind: 'image', url: '/posts/deforestation.jpg', alt_text: 'Uphill erosion on site 7, visible across four monthly frames', position: 2 },
+      { kind: 'image', url: '/posts/forest.jpg', alt_text: 'Site 11 canopy closing, the one plot that worked', position: 3 },
+    ],
+  },
+  {
+    author: 'aisha_okafor',
+    content_type: 'photo',
+    topic: 'Ocean Conservation',
+    image_url: '/posts/ocean.jpg',
+    days_ago: 11,
+    views: 2460,
+    title: 'A Tidepool Census in Twelve Photographs',
+    excerpt:
+      'One quadrat, one low tide, one camera. Twelve frames is not a survey — it is a record of a morning, and that is a different kind of claim.',
+    content: `Twelve frames of a single quadrat at the lowest tide of the month. This is not a survey and should not be described as one: it is one location, one morning, and one person who had never done this before.
+
+What it does show is the density problem in a form you cannot argue with. Count the mussels in frame four, then in frame nine. Same rock, same water, three hours. The number roughly halves.
+
+We published it because the photographs are more useful to a school group than a table of counts would be, and because a number anyone can check is worth more than a summary anyone has to trust.`,
+    media: [
+      { kind: 'image', url: '/posts/ocean.jpg', alt_text: 'A quadrat on a rock shelf at low tide, densely packed with mussels', position: 0 },
+      { kind: 'image', url: '/posts/ocean.jpg', alt_text: 'The same quadrat three hours later, visibly thinned', position: 1 },
+      { kind: 'image', url: '/posts/pollution.jpg', alt_text: 'Close detail of the mussel bed showing partial mortality', position: 2 },
+    ],
+  },
+  {
+    author: 'elena_vasquez',
+    content_type: 'video',
+    topic: 'Climate Change',
+    // A real, public-domain clip so the player has something to load. The seed
+    // stays free of binary assets and works with no network at build time.
+    image_url: '/posts/climate.jpg',
+    video_url: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/0/0e/Glacier_retreat.webm/Glacier_retreat.webm.480p.webm',
+    video_duration_s: 143,
+    days_ago: 4,
+    views: 5890,
+    title: 'What a Glacier Leaves Behind, in Two and a Half Minutes',
+    excerpt:
+      'Time-lapse from the same camera position across four seasons, ending on the meltwater channel that was a glacier in 2019.',
+    content: `Four seasons from one fixed camera position, ending on the meltwater channel that was a glacier proper as recently as 2019.
+
+We shot this to make one point: the retreat is not an abstraction. What looks like a slow recession in a graph is, from a fixed vantage point, a landscape being rearranged — moraine, then bare rock, then a channel, then a lake.
+
+The clip runs long enough to show the part people find difficult, which is the end. There is no version of this where the last thirty seconds are comfortable, and that is the correct ending for the piece.`,
+    media: [
+      { kind: 'video', url: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/0/0e/Glacier_retreat.webm/Glacier_retreat.webm.480p.webm', position: 0, durationSeconds: 143, posterUrl: '/posts/climate.jpg' },
+    ],
+  },
+  {
+    author: 'marcus_obi',
+    content_type: 'photo',
+    topic: 'Water Resources',
+    image_url: '/posts/water.jpg',
+    days_ago: 19,
+    views: 1940,
+    title: 'The Village Well, Photographed Across One Dry Season',
+    excerpt:
+      'Eleven frames of a single wellhead through a dry season, with the water level marked on the wall so the reader can see it fall.',
+    content: `A wellhead, a painted mark, and a camera that was supposed to run weekly and mostly did.
+
+The painted line is the point. Anyone can measure a water level against a reference, and a photograph with a mark on the wall lets a reader check our reading rather than take it on trust.
+
+Eleven frames over one season. The level falls, and the fall is not linear — there is a step in it around week seven that we still cannot explain.`,
+    media: [
+      { kind: 'image', url: '/posts/water.jpg', alt_text: 'A village wellhead with a painted reference mark on the wall', position: 0 },
+      { kind: 'image', url: '/posts/water.jpg', alt_text: 'The same wellhead in late season, water level visibly below the mark', position: 1 },
+    ],
+  },
+  {
+    author: 'priya_raman',
+    content_type: 'video',
+    topic: 'Pollution',
+    image_url: '/posts/pollution.jpg',
+    video_url: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c8/Plastic_pollution_in_the_ocean.webm/Plastic_pollution_in_the_ocean.webm.480p.webm',
+    video_duration_s: 96,
+    days_ago: 9,
+    views: 4210,
+    title: 'Ninety Seconds of a River Mouth, Unedited',
+    excerpt:
+      'One fixed camera at a river mouth, uncut, so the waste entering the sea is the only thing in frame.',
+    content: `Ninety-six seconds, one camera, no cuts, nothing else in frame. We resisted the urge to add a title card and a soundtrack.
+
+The reason for publishing it unedited is that edited versions of this footage invariably compress the timeline, and the timeline is the finding. A viewer who has seen a thirty-second cut concludes the problem is a constant rain of plastic. Ninety-six seconds shows it arriving in pulses, which is a different problem with a different set of solutions.
+
+Somebody will ask why we did not film for longer. The answer is that we have, and ninety-six seconds is the shortest clip that still shows the pulse structure.`,
+    media: [
+      { kind: 'video', url: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c8/Plastic_pollution_in_the_ocean.webm/Plastic_pollution_in_the_ocean.webm.480p.webm', position: 0, durationSeconds: 96, posterUrl: '/posts/pollution.jpg' },
+    ],
+  },
+  {
+    author: 'tomas_lindqvist',
+    content_type: 'photo',
+    topic: 'Wildlife Conservation',
+    image_url: '/posts/wildlife.jpg',
+    days_ago: 27,
+    views: 3760,
+    title: 'Three Cameras, Six Months, One Corridor',
+    excerpt:
+      'A wildlife corridor photographed from three fixed points. The animals are mostly not in the frames, which is itself the finding.',
+    content: `Three cameras, six months, one corridor. We expected wildlife. What the frames mostly contain is people, livestock and weather.
+
+The corridor works, in the sense that it is being used — 214 trigger events, and about 40 of them are the species the corridor was built for. But the use is almost entirely at night, and almost entirely by domestic animals.
+
+So the photographs are a disappointment, and we are publishing them because a corridor that is used by goats is not a corridor. That is a finding, and nobody is going to commission more camera work on the strength of a press release.`,
+    media: [
+      { kind: 'image', url: '/posts/wildlife.jpg', alt_text: 'A camera trap frame showing a corridor used mainly by livestock', position: 0 },
+      { kind: 'image', url: '/posts/forest.jpg', alt_text: 'The corridor edge where canopy planting meets open grazing land', position: 1 },
+      { kind: 'image', url: '/posts/wildlife.jpg', alt_text: 'A rare target-species frame from the third month', position: 2 },
+      { kind: 'image', url: '/posts/forest.jpg', alt_text: 'Fence line along the corridor, removed in month five', position: 3 },
+    ],
+  },
+  {
+    author: 'sara_benali',
+    content_type: 'photo',
+    topic: 'Sustainable Living',
+    image_url: '/posts/sustainable.jpg',
+    days_ago: 34,
+    views: 1620,
+    title: 'A Repair Workshop, Photographed in the Order It Broke',
+    excerpt:
+      'Nine frames of a repair workshop, sequenced by what came in rather than by what looked best.',
+    content: `Nine frames, sequenced by the order things arrived rather than by what photographs well. The toaster is frame three and the sewing machine is frame eight, and nobody is going to enjoy frame eight.
+
+The sequencing is the argument. A photo essay about repair usually shows a finished table lamp, which is a picture of an outcome. Arranged by intake, it is a picture of a queue: what a town actually brings to a repair workshop, in the order it arrives.
+
+Two of the nine were not repairable. We left them in.`,
+    media: [
+      { kind: 'image', url: '/posts/sustainable.jpg', alt_text: 'A workbench with a queue of items waiting to be repaired', position: 0 },
+      { kind: 'image', url: '/posts/sustainable.jpg', alt_text: 'A toaster opened on the bench, third item of the day', position: 1 },
+      { kind: 'image', url: '/posts/sustainable.jpg', alt_text: 'A sewing machine, eighth item, not repairable', position: 2 },
+    ],
+  },
+  {
+    author: 'kenji_watanabe',
+    content_type: 'video',
+    topic: 'Sustainable Living',
+    image_url: '/posts/renewable.jpg',
+    video_url: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8c/Solar_panels_in_the_desert.webm/Solar_panels_in_the_desert.webm.480p.webm',
+    video_duration_s: 118,
+    days_ago: 15,
+    views: 2870,
+    title: 'What a Microgrid Does When the Grid Leaves',
+    excerpt:
+      'A clinic microgrid running for eleven days without grid connection, filmed to a fixed schedule rather than to the outages.',
+    content: `Eleven days, filmed on a fixed schedule rather than to the outages — which is the methodologically interesting part, and the reason the clip is longer than the story.
+
+Filming to the outage gives you dramatic footage of the moment the power goes. It tells you nothing about the rest. On a fixed schedule you get the boring majority, and the boring majority is where the equipment actually fails.
+
+The clinic kept every service running for all eleven days. The one exception is the vaccine fridge, which lost temperature twice, and that is on the record in the clip rather than edited out of it.`,
+    media: [
+      { kind: 'video', url: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8c/Solar_panels_in_the_desert.webm/Solar_panels_in_the_desert.webm.480p.webm', position: 0, durationSeconds: 118, posterUrl: '/posts/renewable.jpg' },
+    ],
+  },
+];
+
 /** Normalized action types — must match the post_interactions check constraint. */
 export const ACTION_TYPES = ['read', 'bookmark', 'comment', 'upvote'];
 

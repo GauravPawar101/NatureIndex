@@ -24,6 +24,7 @@ import {
   COMMENTS,
   DEMO_PASSWORD,
   POSTS,
+  MEDIA_POSTS,
   ACTION_TYPES,
   deriveEmbedding,
   deriveExcerpt,
@@ -202,8 +203,8 @@ async function seedAuthors() {
  * still works offline — the result is then lexical only, and the caller is
  * told so.
  */
-async function embedPosts() {
-  const texts = POSTS.map((post) => `${post.title}\n${post.content}`);
+async function embedPosts(posts = POSTS) {
+  const texts = posts.map((post) => `${post.title}\n${post.content}`);
   try {
     const vectors = await embed(texts);
     if (vectors.length === texts.length) return vectors;
@@ -212,6 +213,109 @@ async function embedPosts() {
     console.warn(`  encoder unavailable (${error.message}); using hash`);
   }
   return texts.map((text) => deriveEmbedding(text));
+}
+
+/**
+ * Photo sets and video posts, plus their asset rows.
+ *
+ * Separate from seedPosts because these need `content_type`/`video_url` and a
+ * `post_media` row per asset, and because the article posts are the set CI's
+ * seed-sql path depends on. Returning a slug map keyed the same way seedPosts
+ * does lets seedInteractions cover both without knowing which is which.
+ *
+ * The media table and columns only exist after the schema addendum (10b) has
+ * been applied. If they are missing this reports the fact and returns empty
+ * rather than failing the whole seed — the article content is still worth
+ * seeding, and a project that has not run schema.sql yet is a normal state.
+ */
+async function seedMediaPosts(authorIds) {
+  if (MEDIA_POSTS.length === 0) return new Map();
+
+  console.log(`Seeding ${MEDIA_POSTS.length} media posts...`);
+  const slugs = new Map();
+
+  const vectors = await embedPosts(MEDIA_POSTS);
+
+  for (const [index, post] of MEDIA_POSTS.entries()) {
+    const userId = authorIds.get(post.author);
+    if (!userId) {
+      fail(`media post "${post.title}"`, `unknown author ${post.author}`);
+      continue;
+    }
+
+    const slug = slugify(post.title);
+    if (!slug) {
+      fail(`media post "${post.title}"`, 'title slugified to an empty string');
+      continue;
+    }
+
+    const row = {
+      user_id: userId,
+      title: post.title,
+      slug,
+      content: post.content,
+      excerpt: post.excerpt || deriveExcerpt(post.content),
+      image_url: post.image_url,
+      topic: post.topic,
+      views: post.views,
+      published: true,
+      content_type: post.content_type,
+      // The check constraint requires exactly this pairing: a video post must
+      // carry a video_url, and an article or photo must not.
+      video_url: post.content_type === 'video' ? post.video_url : null,
+      video_duration_s: post.content_type === 'video' ? (post.video_duration_s ?? null) : null,
+      date: daysAgoToIso(post.days_ago),
+      embedding: vectors[index],
+    };
+
+    const { error } = await supabase.from('posts').upsert(row, { onConflict: 'slug' });
+    if (error) {
+      // Almost always "column does not exist" on a project that has not applied
+      // the media addendum. Say so plainly rather than failing 8 times.
+      fail(`media post "${post.title}"`, error.message);
+      continue;
+    }
+
+    // Resolve the id so the asset rows can point at it.
+    const { data: found, error: findError } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (findError || !found?.id) {
+      fail(`media post "${post.title}"`, findError?.message || 'could not read back the post id');
+      continue;
+    }
+
+    const assets = (post.media || [])
+      .filter((asset) => asset.url)
+      .map((asset, position) => ({
+        post_id: found.id,
+        position: asset.position ?? position,
+        url: asset.url,
+        kind: asset.kind === 'video' ? 'video' : 'image',
+        duration_s: asset.durationSeconds ?? null,
+        poster_url: asset.posterUrl ?? null,
+        alt_text: asset.altText ?? null,
+      }));
+
+    if (assets.length) {
+      const { error: assetError } = await supabase
+        .from('post_media')
+        .upsert(assets, { onConflict: 'post_id,position' });
+
+      if (assetError) {
+        fail(`media assets for "${post.title}"`, assetError.message);
+        continue;
+      }
+    }
+
+    slugs.set(slug, index);
+  }
+
+  console.log(`  ${slugs.size}/${MEDIA_POSTS.length} media posts upserted`);
+  return slugs;
 }
 
 async function seedPosts(authorIds) {
@@ -352,13 +456,20 @@ async function seedComments(authorIds, postSlugs) {
   console.log(`  ${createdIds.length} comments inserted, ${repliesLinked} replies linked`);
 }
 
-async function seedInteractions(authorIds, postSlugs) {
+async function seedInteractions(authorIds, postSlugs, mediaSlugs = new Map()) {
   console.log('Seeding interactions, PageRank and CF scores...');
 
   const { data: posts } = await supabase.from('posts').select('id, slug, title, views');
   const idBySlug = new Map((posts ?? []).map((p) => [p.slug, p.id]));
   const users = [...authorIds.values()];
-  const seededSlugs = [...postSlugs.values()].filter((s) => idBySlug.has(s));
+
+  // Both sets, so the graph the Rust engine consumes covers media posts too.
+  // A media post left out of the interaction graph ranks as if nobody had ever
+  // read it, which would put every photo and video at the bottom of trending.
+  const seededSlugs = [
+    ...[...postSlugs.values()],
+    ...[...mediaSlugs.keys()],
+  ].filter((s) => idBySlug.has(s));
 
   if (!users.length || !seededSlugs.length) {
     fail('interactions', 'no users or posts resolved');
@@ -492,6 +603,42 @@ async function verify() {
   if (orphanComments?.length) {
     console.log(`  ${orphanComments.length} threaded replies linked`);
   }
+
+  // Media counts, and a check that every asset points at a real post. A missing
+  // post_media table is reported rather than failed, since the article seed is
+  // still valid on a project that has not applied the media addendum.
+  const { count: mediaAssets, error: mediaError } = await supabase
+    .from('post_media')
+    .select('post_id', { count: 'exact', head: true });
+
+  if (mediaError) {
+    console.log(`  post_media: skipped (${mediaError.message})`);
+  } else {
+    console.log(`  post_media: ${mediaAssets} assets`);
+  }
+
+  const { data: typeCounts } = await supabase
+    .from('posts')
+    .select('content_type, video_url');
+
+  if (Array.isArray(typeCounts)) {
+    const tally = typeCounts.reduce((acc, row) => {
+      const type = row.content_type || 'article';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
+    console.log(`  by content_type: ${Object.entries(tally).map(([k, v]) => `${k}=${v}`).join(', ')}`);
+
+    // Mirrors the posts_video_consistent check constraint. Asserting it here as
+    // well means a project that somehow skipped the constraint is caught on the
+    // next seed rather than at read time by a broken player.
+    const inconsistent = typeCounts.filter((row) =>
+      row.content_type === 'video' ? !row.video_url : row.video_url !== null
+    );
+    if (inconsistent.length) {
+      fail('media consistency', `${inconsistent.length} posts have a video_url that disagrees with content_type`);
+    }
+  }
 }
 
 async function run() {
@@ -507,8 +654,9 @@ async function run() {
   }
 
   const postSlugs = await seedPosts(authorIds);
+  const mediaSlugs = await seedMediaPosts(authorIds);
   await seedComments(authorIds, postSlugs);
-  await seedInteractions(authorIds, postSlugs);
+  await seedInteractions(authorIds, postSlugs, mediaSlugs);
   await verify();
 
   console.log('\n──────────────────────────────────────────');
