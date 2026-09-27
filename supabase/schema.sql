@@ -131,6 +131,9 @@ values
   ('post-images', 'post-images', true, 8388608, array['image/jpeg','image/png','image/webp','image/gif','image/avif']),
   ('comment-images', 'comment-images', true, 5242880, array['image/jpeg','image/png','image/webp','image/gif','image/avif']),
   ('avatars', 'avatars', true, 5242880, array['image/jpeg','image/png','image/webp','image/gif','image/avif'])
+  -- post-videos and post-photos are declared in the media addendum (10b), which
+  -- needs pgvector's `extensions` schema to already exist. Kept here rather than
+  -- there so the original three buckets stay readable as one block.
 on conflict (id) do update
   set file_size_limit    = excluded.file_size_limit,
       allowed_mime_types = excluded.allowed_mime_types,
@@ -382,6 +385,141 @@ alter table public.posts
 create index if not exists idx_posts_embedding_hnsw
   on public.posts using hnsw (embedding extensions.vector_cosine_ops)
   with (m = 16, ef_construction = 64);
+
+-- ------------------------------------------------------------
+-- 10b. Media posts (photo / video)
+-- ------------------------------------------------------------
+-- A post is text, a photo set, or a video. `content_type` is the discriminator
+-- and defaults to 'article', so every existing row keeps its current behaviour
+-- and no backfill is needed — the whole addendum is additive and re-runnable.
+--
+-- `image_url` stays the cover for every kind, so the blog list, the profile page
+-- and the trending shelves need no changes: a video post still renders exactly
+-- like an article, with a poster frame as its cover.
+create table if not exists public.post_media (
+  -- Composite key: one row per asset, so a photo set is several rows rather than
+  -- an array, which keeps each file individually addressable and deletable.
+  post_id     uuid   not null references public.posts(id) on delete cascade,
+  position    int    not null,
+  url         text   not null,
+  -- 'image' | 'video'. Kept on the row as well as on the post so a mixed set
+  -- (cover photo + clips) is representable.
+  kind        text   not null default 'image' check (kind in ('image', 'video')),
+  -- Seconds. Null for images; used to label and sort video posts.
+  duration_s  int    check (duration_s is null or duration_s >= 0),
+  width       int    check (width  is null or width  > 0),
+  height      int    check (height is null or height > 0),
+  -- Poster frame for a video, so a card never shows a black rectangle.
+  poster_url  text,
+  alt_text    text,
+  created_at  timestamptz not null default now(),
+  primary key (post_id, position)
+);
+
+create index if not exists idx_post_media_post_id on public.post_media (post_id);
+
+alter table public.posts
+  add column if not exists content_type text not null default 'article'
+    check (content_type in ('article', 'photo', 'video')),
+  add column if not exists video_url text,
+  add column if not exists video_duration_s int
+    check (video_duration_s is null or video_duration_s >= 0);
+
+-- A video post needs a video; anything else must not claim one. Enforced in the
+-- database rather than only in the form, because RLS lets a client write any
+-- column it likes and a malformed row would break every player that trusts it.
+alter table public.posts
+  drop constraint if exists posts_video_consistent;
+alter table public.posts
+  add constraint posts_video_consistent check (
+    (content_type = 'video' and video_url is not null)
+    or (content_type <> 'video' and video_url is null)
+  );
+
+-- Partial index: the feeds filter on this constantly, and it is true for a
+-- small minority of rows, so indexing all of them would be mostly wasted space.
+create index if not exists idx_posts_content_type
+  on public.posts (content_type) where content_type <> 'article';
+
+-- RLS on the child table. Without these the asset rows would be readable and
+-- writable by anyone, which is why they are created here rather than relying on
+-- the parent table's policies — RLS does not cascade.
+alter table public.post_media enable row level security;
+
+drop policy if exists "post_media_public_read" on public.post_media;
+create policy "post_media_public_read" on public.post_media
+  for select using (
+    exists (
+      select 1 from public.posts p
+      where p.id = post_id and (p.published = true or p.user_id = auth.uid())
+    )
+  );
+
+drop policy if exists "post_media_owner_write" on public.post_media;
+create policy "post_media_owner_write" on public.post_media
+  for insert with check (
+    exists (select 1 from public.posts p where p.id = post_id and p.user_id = auth.uid())
+  );
+
+drop policy if exists "post_media_owner_update" on public.post_media;
+create policy "post_media_owner_update" on public.post_media
+  for update using (
+    exists (select 1 from public.posts p where p.id = post_id and p.user_id = auth.uid())
+  );
+
+drop policy if exists "post_media_owner_delete" on public.post_media;
+create policy "post_media_owner_delete" on public.post_media
+  for delete using (
+    exists (select 1 from public.posts p where p.id = post_id and p.user_id = auth.uid())
+  );
+
+-- Media buckets. Separate from `post-images` so the size limit and the accepted
+-- MIME list can differ per kind: a video is orders of magnitude larger than a
+-- photo, and one shared limit would have to be the larger of the two for both.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values
+  ('post-videos', 'post-videos', true, 104857600,
+   array['video/mp4','video/webm','video/quicktime','video/ogg']),
+  ('post-photos', 'post-photos', true, 8388608,
+   array['image/jpeg','image/png','image/webp','image/gif','image/avif'])
+on conflict (id) do update
+  set file_size_limit    = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types,
+      public             = excluded.public;
+
+-- Storage RLS for the media buckets. Same `<userId>/<file>` shape the delete
+-- policies match on: `(storage.foldername(name))[1] = auth.uid()`. The underscore
+-- form is wrong here for the same reason it is wrong everywhere else — a UUID is
+-- full of hyphens, so splitting on '-' never yields the id.
+drop policy if exists "post_videos_owner_insert" on storage.objects;
+create policy "post_videos_owner_insert" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'post-videos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "post_videos_owner_update" on storage.objects;
+create policy "post_videos_owner_update" on storage.objects
+  for update to authenticated
+  using (bucket_id = 'post-videos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "post_videos_owner_delete" on storage.objects;
+create policy "post_videos_owner_delete" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'post-videos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "post_photos_owner_insert" on storage.objects;
+create policy "post_photos_owner_insert" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'post-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "post_photos_owner_update" on storage.objects;
+create policy "post_photos_owner_update" on storage.objects
+  for update to authenticated
+  using (bucket_id = 'post-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "post_photos_owner_delete" on storage.objects;
+create policy "post_photos_owner_delete" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'post-photos' and (storage.foldername(name))[1] = auth.uid()::text);
 
 -- ------------------------------------------------------------
 -- 11. Collaborative Filtering Scores

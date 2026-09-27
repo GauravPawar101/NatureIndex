@@ -100,7 +100,8 @@ if [ "$ready" -ne 1 ]; then
   exit 1
 fi
 
-for f in supabase/tests/local_fixture.sql supabase/schema.sql supabase/tests/verify.sql supabase/tests/embedding_semantics.sql; do
+for f in supabase/tests/local_fixture.sql supabase/schema.sql supabase/tests/verify.sql \
+         supabase/tests/embedding_semantics.sql supabase/tests/media.sql; do
   docker cp "$ROOT/$f" "$CONTAINER_NAME:/tmp/$(basename "$f")" >/dev/null
 done
 docker cp /tmp/seed-verify.sql "$CONTAINER_NAME:/tmp/seed.sql" >/dev/null
@@ -128,5 +129,8 @@ psql_step "assertions" /tmp/verify.sql
 # embeddings themselves is verified against the live database, not here.
 echo "==> Asserting the vector search tier is wired up"
 psql_step "embedding semantics" /tmp/embedding_semantics.sql
+
+echo "==> Asserting the media (photo/video) model"
+psql_step "media" /tmp/media.sql
 
 echo "==> Database verification passed"

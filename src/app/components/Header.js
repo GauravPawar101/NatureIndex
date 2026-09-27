@@ -95,6 +95,7 @@ export default function Header() {
     const navLinks = [
         { href: '/', label: 'Home' },
         { href: '/blog', label: 'Blog' },
+        { href: '/media', label: 'Media' },
         { href: '/discover', label: 'Discover' },
         { href: '/feed', label: 'Feed' },
         { href: '/leaderboards', label: 'Leaderboards' },
