@@ -59,8 +59,9 @@ export default function BlogList({
     const [showFilters, setShowFilters] = useState(false);
 
     const total = initialTotal + extraPosts.length;
-    const canLoadMore = initialPosts.length + extraPosts.length < total;
-    const hasResults = initialPosts.length + extraPosts.length > 0;
+    const all = [...initialPosts, ...extraPosts];
+    const canLoadMore = all.length < total;
+    const hasResults = all.length > 0;
 
     // No effect resets `extraPosts` when the filters change: the page gives
     // this component a `key` built from query/topic/sort, so React remounts it
@@ -324,17 +325,35 @@ export default function BlogList({
             {/* --- Results --- */}
             <div>
                 {isPending && !hasResults ? (
-                    <div className="space-y-6" aria-hidden="true">
-                        {Array.from({ length: 3 }).map((_, index) => (
-                            <div key={index} className="glass-card h-44 animate-pulse" />
+                    <div className="space-y-4" aria-hidden="true">
+                        <div className="glass-card h-72 animate-pulse sm:h-64" />
+                        {Array.from({ length: 4 }).map((_, index) => (
+                            <div key={index} className="glass-card h-32 animate-pulse" />
                         ))}
                     </div>
                 ) : hasResults ? (
                     <>
-                        <div className="space-y-6">
-                            {[...initialPosts, ...extraPosts].map((post) => (
-                                <PostCard key={post.slug} post={post} query={query} />
+                        {/* Editorial layout: the newest story leads at a size
+                            that makes it the obvious entry point, the rest sit
+                            in tighter rows below it.
+
+                            Suppressed while a filter is active. A lead card is
+                            a judgement that one result is more important than
+                            the others, which is not a claim worth making about
+                            a filtered set — a search for "kelp" should look
+                            like a result list, not a front page. */}
+                        <div className="space-y-4">
+                            {(hasFilters ? [] : all.slice(0, 1)).map((post) => (
+                                <PostCard key={post.slug} post={post} query={query} variant="lead" />
                             ))}
+
+                            <div className="space-y-4">
+                                {all
+                                    .slice(hasFilters ? 0 : 1)
+                                    .map((post) => (
+                                        <PostCard key={post.slug} post={post} query={query} />
+                                    ))}
+                            </div>
                         </div>
 
                         {canLoadMore && (
