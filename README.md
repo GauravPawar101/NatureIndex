@@ -30,8 +30,11 @@ EasyMDE for post authoring.
 **Recommendation engine** — a Rust service in [`pagerank/`](pagerank) that recomputes
 PageRank over the interaction graph and writes through to Postgres and Upstash Redis.
 
-**CI/CD** — GitHub Actions. Lint, build, database rehearsal, and Rust checks on every
-push; Vercel deploys previews for pull requests and production from `main`.
+**CI/CD** — GitHub Actions runs lint, build, database rehearsal, and Rust checks on
+every push. [Vercel](https://vercel.com/) is connected to the repository and builds
+from GitHub on its own: every pull request gets a preview deployment, and `main`
+goes to production. There is no deploy workflow, so nothing in the repository
+holds a Vercel token.
 
 ---
 
@@ -149,21 +152,60 @@ cargo run --release   # requires DB_URL and REDIS_URL
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | [`ci.yml`](.github/workflows/ci.yml) | pushes and pull requests | lint, production build, database rehearsal, Rust clippy + tests |
-| [`deploy.yml`](.github/workflows/deploy.yml) | pull requests, `main` | Vercel preview / production deploy |
 | [`pagerank.yml`](.github/workflows/pagerank.yml) | every 15 min, on engine changes | recompute PageRank and write through to Postgres + Redis |
-
-Because CI runs the database rehearsal before anything is deployed, a migration
-that would fail against a real project fails the pull request instead.
 
 ### Required repository secrets
 
 | Secret | Used by |
 | --- | --- |
-| `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | `deploy.yml` |
 | `DB_URL`, `REDIS_URL` | `pagerank.yml` |
 
 No secrets are needed for `ci.yml` — it builds with a placeholder Supabase URL
-and runs entirely against a local container.
+and runs entirely against a local container. No secrets are needed for
+deployment either, because Vercel holds its own token and reads the repository
+directly.
+
+> **CI is advisory, not a gate.** Vercel builds from Git as soon as a commit
+> lands, without waiting for `ci.yml`, and blocking on required status checks is
+> a paid feature. So a migration that breaks the database rehearsal can still
+> reach production. Watch the `ci.yml` result on each pull request and do not
+> merge a red one. If you would rather have the rehearsal genuinely block, the
+> alternative is deploying from `deploy.yml` with a `VERCEL_TOKEN` secret and
+> giving that workflow an `if: success()` on the CI jobs.
+
+
+---
+
+## ☁️ Deployment
+
+Vercel's Git integration does the deploying, so there is no deploy workflow to
+maintain and no CI secrets to rotate.
+
+1. In Vercel, **Add New → Project** and import this repository. The framework
+   preset is detected as Next.js; accept the defaults for install, build
+   (`npm run build`) and output.
+2. Add the environment variables below under **Settings → Environment Variables**.
+   Mark the two `NEXT_PUBLIC_SUPABASE_*` variables for **all** environments.
+3. Deploy. Every later push to `main` deploys to production, and every pull
+   request gets a preview URL automatically.
+
+| Variable | Scope | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | build + runtime | Project URL from Supabase → Project Settings → Data API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | build + runtime | The publishable (`sb_publishable_…`) or legacy anon key |
+| `NEXT_PUBLIC_URL` | runtime | The production origin, e.g. `https://natureindex.vercel.app`. Falls back to the request origin, but email confirmation links are built from this, so set it once the domain is known. |
+| `SUPABASE_SERVICE_ROLE_KEY` | runtime, server only | Never prefix this with `NEXT_PUBLIC_`; it bypasses row level security. Only needed if you run the seeder against the deployed project. |
+
+`NEXT_PUBLIC_*` values are **inlined into the client bundle at build time**, so a
+value that is missing from the build environment is baked into the JavaScript and
+fixing it later requires a rebuild, not just a restart. A build with no Supabase
+configuration succeeds and renders a "Supabase is not configured" notice, which
+is deliberate: it fails loudly at the UI rather than as a `Failed to fetch`.
+
+> Vercel's Hobby plan is for personal, non-commercial use, and hard-caps usage
+> instead of billing it. This site is well inside every cap, but a project that
+> earns revenue needs Pro.
+
 
 ---
 
