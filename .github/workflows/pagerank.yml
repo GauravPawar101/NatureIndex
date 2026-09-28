@@ -3,6 +3,14 @@
 # This replaces .github/pageRankEnginePolicy.yaml, which was inert: it sat in
 # .github/ rather than .github/workflows/, so GitHub never picked it up, and it
 # ran `cargo run` from the repository root where there is no Cargo.toml.
+#
+# The whole engine is off by default, gated on pagerank/flags.json
+# ("pagerankEnabled"). Every trigger below — the 15-minute schedule, a manual
+# dispatch, and pushes — passes through the `flag` job first, so the binary
+# cannot run in CI until someone flips that file to true and pushes it. With
+# the flag off, the `compute` job is skipped rather than failed, and ci.yml
+# still runs clippy and the unit tests on every push, so the engine does not
+# quietly rot while it is disabled.
 name: pagerank
 
 on:
@@ -13,6 +21,8 @@ on:
   workflow_dispatch:
   push:
     paths:
+      # pagerank/** also matches flags.json, so flipping the flag is itself a
+      # trigger: merge the change and the engine runs on that same push.
       - "pagerank/**"
       - ".github/workflows/pagerank.yml"
 
@@ -21,8 +31,57 @@ concurrency:
   group: pagerank
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
+  flag:
+    name: Engine flag
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: check
+        name: Read pagerank/flags.json
+        # Strict on purpose. A typo in the flag file (a missing file, a missing
+        # key, "True", 1) fails the run loudly instead of quietly resolving to
+        # "disabled", which would be indistinguishable from a deliberate
+        # switch-off and could hide the engine being off by accident.
+        run: |
+          set -euo pipefail
+          flags="pagerank/flags.json"
+
+          if [ ! -f "$flags" ]; then
+            echo "::error::$flags is missing, so the engine cannot be enabled." >&2
+            exit 1
+          fi
+          if ! jq -e 'has("pagerankEnabled")' "$flags" > /dev/null; then
+            echo "::error::$flags has no \"pagerankEnabled\" key, so the engine cannot be enabled." >&2
+            exit 1
+          fi
+
+          value="$(jq -r '.pagerankEnabled' "$flags")"
+          case "$value" in
+            true)
+              echo "enabled=true" >> "$GITHUB_OUTPUT"
+              echo "pagerankEnabled is true — the engine will run."
+              ;;
+            false)
+              echo "enabled=false" >> "$GITHUB_OUTPUT"
+              echo "pagerankEnabled is false — skipping the engine. Set it to true in $flags to enable."
+              ;;
+            *)
+              echo "::error::\"pagerankEnabled\" must be true or false, got \"$value\"." >&2
+              exit 1
+              ;;
+          esac
+
   compute:
+    needs: flag
+    if: needs.flag.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:

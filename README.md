@@ -29,6 +29,8 @@ EasyMDE for post authoring.
 
 **Recommendation engine** — a Rust service in [`pagerank/`](pagerank) that recomputes
 PageRank over the interaction graph and writes through to Postgres and Upstash Redis.
+It is currently switched off in CI by a flag file, so nothing is recomputed until
+that is enabled — see [The engine is switched off by a flag file](#the-engine-is-switched-off-by-a-flag-file).
 
 **CI/CD** — GitHub Actions runs lint, build, database rehearsal, and Rust checks on
 every push. [Vercel](https://vercel.com/) is connected to the repository and builds
@@ -152,7 +154,36 @@ cargo run --release   # requires DB_URL and REDIS_URL
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | [`ci.yml`](.github/workflows/ci.yml) | pushes and pull requests | lint, production build, database rehearsal, Rust clippy + tests |
-| [`pagerank.yml`](.github/workflows/pagerank.yml) | every 15 min, on engine changes | recompute PageRank and write through to Postgres + Redis |
+| [`pagerank.yml`](.github/workflows/pagerank.yml) | every 15 min, on engine changes | recompute PageRank and write through to Postgres + Redis — **off by default**, see below |
+
+### The engine is switched off by a flag file
+
+`pagerank.yml` never runs the engine unless [`pagerank/flags.json`](pagerank/flags.json)
+says so:
+
+```json
+{ "pagerankEnabled": false }
+```
+
+Every trigger — the 15-minute schedule, `workflow_dispatch`, and pushes under
+`pagerank/**` — goes through a `flag` job first, and the `compute` job is
+skipped when the flag is `false`. To turn the engine on, set it to `true` and
+push: `pagerank/**` already matches the flag file, so the same push that flips
+it also triggers a run. Nothing else is needed, and no GitHub setting or secret
+is involved.
+
+Two deliberate details. A malformed flag (missing file, missing key, a value
+other than `true`/`false`) **fails** the run instead of being read as `false`, so
+a typo cannot masquerade as a deliberate switch-off. And the schedule still
+fires every 15 minutes while disabled — it costs one short-lived runner for the
+`flag` job, and skipping the schedule itself is impossible, because path filters
+do not apply to `schedule` events. `ci.yml` keeps running clippy and the unit
+tests on every push regardless, so the engine does not rot while it is off.
+
+The gate lives in the workflow, not in the binary: `cargo run --release` locally
+still runs whenever you invoke it, because the flag is a CI concern and reading
+it from the working directory would make a deployed build depend on where it
+happens to be started from.
 
 ### Required repository secrets
 
