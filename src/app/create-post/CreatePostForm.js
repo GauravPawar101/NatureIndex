@@ -390,7 +390,10 @@ export default function CreatePostForm({ userId }) {
                 </div>
                 {/* EasyMDE ships light-theme styles; scope overrides to the
                     editor so it matches the rest of the dark UI. */}
-                <div className="editor-dark overflow-hidden rounded-lg">
+                {/* `editor-dark` is now a misnomer: it is the token-driven theme
+                    for the editor, and it resolves correctly in both modes. The
+                    rounded corners are 4px to match `.field`. */}
+                <div className="editor-dark overflow-hidden rounded">
                     <SimpleMdeEditor
                         value={content}
                         onChange={setContent}

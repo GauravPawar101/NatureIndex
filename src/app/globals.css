@@ -570,10 +570,20 @@ body {
 @layer components {
   .editor-dark .EasyMDEContainer .CodeMirror {
     color: var(--ink);
-    background: var(--surface-sunken);
+    /* Fully opaque, not `--surface-sunken`. EasyMDE sets its own background on
+       .CodeMirror and the stock value is white; this has to win, or a white
+       writing surface sits inside a dark page. */
+    background: var(--surface-sunken) !important;
     border: 1px solid var(--line);
     border-radius: 0 0 4px 4px;
     min-height: 260px;
+  }
+
+  /* CodeMirror's placeholder is its own element, not a ::placeholder, so it
+     needs its own rule — the stock one is #a9a9a9, which is legible on white
+     and invisible on #1e1e1e. */
+  .editor-dark .CodeMirror .CodeMirror-placeholder {
+    color: var(--ink-faint);
   }
 
   .editor-dark .editor-toolbar {
@@ -637,7 +647,7 @@ body {
 
   .editor-dark .editor-preview,
   .editor-dark .editor-side-by-side .CodeMirror {
-    background: var(--surface-sunken);
+    background: var(--surface-sunken) !important;
     color: var(--ink);
   }
 }

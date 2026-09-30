@@ -61,14 +61,19 @@ export default function SignupPage() {
     useEffect(() => {
         if (!supabase) return;
 
+        // A full navigation rather than `router.push`, for the same reason as on
+        // the login page: the session cookie is written just after this event
+        // fires, so a client-side transition issues its RSC request before the
+        // cookie exists, the proxy sees no session, and /account bounces back to
+        // /login. A reload cannot race its own cookie.
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session) {
-                router.push('/account');
+                window.location.href = '/account';
             }
         });
 
         return () => subscription.unsubscribe();
-    }, [supabase, router]);
+    }, [supabase]);
 
     const markTouched = (field) => setTouched((current) => ({ ...current, [field]: true }));
     const show = (field) => touched[field] || submitAttempted;
@@ -165,8 +170,7 @@ export default function SignupPage() {
             if (data.session) {
                 // Email confirmation is off for this project — already signed in.
                 toast.success('Account created', { message: 'Welcome to Nature Index.' });
-                router.push('/account');
-                router.refresh();
+                window.location.href = '/account';
                 return;
             }
 
@@ -180,8 +184,7 @@ export default function SignupPage() {
 
             if (!signInError) {
                 toast.success('Account created', { message: 'Welcome to Nature Index.' });
-                router.push('/account');
-                router.refresh();
+                window.location.href = '/account';
                 return;
             }
 

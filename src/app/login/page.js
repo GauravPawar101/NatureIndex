@@ -21,6 +21,21 @@ function validateEmail(value) {
     return '';
 }
 
+/**
+ * Resolves the `?next=` parameter to a path inside this app.
+ *
+ * Anything absolute, protocol-relative, or backslash-prefixed is rejected
+ * rather than sanitised: this is an open-redirect guard, and it now feeds a
+ * `window.location.href` assignment as well as a router push, so a value like
+ * `//evil.example` would send the reader off-site with their session intact.
+ */
+function safeDestination(next) {
+    if (!next) return '/account';
+    if (!next.startsWith('/')) return '/account';
+    if (next.startsWith('//') || next.startsWith('/\\')) return '/account';
+    return next;
+}
+
 export default function LoginPage() {
     return (
         // `useSearchParams` opts this page into client-side rendering of the
@@ -106,22 +121,27 @@ function LoginForm() {
     useEffect(() => {
         if (!supabase) return;
 
-        // The destination is resolved here too, not only in handleSignIn: this
-        // listener fires on the sign-in event and would otherwise push /account
-        // a frame before the submit handler pushes the page the reader actually
-        // asked for.
-        const destination = redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')
-            ? redirectTo
-            : '/account';
-
+        // A full document navigation, not `router.push`. The session cookie is
+        // written by the browser client as a side effect of the auth event, and
+        // that write lands a beat *after* this listener fires — measured at
+        // roughly 1.2s on this project's project-latency, while the push
+        // happened immediately. So the client-side transition issued its RSC
+        // request before the cookie existed, the proxy read no session, and
+        // /feed bounced straight back to /login?next=/feed. The user was signed
+        // in the whole time and simply never left the login page.
+        //
+        // Reloading the document cannot race itself: the browser attaches the
+        // cookie it already holds, and both the proxy and the RLS-backed server
+        // components re-evaluate under the real session. `signOut` in the header
+        // does the same thing for the same reason.
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
-                router.push(destination);
+                window.location.href = safeDestination(redirectTo);
             }
         });
 
         return () => subscription.unsubscribe();
-    }, [supabase, router, redirectTo]);
+    }, [supabase, redirectTo]);
 
     // Errors appear once a field has been left, or once a submit was attempted —
     // never while someone is still typing their first character.
@@ -193,14 +213,10 @@ function LoginForm() {
             }
 
             toast.success('Signed in', { message: 'Taking you to your account...' });
-            // Honour a same-origin `next` from the callback flow; anything else
-            // (an absolute URL) is ignored rather than turned into an open
-            // redirect.
-            const destination = redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')
-                ? redirectTo
-                : '/account';
-            router.push(destination);
-            router.refresh();
+            // Same reasoning as the auth listener above: a full navigation, so
+            // the request that lands on the destination carries the session
+            // cookie that was just written.
+            window.location.href = safeDestination(redirectTo);
         } catch (unexpected) {
             // signInWithPassword normally resolves with an `error` rather than
             // throwing, but a thrown network error would otherwise skip the
