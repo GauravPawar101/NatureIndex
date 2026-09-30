@@ -272,7 +272,7 @@ export default function CreatePostForm({ userId }) {
             className="space-y-6"
         >
             <div>
-                <label htmlFor="post-title" className="mb-1 block text-sm font-medium text-gray-300">
+                <label htmlFor="post-title" className="mb-1 block text-sm font-medium text-[var(--ink-muted)]">
                     Title
                 </label>
                 <input
@@ -280,7 +280,7 @@ export default function CreatePostForm({ userId }) {
                     id="post-title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className={`input-dark ${fieldErrors.title ? 'border-red-400/60 focus:border-red-400/60' : ''}`}
+                    className={`field ${fieldErrors.title ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                     maxLength={MAX_TITLE_LENGTH}
                     required
                     disabled={isLoading}
@@ -291,9 +291,9 @@ export default function CreatePostForm({ userId }) {
                 {fieldErrors.title ? (
                     <FieldError id="post-title-error">{fieldErrors.title}</FieldError>
                 ) : (
-                    <p id="post-title-hint" className="mt-1.5 text-xs text-gray-500">
+                    <p id="post-title-hint" className="mt-1.5 text-xs text-[var(--ink-faint)]">
                         {slugify(title) ? (
-                            <>Your link will be <span className="text-gray-300">/blog/{slugify(title)}-…</span></>
+                            <>Your link will be <span className="text-[var(--ink-muted)]">/blog/{slugify(title)}-…</span></>
                         ) : (
                             'A clear, specific title is the single biggest factor in whether a story gets read.'
                         )}
@@ -302,13 +302,13 @@ export default function CreatePostForm({ userId }) {
             </div>
 
             <div>
-                <label htmlFor="post-topic" className="mb-1 block text-sm font-medium text-gray-300">Topic</label>
+                <label htmlFor="post-topic" className="mb-1 block text-sm font-medium text-[var(--ink-muted)]">Topic</label>
                 <div className="relative">
                     <select
                         id="post-topic"
                         value={topic}
                         onChange={(e) => setTopic(e.target.value)}
-                        className={`input-dark appearance-none cursor-pointer pr-10 ${fieldErrors.topic ? 'border-red-400/60 focus:border-red-400/60' : ''}`}
+                        className={`field appearance-none cursor-pointer pr-10 ${fieldErrors.topic ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                         required
                         disabled={isLoading}
                         aria-invalid={fieldErrors.topic ? 'true' : undefined}
@@ -319,20 +319,20 @@ export default function CreatePostForm({ userId }) {
                             <option key={t} value={t}>{t}</option>
                         ))}
                     </select>
-                    <ChevronDown size={16} aria-hidden="true" className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <ChevronDown size={16} aria-hidden="true" className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-muted)]" />
                 </div>
                 {fieldErrors.topic && <FieldError id="post-topic-error">{fieldErrors.topic}</FieldError>}
             </div>
 
             <div>
-                <label htmlFor="post-imageUrl" className="mb-1 block text-sm font-medium text-gray-300">Cover image</label>
+                <label htmlFor="post-imageUrl" className="mb-1 block text-sm font-medium text-[var(--ink-muted)]">Cover image</label>
                 <input
                     type="url"
                     id="post-imageUrl"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
                     placeholder="https://..."
-                    className={`input-dark ${fieldErrors.imageUrl ? 'border-red-400/60 focus:border-red-400/60' : ''}`}
+                    className={`field ${fieldErrors.imageUrl ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                     disabled={isLoading}
                     aria-invalid={fieldErrors.imageUrl ? 'true' : undefined}
                     aria-describedby={fieldErrors.imageUrl ? 'post-imageUrl-error' : 'post-imageUrl-hint'}
@@ -342,20 +342,20 @@ export default function CreatePostForm({ userId }) {
                     <button
                         type="button"
                         onClick={() => setImageUrl('')}
-                        className="mt-2 inline-flex items-center gap-1 text-xs text-gray-400 transition-colors hover:text-white"
+                        className="mt-2 inline-flex items-center gap-1 text-xs text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
                     >
                         <X size={12} aria-hidden="true" />
                         Remove cover image
                     </button>
                 )}
 
-                <p id="post-imageUrl-hint" className="mt-2 text-xs text-gray-500">
+                <p id="post-imageUrl-hint" className="mt-2 text-xs text-[var(--ink-faint)]">
                     Paste a link, or upload — uploading is more reliable than hotlinking.
                 </p>
 
                 <label
                     htmlFor="post-cover"
-                    className={`mt-2 inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-xs font-semibold text-gray-200 transition-colors hover:bg-white/10 ${
+                    className={`mt-2 inline-flex cursor-pointer items-center gap-2 rounded-full border border-[var(--line-strong)] px-4 py-2 text-xs font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface)] ${
                         uploadingImage || isLoading ? 'pointer-events-none opacity-50' : ''
                     }`}
                 >
@@ -374,7 +374,7 @@ export default function CreatePostForm({ userId }) {
                     disabled={uploadingImage || isLoading}
                     className="hidden"
                 />
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-[var(--ink-faint)]">
                     Up to {formatBytes(UPLOAD_TARGETS['post-image'].maxBytes)}.
                 </p>
 
@@ -383,14 +383,17 @@ export default function CreatePostForm({ userId }) {
 
             <div ref={headingRef}>
                 <div className="mb-1 flex items-baseline justify-between gap-2">
-                    <label htmlFor="post-content" className="block text-sm font-medium text-gray-300">Content</label>
-                    <span className="text-xs text-gray-500" aria-live="polite">
+                    <label htmlFor="post-content" className="block text-sm font-medium text-[var(--ink-muted)]">Content</label>
+                    <span className="text-xs text-[var(--ink-faint)]" aria-live="polite">
                         {wordCount} {wordCount === 1 ? 'word' : 'words'}
                     </span>
                 </div>
                 {/* EasyMDE ships light-theme styles; scope overrides to the
                     editor so it matches the rest of the dark UI. */}
-                <div className="editor-dark overflow-hidden rounded-lg">
+                {/* `editor-dark` is now a misnomer: it is the token-driven theme
+                    for the editor, and it resolves correctly in both modes. The
+                    rounded corners are 4px to match `.field`. */}
+                <div className="editor-dark overflow-hidden rounded">
                     <SimpleMdeEditor
                         value={content}
                         onChange={setContent}
@@ -401,8 +404,8 @@ export default function CreatePostForm({ userId }) {
             </div>
 
             {error && (
-                <div role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3">
-                    <p className="flex items-start gap-2 text-sm font-semibold text-red-200">
+                <div role="alert" className="rounded border border-[var(--danger)]/30 bg-[var(--danger)]/8 px-4 py-3">
+                    <p className="flex items-start gap-2 text-sm font-semibold text-[var(--danger)]">
                         <AlertTriangle size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
                         {error.title}
                     </p>
@@ -411,7 +414,7 @@ export default function CreatePostForm({ userId }) {
             )}
 
             <div className="flex flex-col gap-3">
-                <button type="submit" disabled={isLoading} className="btn-primary w-full disabled:opacity-50 disabled:hover:scale-100">
+                <button type="submit" disabled={isLoading} className="btn btn-primary w-full disabled:opacity-50 disabled:hover:scale-100">
                     {isLoading ? (
                         <>
                             <Loader2 size={16} className="animate-spin" aria-hidden="true" />
@@ -424,7 +427,7 @@ export default function CreatePostForm({ userId }) {
                         </>
                     )}
                 </button>
-                <p className="text-center text-xs text-gray-500">
+                <p className="text-center text-xs text-[var(--ink-faint)]">
                     Your draft stays in this tab until you publish. Leaving now will lose it.
                 </p>
             </div>
@@ -434,7 +437,7 @@ export default function CreatePostForm({ userId }) {
 
 function FieldError({ id, children }) {
     return (
-        <p id={id} role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+        <p id={id} role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
             <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
             {children}
         </p>

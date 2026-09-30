@@ -16,38 +16,38 @@ export default function ConfigurationRequired() {
 
     return (
         <div className="page-shell flex items-center justify-center px-6">
-            <div className="glass-card w-full max-w-md p-8 text-center">
-                <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/15 text-amber-300">
+            <div className="glass w-full max-w-md p-8 text-center">
+                <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--warn)]/10 text-[var(--warn)]">
                     <AlertTriangle size={22} aria-hidden="true" />
                 </span>
 
-                <h1 className="mb-3 text-2xl font-bold text-white">
+                <h1 className="mb-3 text-2xl font-bold text-[var(--ink)]">
                     {problem?.code === 'missing_both' || !problem
                         ? 'Configuration Required'
                         : 'Supabase configuration problem'}
                 </h1>
 
-                <p className="text-sm leading-relaxed text-gray-400">
+                <p className="text-sm leading-relaxed text-[var(--ink-muted)]">
                     {problem?.message || 'The app is not connected to Supabase yet.'}
                 </p>
 
                 {problem?.hint && (
-                    <p className="mt-3 text-sm leading-relaxed text-gray-300">{problem.hint}</p>
+                    <p className="mt-3 text-sm leading-relaxed text-[var(--ink-muted)]">{problem.hint}</p>
                 )}
 
-                <div className="mt-6 rounded-lg border border-white/10 bg-black/40 p-4 text-left">
-                    <p className="mb-2 text-xs font-semibold text-gray-300">Set these in .env.local</p>
-                    <ul className="space-y-1 font-mono text-xs text-gray-400">
-                        <li><code className="text-white">NEXT_PUBLIC_SUPABASE_URL</code></li>
-                        <li><code className="text-white">NEXT_PUBLIC_SUPABASE_ANON_KEY</code></li>
+                <div className="mt-6 rounded-lg border border-[var(--line)] bg-black/40 p-4 text-left">
+                    <p className="mb-2 text-xs font-semibold text-[var(--ink-muted)]">Set these in .env.local</p>
+                    <ul className="space-y-1 font-mono text-xs text-[var(--ink-muted)]">
+                        <li><code className="text-[var(--ink)]">NEXT_PUBLIC_SUPABASE_URL</code></li>
+                        <li><code className="text-[var(--ink)]">NEXT_PUBLIC_SUPABASE_ANON_KEY</code></li>
                     </ul>
-                    <p className="mt-3 text-xs text-gray-500">
+                    <p className="mt-3 text-xs text-[var(--ink-faint)]">
                         Then restart the dev server — Next.js only reads these at startup.
                     </p>
                 </div>
 
-                <p className="mt-5 text-xs text-gray-500">
-                    Run <code className="text-gray-300">npm run check:env</code> to diagnose this
+                <p className="mt-5 text-xs text-[var(--ink-faint)]">
+                    Run <code className="text-[var(--ink-muted)]">npm run check:env</code> to diagnose this
                     from the terminal.
                 </p>
             </div>

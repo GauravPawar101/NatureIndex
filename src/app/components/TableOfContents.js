@@ -110,8 +110,8 @@ export default function TableOfContents({ headings = [], variant = 'accordion' }
                             style={{ paddingLeft: `${0.75 + item.indent * 0.85}rem` }}
                             className={`block w-full rounded-r-md py-1.5 pr-2 text-left text-sm transition-colors ${
                                 isActive
-                                    ? 'border-l-2 border-white bg-white/10 font-medium text-white'
-                                    : 'border-l-2 border-transparent text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                                    ? 'border-l-2 border-[var(--line-strong)] bg-[var(--surface)] font-medium text-[var(--ink)]'
+                                    : 'border-l-2 border-transparent text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'
                             }`}
                         >
                             {item.text}
@@ -125,7 +125,7 @@ export default function TableOfContents({ headings = [], variant = 'accordion' }
     if (variant === 'sidebar') {
         return (
             <nav aria-label="Table of contents">
-                <h2 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gray-500">
+                <h2 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[var(--ink-faint)]">
                     <List size={13} aria-hidden="true" />
                     On this page
                 </h2>
@@ -141,16 +141,16 @@ export default function TableOfContents({ headings = [], variant = 'accordion' }
                 onClick={() => setOpen((current) => !current)}
                 aria-expanded={open}
                 aria-controls="toc-panel"
-                className="flex w-full items-center justify-between rounded-xl border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white"
+                className="flex w-full items-center justify-between rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] px-4 py-2.5 text-sm font-semibold text-[var(--ink)]"
             >
                 <span className="flex items-center gap-2">
                     <List size={15} aria-hidden="true" />
                     On this page
                 </span>
-                <span className="text-xs text-gray-400">{open ? 'Hide' : `${headings.length} sections`}</span>
+                <span className="text-xs text-[var(--ink-muted)]">{open ? 'Hide' : `${headings.length} sections`}</span>
             </button>
             {open && (
-                <div id="toc-panel" className="mt-2 rounded-xl border border-white/10 bg-black/40 p-3">
+                <div id="toc-panel" className="mt-2 rounded border border-[var(--line)] bg-black/40 p-3">
                     {list}
                 </div>
             )}

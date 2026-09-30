@@ -62,7 +62,7 @@ export default async function ProfilePage({ params }) {
 
     return (
         <div className="page-shell">
-            <div className="container mx-auto max-w-4xl px-6">
+            <div className="container-page">
                 <ProfileHeader
                     profile={profile}
                     websiteHref={safeWebsiteHref(profile.website)}

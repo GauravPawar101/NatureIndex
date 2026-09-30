@@ -1,82 +1,519 @@
 @import "tailwindcss";
 
-:root {
-  /* Opt the page into the browser's dark rendering for native UI. Without
-     this, form controls the browser draws itself — <select> option lists,
-     scrollbars, autofill, focus rings, spellcheck underlines — render with
-     light-theme defaults, which look broken on an otherwise black UI. */
+/* ============================================================================
+   Nature Index — Medium design system
+
+   This is a copy of medium.com, not a tribute to it. The previous system was
+   "editorial": blurred photograph behind frosted glass, serif everything, pill
+   buttons, cards with drop shadows. None of that is here any more. Medium's
+   surface is flat white, its hairlines are 1px rgba(0,0,0,0.1), its stream is
+   700px of text with a 200px image to the right, and the only green on the
+   whole page is the logo and the primary button.
+
+   Everything below is a token. Light and dark are one set of components with
+   two palettes, which is how Medium ships it too — the dark values are not a
+   filter over the light ones, they are their own measurements.
+   ========================================================================== */
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Medium's type colours. #333 body, 60% for secondary, 40% for the greyed-out
+     timestamps and icons that Medium never quite bothers to make legible. */
+  --ink: #333333;
+  --ink-muted: rgba(0, 0, 0, 0.6);
+  --ink-faint: rgba(0, 0, 0, 0.4);
+
+  --bg: #ffffff;
+
+  /* Medium has exactly two surfaces: the page, and the #f7f7f7 grey used behind
+     inputs, dropdowns and the recommendation rail's separators. There is no
+     glass, so there is nothing to be translucent. */
+  --surface: #ffffff;
+  --surface-raised: #f7f7f7;
+  --surface-sunken: #f7f7f7;
+
+  --line: rgba(0, 0, 0, 0.1);
+  --line-strong: rgba(0, 0, 0, 0.15);
+
+  /* Medium's green, straight off the logo. */
+  --accent: #00ab6c;
+  --accent-dim: rgba(0, 171, 108, 0.1);
+  --warn: #b45309;
+  --danger: #c0392b;
+
+  --shadow-card: none;
+}
+
+[data-theme='dark'] {
   color-scheme: dark;
 
-  --background: #000000;
-  --foreground: #d1d5db;
-  --muted: #9ca3af;
-  --border: rgba(255, 255, 255, 0.1);
-  --card: rgba(255, 255, 255, 0.1);
+  /* Medium's dark mode is not an inversion: the ground is #121212, not #000,
+     and body text is white at 85% so a long read does not glare. */
+  --ink: rgba(255, 255, 255, 0.85);
+  --ink-muted: rgba(255, 255, 255, 0.6);
+  --ink-faint: rgba(255, 255, 255, 0.4);
 
-  /* Secondary text. Deliberately not Tailwind's gray-500 (#6b7280): that is
-     4.34:1 on pure black and only 3.60:1 on a card surface, so it fails WCAG
-     AA for body text (4.5:1) everywhere it appears on a card — and it is where
-     the author, date and reading time live. This value clears 4.5:1 on both.
-     Measured, not eyeballed; see the note in PostCard. */
-  --text-secondary: #9ca3af;
+  --bg: #121212;
+  --surface: #121212;
+  --surface-raised: #1e1e1e;
+  --surface-sunken: #1e1e1e;
+
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(255, 255, 255, 0.15);
+
+  --accent: #00ab6c;
+  --accent-dim: rgba(0, 171, 108, 0.16);
+  --warn: #f0b429;
+  --danger: #ff7b72;
+
+  --shadow-card: none;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-bg: var(--bg);
+  --color-accent: var(--accent);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --font-serif: var(--font-editorial), Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  background: var(--bg);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: color 240ms ease;
 }
 
-/* --- Toast motion ---------------------------------------------------------
-   Tailwind v4 has no built-in `animate-in`, and toast entrance needs to
-   animate `opacity` + `transform` together from a starting state, so the
-   shorthand utilities cannot express it. */
+/* The old build had a fixed, blurred photograph behind the whole page. Medium
+   has a flat background and the single largest contributor to that feeling is
+   simply not having a picture there. The .ground rule is gone, and so is the
+   element that used to carry it. */
+
+
+/* --- Layout ---------------------------------------------------------------
+   Medium's reading geometry, to the pixel. The stream is 700px, the
+   recommendation rail 264px, and the gutter between them 48px — 1012px total,
+   which is why Medium feels narrower than most sites at the same viewport. */
+.container-page {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 20px;
+  max-width: 1012px;
+}
+
+.page-shell {
+  min-height: 100vh;
+  /* 64px header + 64px of the 40px-margin rhythm Medium leaves under it. */
+  padding-top: 64px;
+  padding-bottom: 64px;
+}
+
+/* Medium's own measure: the article column is 680px inside the 700px stream,
+   because the story body is 20px serif and anything wider is unreadable. */
+.measure {
+  max-width: 680px;
+}
+
+.stream {
+  width: 100%;
+  max-width: 700px;
+}
+
+.rail {
+  width: 100%;
+  max-width: 264px;
+}
+
+
+/* --- Type -----------------------------------------------------------------
+   Card and page headlines are the UI sans at Medium's own sizes. The serif is
+   reserved for the article title and the article body, which is the one place
+   Medium actually uses it. */
+.display-1 {
+  font-family: var(--font-serif);
+  font-size: 42px;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-weight: 400;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.display-2 {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.display-3 {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.lede {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+  max-width: 680px;
+  text-wrap: pretty;
+}
+
+/* Medium's "topic" label: 12px, 700, and slightly open. It is the only all-caps
+   text on the site. */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.link-accent {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.link-accent:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+
+/* --- Surfaces -------------------------------------------------------------
+   `.glass` is kept as a name because 35 call sites use it, but it is now a
+   plain 1px-bordered white panel: Medium draws its cards with a hairline and
+   nothing else. No blur, no shadow, no transparency. */
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: var(--shadow-card);
+}
+
+.glass-raised {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.glass-hover {
+  transition: border-color 0.1s ease;
+}
+
+.glass-hover:hover {
+  border-color: var(--line-strong);
+}
+
+.lit::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: var(--line);
+  pointer-events: none;
+}
+
+
+/* --- Fields ---------------------------------------------------------------
+   Medium's search box: #f7f7f7 fill, no border, radius 4px, 16px. The focus
+   state is a 1px accent border plus a 3px halo — Medium does not outline, and
+   an outline would be the most obvious tell that this is not Medium. */
+.field {
+  width: 100%;
+  background: var(--surface-sunken);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--ink);
+  padding: 10px 12px;
+  font-size: 16px;
+  line-height: 1.2;
+  transition: border-color 0.1s ease, background-color 0.1s ease;
+}
+
+.field::placeholder {
+  color: var(--ink-faint);
+}
+
+.field:hover {
+  background: var(--surface-raised);
+}
+
+.field:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.field option {
+  background: #fff;
+  color: #333;
+}
+
+[data-theme='dark'] .field option {
+  background: #1e1e1e;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+
+/* --- Buttons --------------------------------------------------------------
+   Medium's buttons are pills: 9999px radius, 14px/600 text, 8px 16px padding.
+   The navbar's "Sign Up" and "Subscribe" are black-on-white pills; the green
+   is reserved for membership actions inside a story. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1;
+  padding: 8px 16px;
+  white-space: nowrap;
+  transition: background-color 0.1s ease, color 0.1s ease, opacity 0.1s ease;
+}
+
+.btn:active {
+  transform: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #00935c;
+}
+
+[data-theme='dark'] .btn-primary:hover {
+  background: #23c78c;
+}
+
+/* The black pill. In dark mode Medium inverts it to white-on-black rather than
+   keeping a black button on a black page, which would simply disappear. */
+.btn-secondary {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.btn-secondary:hover {
+  background: var(--ink);
+  filter: brightness(1.6);
+}
+
+[data-theme='dark'] .btn-secondary {
+  background: #ffffff;
+  color: #121212;
+}
+
+.btn-ghost {
+  color: var(--ink);
+  background: transparent;
+  padding: 8px 12px;
+}
+
+.btn-ghost:hover {
+  background: var(--surface-raised);
+}
+
+
+/* --- Pills ---------------------------------------------------------------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 5px 12px;
+  font-size: 14px;
+  color: var(--ink-muted);
+  transition: background-color 0.1s ease, color 0.1s ease, border-color 0.1s ease;
+}
+
+.pill:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.pill[aria-pressed='true'],
+.pill-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+  font-weight: 500;
+}
+
+
+/* --- Article body ---------------------------------------------------------
+   Medium's reading column: 680px of 20px serif at 1.58 line-height. Headings
+   inside the body are the sans at 28/20/16px, which is Medium's habit and
+   looks wrong as soon as you make them serif too. */
+.prose-nature {
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 20px;
+  line-height: 1.58;
+}
+
+.prose-nature > * + * {
+  margin-top: 0.7em;
+}
+
+.prose-nature h1,
+.prose-nature h2,
+.prose-nature h3 {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-top: 1.4em;
+  margin-bottom: 0.3em;
+}
+
+.prose-nature h1 { font-size: 28px; }
+.prose-nature h2 { font-size: 24px; }
+.prose-nature h3 { font-size: 20px; }
+
+.prose-nature p {
+  margin-bottom: 0;
+}
+
+.prose-nature a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-nature strong {
+  font-weight: 700;
+}
+
+.prose-nature ul,
+.prose-nature ol {
+  padding-left: 1.5em;
+}
+
+.prose-nature li + li {
+  margin-top: 0.25em;
+}
+
+.prose-nature li::marker {
+  color: var(--ink-faint);
+}
+
+.prose-nature blockquote {
+  border-left: 3px solid var(--ink);
+  padding-left: 1.25em;
+  font-style: normal;
+  color: var(--ink);
+}
+
+.prose-nature code {
+  background: var(--surface-raised);
+  border-radius: 3px;
+  padding: 0.1em 0.3em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+}
+
+.prose-nature pre {
+  background: #1e1e1e;
+  border-radius: 4px;
+  padding: 16px;
+  overflow-x: auto;
+  color: #f0f0f0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.prose-nature pre code {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  font-size: 14px;
+}
+
+.prose-nature img {
+  border-radius: 4px;
+  margin-block: 1.4em;
+  max-width: 100%;
+  height: auto;
+}
+
+.prose-nature hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin-block: 2.5em;
+}
+
+.prose-nature table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: 15px;
+}
+
+.prose-nature th,
+.prose-nature td {
+  border-bottom: 1px solid var(--line);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.prose-nature th {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+
+/* --- Motion ---------------------------------------------------------------
+   Every animation here is opted out under prefers-reduced-motion. */
 @keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes toast-out {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(8px) scale(0.97);
-  }
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(8px); }
 }
 
-/* Drains left-to-right to show how long the toast has left. */
 @keyframes toast-drain {
-  from {
-    transform: scaleX(1);
-  }
-  to {
-    transform: scaleX(0);
-  }
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 
-.toast-enter {
-  animation: toast-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.toast-leave {
-  animation: toast-out 200ms ease-in both;
-}
+.toast-enter { animation: toast-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.toast-leave { animation: toast-out 200ms ease-in both; }
 
 .toast-progress {
   transform-origin: left center;
@@ -85,175 +522,74 @@ body {
   animation-fill-mode: both;
 }
 
-/* --- Card entrance ------------------------------------------------------
-   Cards rise and fade in on mount, staggered by index so a grid resolves
-   top-left to bottom-right rather than appearing all at once. That ordering is
-   what makes a static list read as having loaded in sequence. */
 @keyframes card-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-card-in {
-  animation: card-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  /* Stagger driven by a CSS variable, so the delay lives in the markup rather
-     than in a repeated inline style. */
-  animation-delay: calc(var(--card-index, 0) * 35ms);
+  animation: card-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--card-index, 0) * 40ms);
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-raised) 25%,
+    var(--surface-sunken) 50%,
+    var(--surface-raised) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .toast-enter,
   .toast-leave,
   .toast-progress,
-  .animate-card-in {
+  .animate-card-in,
+  .skeleton {
     animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }
 
+/* --- Editor (EasyMDE) -----------------------------------------------------
+   The stock theme is light and renders as a white block inside a dark page. */
 @layer components {
-  .eyebrow {
-    @apply inline-block text-xs font-semibold tracking-[0.2em] uppercase text-gray-400;
-  }
-
-  .page-shell {
-    @apply min-h-screen bg-black pt-28 pb-20;
-  }
-
-  /* The card surface is kept deliberately faint. At bg-white/10 over black the
-     backdrop-blur has almost nothing to blur, so the fill does the visual work
-     and a 12-card page reads as a wall of grey blocks. Dropping the fill and
-     leaning on the border keeps the cards separated without the heaviness, and
-     is what makes the density changes in PostCard legible. */
-  .glass-card {
-    @apply bg-white/[0.04] backdrop-blur-md rounded-2xl border border-white/15;
-  }
-
-  .glass-card-hover {
-    @apply bg-white/[0.04] backdrop-blur-md rounded-2xl border border-white/15 transition-colors hover:bg-white/[0.08] hover:border-white/30;
-  }
-
-  .input-dark {
-    @apply w-full bg-black/60 border border-white/20 text-white placeholder-gray-500 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-white/30 focus:border-white/40 focus:outline-none transition;
-  }
-
-  /* Native select popups ignore most styling, so give the options an explicit
-     dark background/color — otherwise the OS renders a white dropdown with
-     white text on some platforms. */
-  .input-dark option {
-    @apply bg-zinc-900 text-white;
-  }
-
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-black px-8 py-3 rounded-full font-semibold shadow-lg transition-all hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100;
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 border border-white/40 hover:border-white text-white px-8 py-3 rounded-full font-semibold transition-all hover:bg-white/10;
-  }
-
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors;
-  }
-
-  .link-accent {
-    @apply font-semibold text-white hover:underline underline-offset-4 transition-colors;
-  }
-
-  .prose-nature {
-    @apply max-w-none text-gray-300 leading-relaxed;
-  }
-
-  .prose-nature h1,
-  .prose-nature h2,
-  .prose-nature h3 {
-    @apply text-white font-bold mt-8 mb-4;
-  }
-
-  .prose-nature p {
-    @apply mb-4;
-  }
-
-  .prose-nature a {
-    @apply text-white underline underline-offset-4;
-  }
-
-  .prose-nature strong {
-    @apply text-white font-semibold;
-  }
-
-  .prose-nature ul,
-  .prose-nature ol {
-    @apply mb-4 pl-6;
-  }
-
-  .prose-nature li {
-    @apply mb-2;
-  }
-
-  .prose-nature blockquote {
-    @apply border-l-4 border-white/40 bg-white/5 pl-4 py-2 rounded-r mb-4;
-  }
-
-  .prose-nature code {
-    @apply text-gray-200 bg-white/10 px-1 py-0.5 rounded text-sm;
-  }
-
-  /* react-markdown emits bare <pre> wrapping <code>; without this the inline
-     background/padding on `code` leaves a stray grey box around every block. */
-  .prose-nature pre code {
-    @apply bg-transparent p-0 rounded-none text-sm;
-  }
-
-  .prose-nature pre {
-    @apply bg-black/70 border border-white/10 rounded-lg p-4 overflow-x-auto mb-4;
-  }
-
-  .prose-nature img {
-    @apply rounded-xl my-4 max-w-full h-auto;
-  }
-
-  .prose-nature table {
-    @apply w-full mb-4 text-sm border-collapse;
-  }
-
-  .prose-nature th,
-  .prose-nature td {
-    @apply border border-white/15 px-3 py-2 text-left;
-  }
-
-  .prose-nature th {
-    @apply text-white font-semibold bg-white/5;
-  }
-
-  .prose-nature hr {
-    @apply border-white/15 my-6;
-  }
-
-  .pill-active {
-    @apply bg-white text-black border-white font-semibold;
-  }
-
-  .pill-inactive {
-    @apply bg-white/5 text-gray-300 border-white/20 hover:bg-white/10 hover:border-white/40 hover:text-white;
-  }
-
-  /* --- EasyMDE dark theme -----------------------------------------------
-     EasyMDE ships a light theme, which renders as a bright white editor
-     inside the dark create-post card. These overrides restyle the wrapper,
-     toolbar, and the CodeMirror instance it mounts. */
   .editor-dark .EasyMDEContainer .CodeMirror {
-    @apply bg-black/60 text-gray-200 border border-white/20 rounded-b-lg;
-    min-height: 240px;
+    color: var(--ink);
+    /* Fully opaque, not `--surface-sunken`. EasyMDE sets its own background on
+       .CodeMirror and the stock value is white; this has to win, or a white
+       writing surface sits inside a dark page. */
+    background: var(--surface-sunken) !important;
+    border: 1px solid var(--line);
+    border-radius: 0 0 4px 4px;
+    min-height: 260px;
+  }
+
+  /* CodeMirror's placeholder is its own element, not a ::placeholder, so it
+     needs its own rule — the stock one is #a9a9a9, which is legible on white
+     and invisible on #1e1e1e. */
+  .editor-dark .CodeMirror .CodeMirror-placeholder {
+    color: var(--ink-faint);
   }
 
   .editor-dark .editor-toolbar {
-    @apply bg-white/5 border border-white/20 rounded-t-lg;
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    border-radius: 4px 4px 0 0;
   }
 
   .editor-dark .editor-toolbar::before,
@@ -262,83 +598,56 @@ body {
   }
 
   .editor-dark .editor-toolbar a {
-    @apply text-gray-400 rounded;
+    color: var(--ink-faint);
+    border-radius: 3px;
   }
 
   .editor-dark .editor-toolbar a:hover,
   .editor-dark .editor-toolbar a.active {
-    @apply text-white bg-white/10;
+    background: var(--surface);
+    color: var(--ink);
     border-color: transparent;
   }
 
   .editor-dark .editor-toolbar i.separator {
-    @apply border-white/20;
+    border-color: var(--line);
   }
 
   .editor-dark .CodeMirror-cursor {
-    border-left: 1px solid #fff;
+    border-left: 1px solid var(--ink);
   }
 
   .editor-dark .CodeMirror-selected {
-    @apply bg-white/20;
+    background: var(--accent-dim);
   }
 
   .editor-dark .CodeMirror .cm-header {
-    @apply text-white font-bold;
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-weight: 700;
   }
 
   .editor-dark .CodeMirror .cm-quote {
-    @apply text-gray-400 border-l-2 border-white/30 pl-2;
+    color: var(--ink-muted);
+    border-left: 3px solid var(--ink-faint);
+    padding-left: 0.5em;
   }
 
   .editor-dark .CodeMirror .cm-link {
-    @apply text-white underline;
+    color: var(--accent);
   }
 
   .editor-dark .CodeMirror .cm-url {
-    @apply text-gray-400;
+    color: var(--ink-faint);
   }
 
   .editor-dark .CodeMirror .cm-comment {
-    @apply text-gray-500;
+    color: var(--ink-faint);
   }
 
   .editor-dark .editor-preview,
   .editor-dark .editor-side-by-side .CodeMirror {
-    @apply bg-black/60 text-gray-300;
-  }
-
-  /* markdown body rendered in EasyMDE's preview pane. Only the pieces that
-     differ from the article view — `@apply prose-nature` can't reference a
-     custom class, and the article's own `.prose-nature` rules are inherited by
-     this subtree's class list. */
-  .editor-dark .editor-preview {
-    @apply text-gray-300 leading-relaxed;
-  }
-
-  .editor-dark .editor-preview h1,
-  .editor-dark .editor-preview h2,
-  .editor-dark .editor-preview h3 {
-    @apply text-white font-bold mt-6 mb-3;
-  }
-
-  .editor-dark .editor-preview a {
-    @apply text-white underline underline-offset-4;
-  }
-
-  .editor-dark .editor-preview blockquote {
-    @apply border-l-4 border-white/40 bg-white/5 pl-4 py-2 rounded-r mb-4;
-  }
-
-  .editor-dark .editor-preview code {
-    @apply text-gray-200 bg-white/10 px-1 py-0.5 rounded text-sm;
-  }
-
-  .editor-dark .editor-preview pre {
-    @apply bg-black/70 border border-white/10 rounded-lg p-4 overflow-x-auto mb-4;
-  }
-
-  .editor-dark .editor-preview pre code {
-    @apply bg-transparent p-0 rounded-none;
+    background: var(--surface-sunken) !important;
+    color: var(--ink);
   }
 }

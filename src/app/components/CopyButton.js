@@ -80,10 +80,10 @@ export default function CopyButton({
             aria-label={copied ? copiedLabel : label}
             className={`inline-flex items-center gap-1.5 text-xs font-semibold transition-colors ${
                 copied
-                    ? 'text-emerald-300'
+                    ? 'text-[var(--accent)]'
                     : failed
-                        ? 'text-amber-300'
-                        : 'text-gray-400 hover:text-white'
+                        ? 'text-[var(--warn)]'
+                        : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
             } ${className}`}
         >
             {copied ? <Check size={14} aria-hidden="true" /> : <Link2 size={14} aria-hidden="true" />}

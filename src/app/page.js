@@ -1,157 +1,172 @@
-import { ChevronRight, Leaf, Globe, Users, ArrowDown } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { getMostRead, getTrendingPosts } from './lib/stats';
+import { getTopics } from './lib/posts';
+import PostCard from './components/PostCard';
+import EmptyState from './components/EmptyState';
 
-export default function HomePage() {
-    return (
-        <>
-            <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6">
-                <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                    style={{
-                        backgroundImage: `url("https://images.pexels.com/photos/957024/forest-trees-perspective-bright-957024.jpeg?auto=compress&cs=tinysrgb&w=2100")`,
-                        filter: 'grayscale(40%) brightness(0.55)',
-                    }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+const DEFAULT_AVATAR = '/images/default-avatar.svg';
 
-                <div className="relative z-10 max-w-3xl mx-auto">
-                    <span className="eyebrow mb-6 block">Nature Index — Est. 2025</span>
-                    <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-                        Guardians of the Wild
-                    </h1>
-                    <p className="text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-                        Dedicated to the preservation of wildlife and their habitats. Share knowledge, inspire action, and protect our planet together.
-                    </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Link href="/blog" className="btn-primary group">
-                            Read the Field Journal
-                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                        <Link href="/about" className="btn-secondary">
-                            Our Mission
-                        </Link>
-                    </div>
-                </div>
+export const metadata = {
+  title: 'Nature Index — Conservation Science & Community',
+  description:
+    'An open platform for conservation science, field discoveries, and community action.',
+};
 
-                <a
-                    href="#initiatives"
-                    className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/50 hover:text-white transition-colors animate-bounce"
-                    aria-label="Scroll to initiatives"
-                >
-                    <ArrowDown className="w-5 h-5" />
-                </a>
-            </section>
+/**
+ * The front page, laid out the way Medium lays out its own: a 700px stream on
+ * the left, a 48px gutter, and a 264px rail on the right. The rail is not an
+ * afterthought — the two columns are why the page reads as a publication
+ * rather than a blog index.
+ */
+export default async function HomePage() {
+  const [featured, mostRead, topics] = await Promise.all([
+    getTrendingPosts({ limit: 10, windowDays: 45 }),
+    getMostRead({ limit: 3 }),
+    getTopics(),
+  ]);
 
-            <section className="bg-black border-y border-white/10">
-                <div className="container mx-auto max-w-6xl px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                    {[
-                        { value: '12M+', label: 'Trees Planted' },
-                        { value: '48', label: 'Countries Active' },
-                        { value: '320K', label: 'Contributors' },
-                        { value: '98%', label: 'Data Verified' },
-                    ].map((stat) => (
-                        <div key={stat.label}>
-                            <div className="text-3xl font-bold text-white">{stat.value}</div>
-                            <div className="text-sm text-gray-400 mt-1">{stat.label}</div>
-                        </div>
-                    ))}
-                </div>
-            </section>
+  // "Who to follow" is derived from the stories already loaded rather than
+  // from a second author query: the rail is a suggestion, and a suggestion
+  // drawn from what the reader is already looking at is a better one.
+  const authors = [];
+  const seen = new Set();
+  for (const post of featured) {
+    const profile = post.profiles;
+    if (!profile?.username || seen.has(profile.username)) continue;
+    seen.add(profile.username);
+    authors.push({
+      username: profile.username,
+      fullName: profile.full_name || profile.username,
+      avatarUrl: profile.avatar_url,
+    });
+    if (authors.length === 3) break;
+  }
 
-            <section
-                id="initiatives"
-                className="relative py-24 lg:py-36 bg-cover bg-center"
-                style={{
-                    backgroundImage: `url("https://images.pexels.com/photos/167698/pexels-photo-167698.jpeg?auto=compress&cs=tinysrgb&w=2100")`,
-                }}
-            >
-                <div className="absolute inset-0 bg-black/65" />
-                <div className="relative container mx-auto max-w-6xl text-center px-6">
-                    <span className="eyebrow mb-4 block">What We Do</span>
-                    <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">Our Core Initiatives</h2>
-                    <p className="text-lg text-gray-300 mb-16 max-w-2xl mx-auto leading-relaxed">
-                        Every action we take is guided by science, powered by communities, and aimed at lasting ecological impact.
-                    </p>
+  const nothingPublished = featured.length === 0;
 
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {[
-                            {
-                                Icon: Leaf,
-                                title: 'Habitat Restoration',
-                                desc: 'We document and support reforestation and ecosystem recovery projects that rebuild habitats for wildlife and communities.',
-                            },
-                            {
-                                Icon: Globe,
-                                title: 'Climate Science',
-                                desc: 'Our contributors publish evidence-based research and field reports that inform policy and public understanding of the climate crisis.',
-                            },
-                            {
-                                Icon: Users,
-                                title: 'Community Programs',
-                                desc: 'We connect local stewards with global audiences — giving communities ownership of conservation outcomes.',
-                            },
-                        ].map(({ Icon, title, desc }) => (
-                            <div key={title} className="glass-card p-8 text-center hover:bg-white/15 transition-colors">
-                                <Icon className="w-12 h-12 text-white mx-auto mb-6" />
-                                <h3 className="text-2xl font-bold text-white mb-3">{title}</h3>
-                                <p className="text-gray-300 leading-relaxed">{desc}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+  return (
+    <div className="mx-auto flex max-w-[1012px] gap-12 px-5 pb-16 pt-10">
+      <div className="stream">
+        <h1 className="display-2 mb-2">Latest</h1>
+        <p className="mb-2 text-[14px] text-[var(--ink-faint)]">
+          Field reports from the people doing the work, published without a paywall.
+        </p>
 
-            <section
-                id="about"
-                className="relative py-24 lg:py-36 bg-cover bg-center bg-no-repeat"
-                style={{
-                    backgroundImage: `url("https://images.pexels.com/photos/1108572/pexels-photo-1108572.jpeg?auto=compress&cs=tinysrgb&w=2100")`,
-                }}
-            >
-                <div
-                    className="absolute inset-0"
-                    style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 100%)' }}
-                />
-                <div className="relative container mx-auto max-w-6xl px-6 grid lg:grid-cols-2 gap-16 items-center">
-                    <div className="text-left">
-                        <span className="eyebrow mb-4 block">Our Story</span>
-                        <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-                            Science-led.<br />Community-driven.
-                        </h2>
-                        <p className="text-gray-300 text-lg leading-relaxed mb-6">
-                            Nature Index is a collective of ecologists, conservationists, and storytellers developing open knowledge for environmental action.
-                        </p>
-                        <p className="text-gray-400 leading-relaxed mb-10">
-                            Every project is monitored using satellite imagery and on-ground data. We publish results openly — because accountability is the foundation of trust.
-                        </p>
-                        <Link href="/about" className="btn-primary group">
-                            Learn About Us
-                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                    </div>
-                </div>
-            </section>
+        {nothingPublished ? (
+          <EmptyState
+            title="Nothing published yet"
+            description="Once a contributor publishes their first story it will appear here."
+            action={
+              <Link href="/create-post" className="btn btn-primary">
+                Write the first story
+              </Link>
+            }
+          />
+        ) : (
+          <div className="mt-4">
+            {featured.map((post, index) => (
+              <PostCard key={post.slug} post={post} variant={index === 0 ? 'lead' : 'row'} />
+            ))}
 
-            <section
-                className="relative py-28 bg-cover bg-center text-center px-6"
-                style={{
-                    backgroundImage: `url("https://images.pexels.com/photos/1179229/pexels-photo-1179229.jpeg?auto=compress&cs=tinysrgb&w=2100")`,
-                }}
-            >
-                <div className="absolute inset-0 bg-black/70" />
-                <div className="relative z-10 max-w-2xl mx-auto">
-                    <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-                        The forest cannot wait.
-                    </h2>
-                    <p className="text-lg text-gray-300 mb-10 leading-relaxed">
-                        Join our community of researchers, activists, and nature enthusiasts. Share your story and help protect what remains.
-                    </p>
-                    <Link href="/signup" className="btn-primary text-lg px-10 py-4 group">
-                        Join Nature Index
-                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <div className="pt-6 text-center">
+              <Link href="/blog" className="btn btn-secondary">
+                See all stories
+              </Link>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* The rail. Medium's right column: a short recommendation list, then the
+          topic index, then writers worth following — each separated by a 1px
+          rule, never by a card. */}
+      <aside className="rail hidden lg:block">
+        {mostRead.length > 0 && (
+          <section aria-labelledby="rail-recommended">
+            <h2 id="rail-recommended" className="mb-4 border-b border-[var(--line)] pb-3 text-[14px] font-bold text-[var(--ink)]">
+              Recommended for you
+            </h2>
+            <ul>
+              {mostRead.map((post) => (
+                <li key={post.slug} className="border-b border-[var(--line)] py-4 last:border-b-0">
+                  <Link href={`/blog/${post.slug}`} className="block">
+                    <span className="block text-[16px] font-bold leading-[1.3] text-[var(--ink)]">
+                      {post.title}
+                    </span>
+                  </Link>
+                  {post.profiles?.full_name && (
+                    <span className="mt-2 block text-[13px] text-[var(--ink-faint)]">
+                      {post.profiles.full_name}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {topics.length > 0 && (
+          <section aria-labelledby="rail-topics" className="mt-8">
+            <h2 id="rail-topics" className="mb-4 border-b border-[var(--line)] pb-3 text-[14px] font-bold text-[var(--ink)]">
+              Explore topics
+            </h2>
+            <ul className="flex flex-col gap-2">
+              {topics.slice(0, 8).map(({ topic, count }) => (
+                <li key={topic}>
+                  <Link
+                    href={`/blog?topic=${encodeURIComponent(topic)}`}
+                    className="text-[14px] text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
+                  >
+                    {topic}
+                    <span className="ml-1 text-[var(--ink-faint)]">{count}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {authors.length > 0 && (
+          <section aria-labelledby="rail-authors" className="mt-8">
+            <h2 id="rail-authors" className="mb-4 border-b border-[var(--line)] pb-3 text-[14px] font-bold text-[var(--ink)]">
+              Who to follow
+            </h2>
+            <ul>
+              {authors.map((author) => (
+                <li key={author.username} className="flex items-center gap-3 border-b border-[var(--line)] py-4 last:border-b-0">
+                  <Image
+                    src={author.avatarUrl || DEFAULT_AVATAR}
+                    alt=""
+                    width={40}
+                    height={40}
+                    unoptimized
+                    className="h-10 w-10 shrink-0 rounded-full bg-[var(--surface-raised)] object-cover"
+                  />
+                  <div className="min-w-0">
+                    <Link
+                      href={`/profile/${author.username}`}
+                      className="block truncate text-[14px] font-medium text-[var(--ink)] hover:underline"
+                    >
+                      {author.fullName}
                     </Link>
-                </div>
-            </section>
-        </>
-    );
+                    <Link
+                      href={`/blog?author=${encodeURIComponent(author.username)}`}
+                      className="block truncate text-[13px] text-[var(--ink-faint)] hover:text-[var(--ink-muted)]"
+                    >
+                      Read their stories
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <Link href="/leaderboards" className="mt-8 block text-[14px] text-[var(--ink-muted)] hover:text-[var(--ink)]">
+          See the leaderboards →
+        </Link>
+      </aside>
+    </div>
+  );
 }

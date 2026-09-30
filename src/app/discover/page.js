@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Flame, Sparkles, Eye } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { getTrendingPosts, getMostRead } from '../lib/stats';
 import PostCard from '../components/PostCard';
 import PageHero from '../components/PageHero';
@@ -35,7 +35,7 @@ export default async function DiscoverPage() {
 
   return (
     <div className="page-shell">
-      <div className="container mx-auto max-w-5xl px-6">
+      <div className="container-page">
         <PageHero
           eyebrow="Discover"
           title="What people are reading"
@@ -43,39 +43,29 @@ export default async function DiscoverPage() {
         />
 
         {nothing ? (
-          <div className="glass-card p-8">
-            <EmptyState
-              icon={Sparkles}
-              title="Nothing to discover yet"
-              description="Once a contributor publishes their first story it will show up here, ranked by what readers are actually opening."
-            />
-          </div>
+          <EmptyState
+            icon={Sparkles}
+            title="Nothing to discover yet"
+            description="Once a contributor publishes their first story it will show up here, ranked by what readers are actually opening."
+          />
         ) : (
           <>
             {trending.length > 0 && (
               <section className="mb-14" aria-labelledby="trending-heading">
-                <div className="mb-6 flex items-center gap-3">
-                  <Flame size={20} className="text-orange-400" aria-hidden="true" />
-                  <h2 id="trending-heading" className="text-2xl font-bold text-white">
+                <div className="mb-4 flex items-baseline gap-3 border-b border-[var(--line)] pb-3">
+                  <h2 id="trending-heading" className="text-[20px] font-bold text-[var(--ink)]">
                     Trending
                   </h2>
-                  <span className="text-sm text-gray-500">recent, weighted by readership</span>
+                  <span className="text-[13px] text-[var(--ink-faint)]">recent, weighted by readership</span>
                 </div>
 
                 {/* A rank badge on each card, because "trending" is a claim and
                     the position is the evidence for it. */}
-                <ol className="space-y-6">
+                <ol>
                   {trending.map((post, index) => (
-                    <li key={post.slug} className="relative">
-                      <span
-                        aria-hidden="true"
-                        className="absolute -left-1 top-5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm font-bold text-black"
-                      >
-                        {index + 1}
-                      </span>
-                      <div className="pl-9">
-                        <PostCard post={post} />
-                      </div>
+                    <li key={post.slug}>
+                      <PostCard post={post} />
+                      <span className="sr-only">Rank {index + 1}</span>
                     </li>
                   ))}
                 </ol>
@@ -84,51 +74,46 @@ export default async function DiscoverPage() {
 
             {mostRead.length > 0 && (
               <section aria-labelledby="mostread-heading">
-                <div className="mb-6 flex items-center gap-3">
-                  <Eye size={20} className="text-sky-400" aria-hidden="true" />
-                  <h2 id="mostread-heading" className="text-2xl font-bold text-white">
+                <div className="mb-2 flex items-baseline gap-3 border-b border-[var(--line)] pb-3">
+                  <h2 id="mostread-heading" className="text-[20px] font-bold text-[var(--ink)]">
                     Most read
                   </h2>
-                  <span className="text-sm text-gray-500">all time</span>
+                  <span className="text-[13px] text-[var(--ink-faint)]">all time</span>
                 </div>
 
-                <div className="glass-card divide-y divide-white/10">
+                <ol>
                   {mostRead.map((post, index) => (
-                    <Link
-                      key={post.slug}
-                      href={`/blog/${post.slug}`}
-                      className="flex items-center gap-4 p-4 transition-colors hover:bg-white/5"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="w-6 shrink-0 text-right font-bold text-gray-600"
+                    <li key={post.slug}>
+                      <Link
+                        href={`/blog/${post.slug}`}
+                        className="flex items-center gap-4 border-b border-[var(--line)] py-4"
                       >
-                        {index + 1}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-white">{post.title}</p>
-                        <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
-                          {post.topic && <span>{post.topic}</span>}
-                          {post.profiles?.full_name && <span>by {post.profiles.full_name}</span>}
-                          <span className="inline-flex items-center gap-1">
-                            <Eye size={11} aria-hidden="true" />
-                            {post.views} views
-                          </span>
-                        </p>
-                      </div>
-                    </Link>
+                        <span
+                          aria-hidden="true"
+                          className="w-5 shrink-0 text-right text-[14px] text-[var(--ink-faint)]"
+                        >
+                          {index + 1}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-[16px] font-bold text-[var(--ink)]">
+                          {post.title}
+                        </span>
+                        <span className="shrink-0 text-[13px] text-[var(--ink-faint)]">
+                          {post.views.toLocaleString('en-GB')} views
+                        </span>
+                      </Link>
+                    </li>
                   ))}
-                </div>
+                </ol>
               </section>
             )}
 
-            <p className="mt-10 text-center text-sm text-gray-500">
+            <p className="mt-10 text-[14px] text-[var(--ink-muted)]">
               Looking for everything published?{' '}
-              <Link href="/blog" className="font-semibold text-white underline underline-offset-4">
+              <Link href="/blog" className="hover:underline">
                 Browse the field journal
               </Link>{' '}
               or see{' '}
-              <Link href="/leaderboards" className="font-semibold text-white underline underline-offset-4">
+              <Link href="/leaderboards" className="hover:underline">
                 who is writing it
               </Link>
               .

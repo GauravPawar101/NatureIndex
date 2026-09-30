@@ -88,7 +88,7 @@ export function scorePassword(value) {
     const result = (score, label, hint, color) => ({ score, label, hint, color });
 
     if (!password) {
-        return result(0, '', 'Pick something a person would not guess.', 'bg-white/20');
+        return result(0, '', 'Pick something a person would not guess.', 'bg-[var(--surface-raised)]');
     }
 
     if (isCommonPassword(password)) {
@@ -117,11 +117,11 @@ export function scorePassword(value) {
         case 1:
             return result(1, 'Weak', 'Add length and a mix of letters, numbers and symbols.', 'bg-orange-400');
         case 2:
-            return result(2, 'Fair', 'Longer is stronger — try a memorable phrase.', 'bg-amber-300');
+            return result(2, 'Fair', 'Longer is stronger — try a memorable phrase.', 'bg-[var(--warn)]');
         case 3:
-            return result(3, 'Good', 'A few more characters would make this hard to guess.', 'bg-emerald-400');
+            return result(3, 'Good', 'A few more characters would make this hard to guess.', 'bg-[var(--accent)]');
         default:
-            return result(4, 'Strong', 'Great — long and varied. Keep it unique to this site.', 'bg-emerald-300');
+            return result(4, 'Strong', 'Great — long and varied. Keep it unique to this site.', 'bg-[var(--accent)]');
     }
 }
 

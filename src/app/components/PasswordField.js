@@ -73,11 +73,11 @@ export default function PasswordField({
     return (
         <div className={className}>
             <div className="mb-1 flex items-baseline justify-between gap-2">
-                <label htmlFor={inputId} className="block text-sm font-medium text-gray-300">
+                <label htmlFor={inputId} className="block text-sm font-medium text-[var(--ink-muted)]">
                     {label}
                 </label>
                 {showStrength && (
-                    <span aria-live="polite" className="text-xs font-medium text-gray-400">
+                    <span aria-live="polite" className="text-xs font-medium text-[var(--ink-muted)]">
                         {allRulesPassed ? 'All requirements met' : `${remainingCount} to go`}
                     </span>
                 )}
@@ -104,8 +104,8 @@ export default function PasswordField({
                     aria-describedby={[showGuidance ? rulesId : null, capsLockOn ? `${inputId}-caps` : null, hint ? hintId : null, error ? errorId : null]
                         .filter(Boolean)
                         .join(' ') || undefined}
-                    className={`input-dark pr-12 ${error ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''} ${
-                        capsLockOn ? 'border-amber-400/60' : ''
+                    className={`field pr-12 ${error ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''} ${
+                        capsLockOn ? 'border-[var(--warn)]' : ''
                     }`}
                 />
                 <button
@@ -118,7 +118,7 @@ export default function PasswordField({
                     disabled={disabled}
                     aria-label={revealed ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
                     aria-pressed={revealed}
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-2 text-gray-400 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-40"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-2 text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-40"
                 >
                     {revealed ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
                 </button>
@@ -127,7 +127,7 @@ export default function PasswordField({
             {capsLockOn && (
                 <p
                     id={`${inputId}-caps`}
-                    className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-300"
+                    className="mt-1.5 flex items-center gap-1.5 text-xs text-[var(--warn)]"
                 >
                     <AlertTriangle size={13} aria-hidden="true" />
                     Caps Lock is on.
@@ -141,18 +141,18 @@ export default function PasswordField({
                             <span
                                 key={index}
                                 className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
-                                    index < strength.score ? strength.color : 'bg-white/15'
+                                    index < strength.score ? strength.color : 'bg-[var(--surface-raised)]'
                                 }`}
                             />
                         ))}
                     </div>
                     <div className="mt-1.5 flex items-baseline justify-between gap-2 text-xs">
-                        <span className={`font-medium ${strength.score > 0 ? 'text-gray-200' : 'text-gray-400'}`}>
+                        <span className={`font-medium ${strength.score > 0 ? 'text-[var(--ink)]' : 'text-[var(--ink-muted)]'}`}>
                             Password strength: {strength.label || '—'}
                         </span>
-                        <span className="text-gray-500">{strength.score}/4</span>
+                        <span className="text-[var(--ink-faint)]">{strength.score}/4</span>
                     </div>
-                    <p className="mt-1 text-xs leading-relaxed text-gray-400">{strength.hint}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-[var(--ink-muted)]">{strength.hint}</p>
                 </div>
             )}
 
@@ -162,13 +162,13 @@ export default function PasswordField({
                         <li
                             key={rule.id}
                             className={`flex items-center gap-1.5 transition-colors ${
-                                rule.passed ? 'text-emerald-300' : 'text-gray-400'
+                                rule.passed ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)]'
                             }`}
                         >
                             <span
                                 aria-hidden="true"
                                 className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border transition-colors ${
-                                    rule.passed ? 'border-emerald-400/60 bg-emerald-500/20' : 'border-white/20'
+                                    rule.passed ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 'border-[var(--line-strong)]'
                                 }`}
                             >
                                 {rule.passed ? <Check size={9} strokeWidth={3} /> : <X size={9} strokeWidth={3} className="opacity-0" />}
@@ -182,13 +182,13 @@ export default function PasswordField({
             )}
 
             {hint && !error && (
-                <p id={hintId} className="mt-1.5 text-xs leading-relaxed text-gray-400">
+                <p id={hintId} className="mt-1.5 text-xs leading-relaxed text-[var(--ink-muted)]">
                     {hint}
                 </p>
             )}
 
             {error && (
-                <p id={errorId} role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+                <p id={errorId} role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
                     <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
                     {error}
                 </p>

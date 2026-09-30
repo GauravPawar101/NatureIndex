@@ -21,7 +21,7 @@ export const AUTHORS = [
     full_name: 'Dr. Elena Vasquez',
     website: 'https://example.com/elena-vasquez',
     bio: 'Tropical forest ecologist. I spend most of the year in the Chocó documenting amphibian decline and writing it up for people who can actually change policy.',
-    avatar_url: '/images/default-avatar.svg',
+    avatar_url: '/images/authors/elena_vasquez.svg',
   },
   {
     username: 'tomas_lindqvist',
@@ -29,7 +29,7 @@ export const AUTHORS = [
     full_name: 'Tomas Lindqvist',
     website: 'https://example.com/tomas-lindqvist',
     bio: 'Glaciologist working on mass-balance modelling. Interested in making permafrost data legible to non-specialists.',
-    avatar_url: '/images/default-avatar.svg',
+    avatar_url: '/images/authors/tomas_lindqvist.svg',
   },
   {
     username: 'aisha_okafor',
@@ -37,7 +37,7 @@ export const AUTHORS = [
     full_name: 'Aisha Okafor',
     website: 'https://example.com/aisha-okafor',
     bio: 'Marine biologist and open-data advocate. Running a citizen-science tidepool census across 40 km of rocky shore.',
-    avatar_url: '/images/default-avatar.svg',
+    avatar_url: '/images/authors/aisha_okafor.svg',
   },
   {
     username: 'kenji_watanabe',
@@ -45,7 +45,7 @@ export const AUTHORS = [
     full_name: 'Kenji Watanabe',
     website: 'https://example.com/kenji-watanabe',
     bio: 'Reforestation practitioner. Planted 400,000 mangroves and then measured whether any of it survived, which is the interesting part.',
-    avatar_url: '/images/default-avatar.svg',
+    avatar_url: '/images/authors/kenji_watanabe.svg',
   },
   {
     username: 'priya_raman',
@@ -53,7 +53,7 @@ export const AUTHORS = [
     full_name: 'Priya Raman',
     website: 'https://example.com/priya-raman',
     bio: 'Atmospheric chemist. I publish the aerosol datasets nobody wants to maintain, because somebody has to.',
-    avatar_url: '/images/default-avatar.svg',
+    avatar_url: '/images/authors/priya_raman.svg',
   },
   {
     username: 'marcus_obi',
@@ -61,7 +61,7 @@ export const AUTHORS = [
     full_name: 'Marcus Obi',
     website: 'https://example.com/marcus-obi',
     bio: 'Conservation hydrologist. Groundwater, mostly, and the people who depend on it.',
-    avatar_url: '/images/default-avatar.svg',
+    avatar_url: '/images/authors/marcus_obi.svg',
   },
   {
     username: 'sara_benali',
@@ -69,7 +69,7 @@ export const AUTHORS = [
     full_name: 'Sara Benali',
     website: 'https://example.com/sara-benali',
     bio: 'Wildlife corridor planner working across the Atlas range. Interested in the unglamorous land parcels that make corridors possible.',
-    avatar_url: '/images/default-avatar.svg',
+    avatar_url: '/images/authors/sara_benali.svg',
   },
   {
     username: 'demo_user',
@@ -77,7 +77,7 @@ export const AUTHORS = [
     full_name: 'Demo Admin User',
     website: 'https://example.com',
     bio: 'Demo account for local development and reviews. Not a real contributor.',
-    avatar_url: '/images/default-avatar.svg',
+    avatar_url: '/images/authors/demo_user.svg',
   },
 ];
 

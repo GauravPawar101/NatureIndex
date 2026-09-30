@@ -203,8 +203,8 @@ function CommentForm({ postId, parentId = null, onComplete, onCancel, autoFocus 
     return (
         <form onSubmit={submit} className="mt-4">
             {error && (
-                <div role="alert" className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-                    <p className="text-xs font-semibold text-red-200">{error.title}</p>
+                <div role="alert" className="mb-3 rounded border border-[var(--danger)]/30 bg-[var(--danger)]/8 p-3">
+                    <p className="text-xs font-semibold text-[var(--danger)]">{error.title}</p>
                     <p className="mt-0.5 text-xs leading-relaxed text-red-100/70">{error.message}</p>
                 </div>
             )}
@@ -217,7 +217,7 @@ function CommentForm({ postId, parentId = null, onComplete, onCancel, autoFocus 
                 value={content}
                 onChange={(event) => setContent(event.target.value)}
                 placeholder={parentId ? 'Write a reply...' : 'Share an observation, ask a question...'}
-                className="input-dark text-base"
+                className="field text-base"
                 rows={parentId ? 2 : 3}
                 maxLength={MAX_COMMENT_LENGTH}
                 autoFocus={autoFocus}
@@ -229,12 +229,12 @@ function CommentForm({ postId, parentId = null, onComplete, onCancel, autoFocus 
                     {/* A plain <img> rather than next/image: this is a local
                         blob: URL, which the image optimiser cannot fetch. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={previewUrl} alt="Selected attachment preview" className="h-24 w-24 rounded-lg border border-white/20 object-cover" />
+                    <img src={previewUrl} alt="Selected attachment preview" className="h-24 w-24 rounded-lg border border-[var(--line-strong)] object-cover" />
                     <button
                         type="button"
                         onClick={clearAttachment}
                         aria-label="Remove attachment"
-                        className="absolute -right-2 -top-2 rounded-full bg-black p-1 text-gray-300 ring-1 ring-white/20 transition-colors hover:text-white"
+                        className="absolute -right-2 -top-2 rounded-full bg-black p-1 text-[var(--ink-muted)] ring-1 ring-white/20 transition-colors hover:text-[var(--ink)]"
                     >
                         <X size={12} aria-hidden="true" />
                     </button>
@@ -243,7 +243,7 @@ function CommentForm({ postId, parentId = null, onComplete, onCancel, autoFocus 
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                    <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-gray-400 transition-colors hover:text-white">
+                    <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]">
                         <ImageIcon size={14} aria-hidden="true" />
                         {image ? 'Change image' : 'Add image'}
                         <span className="sr-only">
@@ -262,20 +262,20 @@ function CommentForm({ postId, parentId = null, onComplete, onCancel, autoFocus 
                         />
                     </label>
 
-                    {image && <span className="text-xs text-gray-500">{formatBytes(image.size)}</span>}
+                    {image && <span className="text-xs text-[var(--ink-faint)]">{formatBytes(image.size)}</span>}
                 </div>
 
                 <div className="ml-auto flex items-center gap-2">
                     <span
                         id={`comment-count-${parentId || 'root'}`}
                         aria-live="polite"
-                        className={`text-xs ${remaining < 200 ? 'text-amber-300' : 'text-gray-500'}`}
+                        className={`text-xs ${remaining < 200 ? 'text-[var(--warn)]' : 'text-[var(--ink-faint)]'}`}
                     >
                         {content.length > 0 ? `${remaining.toLocaleString()} left` : ''}
                     </span>
 
                     {onCancel && (
-                        <button type="button" onClick={onCancel} className="btn-ghost !px-3 !py-1.5 !text-xs">
+                        <button type="button" onClick={onCancel} className="btn btn-ghost !px-3 !py-1.5 !text-xs">
                             Cancel
                         </button>
                     )}
@@ -325,7 +325,7 @@ function CommentItem({
                         unoptimized
                     />
                 ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-white/10 text-sm font-bold text-gray-300">
+                    <div className="flex h-full w-full items-center justify-center bg-[var(--surface)] text-sm font-bold text-[var(--ink-muted)]">
                         {initial}
                     </div>
                 )}
@@ -338,17 +338,17 @@ function CommentItem({
                             {username}
                         </Link>
                     ) : (
-                        <span className="text-sm font-semibold text-gray-400">{username}</span>
+                        <span className="text-sm font-semibold text-[var(--ink-muted)]">{username}</span>
                     )}
                     {comment.created_at && (
-                        <time dateTime={toISODate(comment.created_at)} className="text-xs text-gray-500">
+                        <time dateTime={toISODate(comment.created_at)} className="text-xs text-[var(--ink-faint)]">
                             {formatRelativeTime(comment.created_at)}
                         </time>
                     )}
                 </div>
 
                 {comment.content && (
-                    <p className="mt-1 whitespace-pre-line break-words text-sm leading-relaxed text-gray-200">
+                    <p className="mt-1 whitespace-pre-line break-words text-sm leading-relaxed text-[var(--ink)]">
                         {comment.content}
                     </p>
                 )}
@@ -358,7 +358,7 @@ function CommentItem({
                         {/* Comment image URLs come from the comment-images
                             bucket, which is not in images.remotePatterns, so
                             the optimiser is bypassed deliberately. */}
-                        <div className="relative h-48 w-full max-w-xs overflow-hidden rounded-lg border border-white/20 transition-colors hover:border-white/40">
+                        <div className="relative h-48 w-full max-w-xs overflow-hidden rounded-lg border border-[var(--line-strong)] transition-colors hover:border-[var(--line-strong)]">
                             <Image src={comment.image_url} alt="Comment attachment" fill className="object-cover" sizes="320px" unoptimized />
                         </div>
                     </a>
@@ -372,12 +372,12 @@ function CommentItem({
                             type="button"
                             onClick={() => onReplyToggle(isReplying ? null : comment.id)}
                             aria-expanded={isReplying}
-                            className="text-gray-400 transition-colors hover:text-white"
+                            className="text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
                         >
                             {isReplying ? 'Cancel reply' : 'Reply'}
                         </button>
                     ) : (
-                        <Link href={`#comment-${comment.id}`} className="text-gray-500 transition-colors hover:text-white">
+                        <Link href={`#comment-${comment.id}`} className="text-[var(--ink-faint)] transition-colors hover:text-[var(--ink)]">
                             View in thread
                         </Link>
                     )}
@@ -386,7 +386,7 @@ function CommentItem({
                         <button
                             type="button"
                             onClick={() => onRequestDelete(comment)}
-                            className="inline-flex items-center gap-1 text-gray-400 transition-colors hover:text-red-400"
+                            className="inline-flex items-center gap-1 text-[var(--ink-muted)] transition-colors hover:text-red-400"
                         >
                             <Trash2 size={12} aria-hidden="true" />
                             Delete
@@ -405,7 +405,7 @@ function CommentItem({
                 )}
 
                 {comment.replies?.length > 0 && (
-                    <div className="mt-4 space-y-4 border-l-2 border-white/10 pl-4 sm:pl-6">
+                    <div className="mt-4 space-y-4 border-l-2 border-[var(--line)] pl-4 sm:pl-6">
                         {comment.replies.map((reply) => (
                             <CommentItem
                                 key={reply.id}
@@ -563,11 +563,11 @@ export default function CommentsSection({ postId, initialComments }) {
     const totalCount = comments.length;
 
     return (
-        <section className="mt-16 border-t border-white/10 pt-8">
+        <section className="mt-16 border-t border-[var(--line)] pt-8">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-2xl font-bold text-[var(--ink)]">
                     Discussion
-                    <span className="ml-2 text-lg font-normal text-gray-400">({totalCount})</span>
+                    <span className="ml-2 text-lg font-normal text-[var(--ink-muted)]">({totalCount})</span>
                 </h2>
 
                 {totalCount > 1 && (
@@ -577,27 +577,27 @@ export default function CommentsSection({ postId, initialComments }) {
                             id="comment-sort"
                             value={sort}
                             onChange={(event) => setSort(event.target.value)}
-                            className="input-dark w-auto appearance-none py-1.5 pl-3 pr-9 text-xs"
+                            className="field w-auto appearance-none py-1.5 pl-3 pr-9 text-xs"
                         >
                             {SORT_OPTIONS.map((option) => (
                                 <option key={option.value} value={option.value}>{option.label}</option>
                             ))}
                         </select>
-                        <ArrowUpDown size={12} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <ArrowUpDown size={12} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ink-muted)]" />
                     </div>
                 )}
             </div>
 
-            <div className="glass-card mt-6 p-6">
-                <h3 className="mb-2 font-semibold text-white">
+            <div className="mt-8 border-t border-[var(--line)] pt-6">
+                <h3 className="mb-2 font-semibold text-[var(--ink)]">
                     {currentUser ? 'Leave a comment' : 'Join the discussion'}
                 </h3>
                 {currentUser ? (
                     <CommentForm postId={postId} onComplete={fetchComments} />
                 ) : (
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                        <p className="text-sm text-gray-400">Sign in to share an observation or ask a question.</p>
-                        <Link href="/login" className="btn-primary !px-5 !py-2 !text-sm">Sign in</Link>
+                        <p className="text-sm text-[var(--ink-muted)]">Sign in to share an observation or ask a question.</p>
+                        <Link href="/login" className="btn btn-primary !px-5 !py-2 !text-sm">Sign in</Link>
                     </div>
                 )}
             </div>
@@ -605,7 +605,7 @@ export default function CommentsSection({ postId, initialComments }) {
             {loading ? (
                 <div className="mt-8 space-y-4" aria-hidden="true">
                     {Array.from({ length: 2 }).map((_, index) => (
-                        <div key={index} className="glass-card h-28 animate-pulse" />
+                        <div key={index} className="skeleton mb-4 h-24 w-full" />
                     ))}
                 </div>
             ) : sortedRoots.length === 0 ? (
@@ -617,7 +617,7 @@ export default function CommentsSection({ postId, initialComments }) {
             ) : (
                 <div className="mt-8 space-y-6">
                     {sortedRoots.map((comment) => (
-                        <div key={comment.id} id={`comment-${comment.id}`} className="glass-card p-6">
+                        <div key={comment.id} id={`comment-${comment.id}`} className="border-b border-[var(--line)] py-6">
                             <CommentItem
                                 comment={comment}
                                 currentUser={currentUser}

@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Loader2, UserPlus } from 'lucide-react';
-import PageHero from '../components/PageHero';
 import PasswordField from '../components/PasswordField';
 import ConnectionNotice from '../components/ConnectionNotice';
 import ConfigurationRequired from '../components/ConfigurationRequired';
@@ -62,14 +61,19 @@ export default function SignupPage() {
     useEffect(() => {
         if (!supabase) return;
 
+        // A full navigation rather than `router.push`, for the same reason as on
+        // the login page: the session cookie is written just after this event
+        // fires, so a client-side transition issues its RSC request before the
+        // cookie exists, the proxy sees no session, and /account bounces back to
+        // /login. A reload cannot race its own cookie.
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session) {
-                router.push('/account');
+                window.location.href = '/account';
             }
         });
 
         return () => subscription.unsubscribe();
-    }, [supabase, router]);
+    }, [supabase]);
 
     const markTouched = (field) => setTouched((current) => ({ ...current, [field]: true }));
     const show = (field) => touched[field] || submitAttempted;
@@ -166,8 +170,7 @@ export default function SignupPage() {
             if (data.session) {
                 // Email confirmation is off for this project — already signed in.
                 toast.success('Account created', { message: 'Welcome to Nature Index.' });
-                router.push('/account');
-                router.refresh();
+                window.location.href = '/account';
                 return;
             }
 
@@ -181,8 +184,7 @@ export default function SignupPage() {
 
             if (!signInError) {
                 toast.success('Account created', { message: 'Welcome to Nature Index.' });
-                router.push('/account');
-                router.refresh();
+                window.location.href = '/account';
                 return;
             }
 
@@ -208,19 +210,22 @@ export default function SignupPage() {
     }
 
     return (
-        <div className="page-shell flex items-center justify-center px-6 py-20">
-            <div className="w-full max-w-2xl">
-                <PageHero
-                    eyebrow="Join Nature Index"
-                    title="Create your contributor account"
-                    description="Set up your profile once, confirm your email, and add your avatar later from your profile settings."
-                />
-                <div className="glass-card p-8">
+        <div className="mx-auto max-w-[680px] px-5 py-16">
+            <div className="w-full">
+                <div className="mb-8">
+                    <span className="eyebrow mb-2 block">Join Nature Index</span>
+                    <h1 className="display-2">Create your account</h1>
+                    <p className="mt-2 text-[15px] leading-[1.5] text-[var(--ink-muted)]">
+                        Set up your profile once, confirm your email, and add your avatar later
+                        from your profile settings.
+                    </p>
+                </div>
+                <div>
                     <ConnectionNotice enabled={!!supabase} recheckToken={recheckToken} />
 
                     <form onSubmit={handleSignUp} className="grid gap-5 md:grid-cols-2" noValidate>
                         <div>
-                            <label htmlFor="signup-email" className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                            <label htmlFor="signup-email" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Email</label>
                             <input
                                 id="signup-email"
                                 type="email"
@@ -235,10 +240,10 @@ export default function SignupPage() {
                                 required
                                 aria-invalid={emailError ? 'true' : undefined}
                                 aria-describedby={emailError ? 'signup-email-error' : undefined}
-                                className={`input-dark ${emailError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${emailError ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                             />
                             {emailError && (
-                                <p id="signup-email-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+                                <p id="signup-email-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
                                     <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
                                     {emailError}
                                 </p>
@@ -258,7 +263,7 @@ export default function SignupPage() {
                         />
 
                         <div>
-                            <label htmlFor="signup-username" className="block text-sm font-medium text-gray-300 mb-1">Username</label>
+                            <label htmlFor="signup-username" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Username</label>
                             <input
                                 id="signup-username"
                                 type="text"
@@ -273,22 +278,22 @@ export default function SignupPage() {
                                 required
                                 aria-invalid={usernameError ? 'true' : undefined}
                                 aria-describedby={usernameError ? 'signup-username-error' : 'signup-username-hint'}
-                                className={`input-dark ${usernameError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${usernameError ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                             />
                             {usernameError ? (
-                                <p id="signup-username-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+                                <p id="signup-username-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
                                     <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
                                     {usernameError}
                                 </p>
                             ) : (
-                                <p id="signup-username-hint" className="mt-1.5 text-xs text-gray-400">
+                                <p id="signup-username-hint" className="mt-1.5 text-xs text-[var(--ink-muted)]">
                                     Lowercase letters, numbers, dots and underscores. This becomes your profile URL.
                                 </p>
                             )}
                         </div>
 
                         <div>
-                            <label htmlFor="signup-full-name" className="block text-sm font-medium text-gray-300 mb-1">Full name</label>
+                            <label htmlFor="signup-full-name" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Full name</label>
                             <input
                                 id="signup-full-name"
                                 type="text"
@@ -296,12 +301,12 @@ export default function SignupPage() {
                                 onChange={(event) => setFullName(event.target.value)}
                                 autoComplete="name"
                                 disabled={loading}
-                                className="input-dark"
+                                className="field"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="signup-website" className="block text-sm font-medium text-gray-300 mb-1">Website</label>
+                            <label htmlFor="signup-website" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Website</label>
                             <input
                                 id="signup-website"
                                 type="url"
@@ -313,10 +318,10 @@ export default function SignupPage() {
                                 disabled={loading}
                                 aria-invalid={websiteError ? 'true' : undefined}
                                 aria-describedby={websiteError ? 'signup-website-error' : undefined}
-                                className={`input-dark ${websiteError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${websiteError ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                             />
                             {websiteError && (
-                                <p id="signup-website-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+                                <p id="signup-website-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
                                     <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
                                     {websiteError}
                                 </p>
@@ -324,21 +329,21 @@ export default function SignupPage() {
                         </div>
 
                         <div className="md:col-span-2">
-                            <label htmlFor="signup-bio" className="block text-sm font-medium text-gray-300 mb-1">Bio</label>
+                            <label htmlFor="signup-bio" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Bio</label>
                             <textarea
                                 id="signup-bio"
                                 value={bio}
                                 onChange={(event) => setBio(event.target.value)}
                                 disabled={loading}
-                                className="input-dark min-h-28"
+                                className="field min-h-28"
                                 placeholder="Tell people what you work on and why it matters."
                                 rows={4}
                             />
                         </div>
 
                         {formError && (
-                            <div role="alert" className="md:col-span-2 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3">
-                                <p className="flex items-start gap-2 text-sm font-semibold text-red-200">
+                            <div role="alert" className="md:col-span-2 rounded border border-[var(--danger)]/30 bg-[var(--danger)]/8 px-4 py-3">
+                                <p className="flex items-start gap-2 text-sm font-semibold text-[var(--danger)]">
                                     <AlertTriangle size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
                                     {formError.title}
                                 </p>
@@ -350,7 +355,7 @@ export default function SignupPage() {
                         )}
 
                         {success && (
-                            <div role="status" className="md:col-span-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                            <div role="status" className="md:col-span-2 rounded border border-[var(--accent)]/30 bg-[var(--accent)]/8 px-4 py-3 text-sm text-[var(--ink-muted)]">
                                 {success}
                             </div>
                         )}
@@ -359,7 +364,7 @@ export default function SignupPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="btn-primary w-full disabled:opacity-50 disabled:hover:scale-100"
+                                className="btn btn-primary w-full disabled:opacity-50 disabled:hover:scale-100"
                             >
                                 {loading ? (
                                     <>
@@ -374,7 +379,7 @@ export default function SignupPage() {
                                 )}
                             </button>
 
-                            <p className="text-center text-xs text-gray-500" aria-live="polite">
+                            <p className="text-center text-xs text-[var(--ink-faint)]" aria-live="polite">
                                 {loading
                                     ? 'Setting up your account...'
                                     : formReady
@@ -382,9 +387,9 @@ export default function SignupPage() {
                                         : `${MIN_PASSWORD_LENGTH}+ characters and a mix of cases, numbers and symbols.`}
                             </p>
 
-                            <p className="text-sm text-gray-400 text-center">
+                            <p className="text-sm text-[var(--ink-muted)] text-center">
                                 Already have an account?{' '}
-                                <Link href="/login" className="text-white hover:underline underline-offset-4">
+                                <Link href="/login" className="text-[var(--ink)] hover:underline underline-offset-4">
                                     Sign in
                                 </Link>
                             </p>

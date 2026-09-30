@@ -55,7 +55,7 @@ export default function Comment({ comment, onReply, onDelete }) {
                             sizes="40px"
                         />
                     ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-sm font-bold text-gray-300">
+                        <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-sm font-bold text-[var(--ink-muted)]">
                             {initial}
                         </div>
                     )}
@@ -68,11 +68,11 @@ export default function Comment({ comment, onReply, onDelete }) {
                             {username}
                         </span>
                         {formattedDate && (
-                            <span className="text-xs text-gray-500">• {formattedDate}</span>
+                            <span className="text-xs text-[var(--ink-faint)]">• {formattedDate}</span>
                         )}
                     </div>
 
-                    <p className="text-gray-200 mt-1 leading-relaxed break-words">
+                    <p className="text-[var(--ink)] mt-1 leading-relaxed break-words">
                         {comment.content}
                     </p>
 
@@ -94,7 +94,7 @@ export default function Comment({ comment, onReply, onDelete }) {
                         <button
                             type="button"
                             onClick={() => onReply(comment.id)}
-                            className="font-semibold text-gray-400 hover:text-orange-400 transition-colors"
+                            className="font-semibold text-[var(--ink-muted)] hover:text-orange-400 transition-colors"
                         >
                             Reply
                         </button>
@@ -103,7 +103,7 @@ export default function Comment({ comment, onReply, onDelete }) {
                                 type="button"
                                 onClick={handleDelete}
                                 disabled={isDeleting}
-                                className="font-semibold text-gray-400 hover:text-red-400 transition-colors disabled:opacity-50"
+                                className="font-semibold text-[var(--ink-muted)] hover:text-red-400 transition-colors disabled:opacity-50"
                             >
                                 {isDeleting ? 'Deleting...' : 'Delete'}
                             </button>

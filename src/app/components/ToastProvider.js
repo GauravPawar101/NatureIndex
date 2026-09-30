@@ -17,24 +17,24 @@ const ToastContext = createContext(null);
 const VARIANTS = {
     success: {
         Icon: CheckCircle2,
-        ring: 'border-emerald-400/30 bg-emerald-500/10',
-        icon: 'text-emerald-300',
-        bar: 'bg-emerald-400',
+        ring: 'border-[var(--accent)]/30 bg-[var(--accent)]/10',
+        icon: 'text-[var(--accent)]',
+        bar: 'bg-[var(--accent)]',
         // Errors stay up longer — they usually carry something to act on.
         duration: 5000,
     },
     error: {
         Icon: AlertTriangle,
-        ring: 'border-red-400/30 bg-red-500/10',
-        icon: 'text-red-300',
-        bar: 'bg-red-400',
+        ring: 'border-[var(--danger)]/30 bg-[var(--danger)]/10',
+        icon: 'text-[var(--danger)]',
+        bar: 'bg-[var(--danger)]',
         duration: 9000,
     },
     info: {
         Icon: Info,
-        ring: 'border-white/20 bg-white/10',
-        icon: 'text-gray-200',
-        bar: 'bg-white/60',
+        ring: 'border-[var(--line-strong)] bg-[var(--surface)]',
+        icon: 'text-[var(--ink)]',
+        bar: 'bg-[var(--ink-faint)]',
         duration: 5000,
     },
 };
@@ -127,11 +127,11 @@ function ToastItem({ toast, onDismiss }) {
             <div className="flex items-start gap-3">
                 <Icon size={18} className={`mt-0.5 shrink-0 ${variant.icon}`} aria-hidden="true" />
                 <div className="min-w-0 flex-1">
-                    {toast.title && <p className="text-sm font-semibold text-white">{toast.title}</p>}
-                    <p className={`text-sm leading-relaxed ${toast.title ? 'mt-0.5 text-gray-300' : 'text-gray-200'}`}>
+                    {toast.title && <p className="text-sm font-semibold text-[var(--ink)]">{toast.title}</p>}
+                    <p className={`text-sm leading-relaxed ${toast.title ? 'mt-0.5 text-[var(--ink-muted)]' : 'text-[var(--ink)]'}`}>
                         {toast.message}
                     </p>
-                    {toast.hint && <p className="mt-1.5 text-xs leading-relaxed text-gray-400">{toast.hint}</p>}
+                    {toast.hint && <p className="mt-1.5 text-xs leading-relaxed text-[var(--ink-muted)]">{toast.hint}</p>}
                 </div>
             </div>
 
@@ -139,7 +139,7 @@ function ToastItem({ toast, onDismiss }) {
                 type="button"
                 onClick={close}
                 aria-label="Dismiss notification"
-                className="absolute right-2 top-2 rounded-md p-1 text-gray-400 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="absolute right-2 top-2 rounded-md p-1 text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
                 <X size={14} aria-hidden="true" />
             </button>

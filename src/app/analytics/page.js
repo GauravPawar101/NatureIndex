@@ -33,13 +33,13 @@ export default async function AnalyticsPage() {
   if (stats.posts === 0) {
     return (
       <div className="page-shell">
-        <div className="container mx-auto max-w-5xl px-6">
+        <div className="container-page">
           <PageHero
             eyebrow="Analytics"
             title="How the journal is doing"
             description="Publication volume, readership and topic coverage across the whole site."
           />
-          <div className="glass-card p-8">
+          <div>
             <EmptyState
               icon={BarChart3}
               title="No data to report yet"
@@ -56,7 +56,7 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="page-shell">
-      <div className="container mx-auto max-w-5xl px-6">
+      <div className="container-page">
         <PageHero
           eyebrow="Analytics"
           title="How the journal is doing"
@@ -76,16 +76,16 @@ export default async function AnalyticsPage() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
-          <section className="glass-card p-6" aria-labelledby="topics-heading">
-            <h2 id="topics-heading" className="mb-1 text-lg font-bold text-white">
+          <section className="border border-[var(--line)] p-6" aria-labelledby="topics-heading">
+            <h2 id="topics-heading" className="mb-1 text-lg font-bold text-[var(--ink)]">
               Topic coverage
             </h2>
-            <p className="mb-6 text-sm text-gray-400">
+            <p className="mb-6 text-sm text-[var(--ink-muted)]">
               How the catalogue is distributed across subjects.
             </p>
 
             {stats.byTopic.length === 0 ? (
-              <p className="text-sm text-gray-500">No topics assigned yet.</p>
+              <p className="text-sm text-[var(--ink-faint)]">No topics assigned yet.</p>
             ) : (
               <ul className="space-y-3">
                 {stats.byTopic.map((entry) => {
@@ -95,17 +95,17 @@ export default async function AnalyticsPage() {
                   return (
                     <li key={entry.topic}>
                       <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
-                        <span className="truncate text-gray-300">{entry.topic}</span>
-                        <span className="shrink-0 tabular-nums text-gray-500">
+                        <span className="truncate text-[var(--ink-muted)]">{entry.topic}</span>
+                        <span className="shrink-0 tabular-nums text-[var(--ink-faint)]">
                           {entry.count}
                         </span>
                       </div>
                       <div
-                        className="h-1.5 overflow-hidden rounded-full bg-white/10"
+                        className="h-1.5 overflow-hidden rounded-full bg-[var(--surface)]"
                         role="img"
                         aria-label={`${entry.topic}: ${entry.count} stories`}
                       >
-                        <div className="h-full rounded-full bg-emerald-400/70" style={{ width: `${share}%` }} />
+                        <div className="h-full rounded-full bg-[var(--accent)]/70" style={{ width: `${share}%` }} />
                       </div>
                     </li>
                   );
@@ -114,27 +114,27 @@ export default async function AnalyticsPage() {
             )}
           </section>
 
-          <section className="glass-card p-6" aria-labelledby="activity-heading">
-            <h2 id="activity-heading" className="mb-1 text-lg font-bold text-white">
+          <section className="border border-[var(--line)] p-6" aria-labelledby="activity-heading">
+            <h2 id="activity-heading" className="mb-1 text-lg font-bold text-[var(--ink)]">
               Latest activity
             </h2>
-            <p className="mb-6 text-sm text-gray-400">The most recent posts and replies.</p>
+            <p className="mb-6 text-sm text-[var(--ink-muted)]">The most recent posts and replies.</p>
 
             <div className="space-y-6">
               <div>
                 <h3 className="eyebrow mb-3">Newest stories</h3>
                 {activity.posts.length === 0 ? (
-                  <p className="text-sm text-gray-500">Nothing published yet.</p>
+                  <p className="text-sm text-[var(--ink-faint)]">Nothing published yet.</p>
                 ) : (
                   <ul className="space-y-3">
                     {activity.posts.map((post) => (
                       <li key={post.slug}>
                         <Link
                           href={`/blog/${post.slug}`}
-                          className="block rounded-lg p-3 transition-colors hover:bg-white/5"
+                          className="block rounded-lg p-3 transition-colors hover:bg-[var(--surface)]"
                         >
-                          <p className="truncate font-medium text-white">{post.title}</p>
-                          <p className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-gray-500">
+                          <p className="truncate font-medium text-[var(--ink)]">{post.title}</p>
+                          <p className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-[var(--ink-faint)]">
                             {post.topic && <span>{post.topic}</span>}
                             <span className="inline-flex items-center gap-1">
                               <Clock size={11} aria-hidden="true" />
@@ -151,13 +151,13 @@ export default async function AnalyticsPage() {
               <div>
                 <h3 className="eyebrow mb-3">Recent replies</h3>
                 {activity.comments.length === 0 ? (
-                  <p className="text-sm text-gray-500">No comments yet.</p>
+                  <p className="text-sm text-[var(--ink-faint)]">No comments yet.</p>
                 ) : (
                   <ul className="space-y-3">
                     {activity.comments.map((comment) => (
-                      <li key={comment.id} className="border-l-2 border-white/10 pl-3">
-                        <p className="line-clamp-2 text-sm text-gray-300">{comment.content}</p>
-                        <p className="mt-1 text-xs text-gray-500">
+                      <li key={comment.id} className="border-l-2 border-[var(--line)] pl-3">
+                        <p className="line-clamp-2 text-sm text-[var(--ink-muted)]">{comment.content}</p>
+                        <p className="mt-1 text-xs text-[var(--ink-faint)]">
                           on{' '}
                           {comment.postSlug ? (
                             <Link href={`/blog/${comment.postSlug}`} className="underline underline-offset-2">
@@ -177,9 +177,9 @@ export default async function AnalyticsPage() {
           </section>
         </div>
 
-        <p className="mt-10 text-center text-sm text-gray-500">
+        <p className="mt-10 text-center text-sm text-[var(--ink-faint)]">
           Figures are whole-site aggregates over public data.{' '}
-          <Link href="/leaderboards" className="font-semibold text-white underline underline-offset-4">
+          <Link href="/leaderboards" className="font-semibold text-[var(--ink)] underline underline-offset-4">
             See contributor rankings
           </Link>
           .
@@ -191,13 +191,13 @@ export default async function AnalyticsPage() {
 
 function Stat({ icon: Icon, label, value, hint }) {
   return (
-    <div className="glass-card p-5">
-      <Icon size={18} className="mb-3 text-emerald-400" aria-hidden="true" />
-      <p className="text-2xl font-bold text-white tabular-nums">
+    <div className="border-b border-[var(--line)] py-4 last:border-b-0">
+      <Icon size={18} className="mb-3 text-[var(--accent)]" aria-hidden="true" />
+      <p className="text-2xl font-bold text-[var(--ink)] tabular-nums">
         {value.toLocaleString('en-GB')}
       </p>
-      <p className="mt-1 text-sm font-medium text-gray-300">{label}</p>
-      <p className="mt-0.5 text-xs text-gray-500">{hint}</p>
+      <p className="mt-1 text-sm font-medium text-[var(--ink-muted)]">{label}</p>
+      <p className="mt-0.5 text-xs text-[var(--ink-faint)]">{hint}</p>
     </div>
   );
 }

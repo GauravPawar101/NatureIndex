@@ -102,18 +102,18 @@ export default function ConfirmDialog({
                 aria-modal="true"
                 aria-labelledby="confirm-dialog-title"
                 aria-describedby={description ? 'confirm-dialog-description' : undefined}
-                className="toast-enter relative w-full max-w-sm rounded-2xl border border-white/20 bg-zinc-900 p-6 shadow-2xl"
+                className="toast-enter relative w-full max-w-sm rounded-2xl border border-[var(--line-strong)] bg-zinc-900 p-6 shadow-2xl"
             >
                 <div className="flex items-start gap-3">
                     {destructive && (
-                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-300">
+                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--danger)]/10 text-[var(--danger)]">
                             <AlertTriangle size={18} aria-hidden="true" />
                         </span>
                     )}
                     <div className="min-w-0 flex-1">
-                        <h2 id="confirm-dialog-title" className="text-lg font-bold text-white">{title}</h2>
+                        <h2 id="confirm-dialog-title" className="text-lg font-bold text-[var(--ink)]">{title}</h2>
                         {description && (
-                            <p id="confirm-dialog-description" className="mt-1.5 text-sm leading-relaxed text-gray-300">
+                            <p id="confirm-dialog-description" className="mt-1.5 text-sm leading-relaxed text-[var(--ink-muted)]">
                                 {description}
                             </p>
                         )}
@@ -125,7 +125,7 @@ export default function ConfirmDialog({
                         type="button"
                         onClick={onCancel}
                         disabled={pending}
-                        className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-gray-200 transition-colors hover:bg-white/10 disabled:opacity-50"
+                        className="rounded-full border border-[var(--line-strong)] px-4 py-2 text-sm font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface)] disabled:opacity-50"
                     >
                         {cancelLabel}
                     </button>
@@ -136,7 +136,7 @@ export default function ConfirmDialog({
                         disabled={pending}
                         className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
                             destructive
-                                ? 'bg-red-500 text-white hover:bg-red-400'
+                                ? 'bg-red-500 text-[var(--ink)] hover:bg-red-400'
                                 : 'bg-white text-black hover:bg-gray-100'
                         }`}
                     >

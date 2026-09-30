@@ -90,7 +90,7 @@ export default function DiscoverFeed({ initialPosts, pageSize = 12, hasMore: ini
 
     return (
         <div>
-            <div className="space-y-6">
+            <div>
                 {posts.map((post, index) => (
                     <div
                         key={post.slug}
@@ -110,12 +110,12 @@ export default function DiscoverFeed({ initialPosts, pageSize = 12, hasMore: ini
             {hasMore && (
                 <div ref={sentinel} className="mt-8 text-center" aria-hidden="true">
                     {loading ? (
-                        <div className="glass-card h-24 animate-pulse" />
+                        <div className="skeleton h-16 w-full" />
                     ) : (
                         <button
                             type="button"
                             onClick={loadMore}
-                            className="btn-secondary"
+                            className="btn btn-secondary"
                         >
                             Load more
                         </button>
@@ -124,7 +124,7 @@ export default function DiscoverFeed({ initialPosts, pageSize = 12, hasMore: ini
             )}
 
             {!hasMore && posts.length > 0 && (
-                <p className="mt-8 text-center text-sm text-gray-500">
+                <p className="mt-8 text-center text-[13px] text-[var(--ink-faint)]">
                     That is everything published so far.
                 </p>
             )}

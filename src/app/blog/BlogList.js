@@ -183,7 +183,7 @@ export default function BlogList({
                             id="blog-author"
                             value={author}
                             onChange={(event) => applyFilters({ q: inputValue, topic, author: event.target.value, sort })}
-                            className="input-dark w-full appearance-none cursor-pointer pr-10"
+                            className="field w-full appearance-none cursor-pointer pr-10"
                         >
                             <option value="All">All authors</option>
                             {authors.map((entry) => (
@@ -195,7 +195,7 @@ export default function BlogList({
                         <ChevronDown
                             size={16}
                             aria-hidden="true"
-                            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-muted)]"
                         />
                     </div>
 
@@ -205,7 +205,7 @@ export default function BlogList({
                             id="blog-sort"
                             value={sort}
                             onChange={(event) => applyFilters({ q: inputValue, topic, author, sort: event.target.value })}
-                            className="input-dark w-full appearance-none cursor-pointer pr-10"
+                            className="field w-full appearance-none cursor-pointer pr-10"
                         >
                             {SORT_OPTIONS.map((option) => (
                                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -214,7 +214,7 @@ export default function BlogList({
                         <ChevronDown
                             size={16}
                             aria-hidden="true"
-                            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-muted)]"
                         />
                     </div>
 
@@ -225,19 +225,19 @@ export default function BlogList({
                         onClick={() => setShowFilters((open) => !open)}
                         aria-expanded={showFilters}
                         aria-controls="blog-topics"
-                        className={`inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors sm:hidden ${
-                            topic !== 'All' ? 'border-white bg-white text-black' : 'border-white/20 text-gray-200 hover:bg-white/10'
+                        className={`pill sm:hidden ${
+                            topic !== 'All' ? 'pill-active' : ''
                         }`}
                     >
                         <Filter size={15} aria-hidden="true" />
                         Topics
-                        {topic !== 'All' && <span className="rounded-full bg-black/20 px-1.5 text-xs">1</span>}
+                        {topic !== 'All' && <span className="text-xs opacity-70">1</span>}
                     </button>
                 </div>
 
                 <div
                     id="blog-topics"
-                    className={`${showFilters ? 'flex' : 'hidden'} sm:flex mt-4 flex-wrap gap-2 border-t border-white/10 pt-4`}
+                    className={`${showFilters ? 'flex' : 'hidden'} sm:flex mt-4 flex-wrap gap-2 border-t border-[var(--line)] pt-4`}
                 >
                     <TopicPill
                         label="All"
@@ -258,22 +258,22 @@ export default function BlogList({
             </div>
 
             {/* --- Result summary --- */}
-            <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
-                <p aria-live="polite" className="text-gray-400">
+            <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-[var(--line)] pb-4 text-[14px]">
+                <p aria-live="polite" className="text-[var(--ink-muted)]">
                     {failed
                         ? 'Search is unavailable right now.'
                         : isPending
                             ? 'Searching...'
                             : hasResults
                                 ? <>
-                                    <span className="font-semibold text-white">{total}</span>
+                                    <span className="font-semibold text-[var(--ink)]">{total}</span>
                                     {` ${total === 1 ? 'story' : 'stories'}`}
-                                    {query && <> matching <span className="text-white">&ldquo;{query}&rdquo;</span></>}
-                                    {topic !== 'All' && <> in <span className="text-white">{topic}</span></>}
+                                    {query && <> matching <span className="text-[var(--ink)]">&ldquo;{query}&rdquo;</span></>}
+                                    {topic !== 'All' && <> in <span className="text-[var(--ink)]">{topic}</span></>}
                                     {author !== 'All' && (
                                         <>
                                             {' by '}
-                                            <span className="text-white">
+                                            <span className="text-[var(--ink)]">
                                                 {authors.find((a) => a.username === author)?.fullName ?? author}
                                             </span>
                                         </>
@@ -286,7 +286,7 @@ export default function BlogList({
                     <button
                         type="button"
                         onClick={clearAll}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-400 transition-colors hover:text-white"
+                        className="inline-flex items-center gap-1.5 text-[13px] text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
                     >
                         <RotateCcw size={12} aria-hidden="true" />
                         Clear filters
@@ -299,7 +299,7 @@ export default function BlogList({
                     these are keyword matches only and saying nothing would
                     overstate the quality. */}
                 {degraded && hasResults && !isPending && (
-                    <span className="rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-200">
+                    <span className="border border-[var(--line)] px-2 py-0.5 text-[11px] text-[var(--ink-faint)]">
                         Keyword matching only
                     </span>
                 )}
@@ -307,7 +307,7 @@ export default function BlogList({
                 {/* Confirms the search understood meaning, not just words. */}
                 {semantic && !isPending && hasResults && (
                     <span
-                        className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-200"
+                        className="border border-[var(--line)] px-2 py-0.5 text-[11px] text-[var(--ink-faint)]"
                         title="Results combine keyword relevance with semantic similarity"
                     >
                         Semantic search
@@ -351,10 +351,16 @@ export default function BlogList({
             {/* --- Results --- */}
             <div>
                 {isPending && !hasResults ? (
-                    <div className="space-y-4" aria-hidden="true">
-                        <div className="glass-card h-72 animate-pulse sm:h-64" />
-                        {Array.from({ length: 4 }).map((_, index) => (
-                            <div key={index} className="glass-card h-32 animate-pulse" />
+                    <div aria-hidden="true">
+                        {Array.from({ length: 5 }).map((_, index) => (
+                            <div key={index} className="flex gap-6 border-b border-[var(--line)] py-8">
+                                <div className="flex-1">
+                                    <div className="skeleton mb-3 h-4 w-24" />
+                                    <div className="skeleton mb-2 h-5 w-3/4" />
+                                    <div className="skeleton h-4 w-1/2" />
+                                </div>
+                                <div className="skeleton hidden h-[133px] w-[200px] shrink-0 sm:block" />
+                            </div>
                         ))}
                     </div>
                 ) : hasResults ? (
@@ -375,7 +381,7 @@ export default function BlogList({
                             say something useful, so they stay and the dimming
                             is what communicates "this is updating". */}
                         <div
-                            className={`space-y-4 transition-all duration-200 ease-out ${
+                            className={`transition-all duration-200 ease-out ${
                                 isPending ? 'pointer-events-none opacity-40 blur-[1px]' : 'opacity-100'
                             }`}
                         >
@@ -385,7 +391,7 @@ export default function BlogList({
                                 </div>
                             ))}
 
-                            <div className="space-y-4">
+                            <div>
                                 {all
                                     .slice(hasFilters ? 0 : 1)
                                     .map((post, index) => (
@@ -409,7 +415,7 @@ export default function BlogList({
                                     type="button"
                                     onClick={loadMore}
                                     disabled={loadingMore}
-                                    className="btn-secondary disabled:opacity-50"
+                                    className="btn btn-secondary disabled:opacity-50"
                                 >
                                     {loadingMore ? 'Loading...' : `Load more (${total - initialPosts.length - extraPosts.length} remaining)`}
                                 </button>
@@ -429,11 +435,11 @@ export default function BlogList({
                         }
                         action={
                             hasFilters ? (
-                                <button type="button" onClick={clearAll} className="btn-secondary">
+                                <button type="button" onClick={clearAll} className="btn btn-secondary">
                                     Clear filters
                                 </button>
                             ) : !failed ? (
-                                <Link href="/create-post" className="btn-primary">Write the first story</Link>
+                                <Link href="/create-post" className="btn btn-primary">Write the first story</Link>
                             ) : null
                         }
                     />
@@ -450,12 +456,12 @@ function TopicPill({ label, count, active, onClick }) {
             onClick={onClick}
             aria-pressed={active}
             className={`shrink-0 rounded-full border px-4 py-1.5 text-sm transition-all duration-200 ${
-                active ? 'pill-active' : 'pill-inactive'
+                active ? 'pill pill-active' : 'pill'
             }`}
         >
             {label}
             {count !== null && (
-                <span className={`ml-1.5 text-xs ${active ? 'text-black/60' : 'text-gray-500'}`}>{count}</span>
+                <span className={`ml-1.5 text-xs ${active ? 'opacity-70' : 'text-[var(--ink-faint)]'}`}>{count}</span>
             )}
         </button>
     );
@@ -463,13 +469,13 @@ function TopicPill({ label, count, active, onClick }) {
 
 function FilterChip({ label, onRemove }) {
     return (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/5 py-1 pl-3 pr-1.5 text-xs font-medium text-gray-200">
+        <span className="inline-flex items-center gap-1.5 border border-[var(--line)] bg-[var(--surface-raised)] px-2.5 py-1 text-[13px] text-[var(--ink-muted)]">
             {label}
             <button
                 type="button"
                 onClick={onRemove}
                 aria-label={`Remove filter ${label}`}
-                className="rounded-full p-1 text-gray-400 transition-colors hover:bg-white/15 hover:text-white"
+                className="p-0.5 text-[var(--ink-faint)] transition-colors hover:text-[var(--ink)]"
             >
                 <X size={12} aria-hidden="true" />
             </button>

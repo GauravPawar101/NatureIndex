@@ -99,7 +99,7 @@ function VideoPlayer({ video, poster, title }) {
   };
 
   return (
-    <figure className="overflow-hidden rounded-2xl border border-white/10 bg-black">
+    <figure className="overflow-hidden rounded-2xl border border-[var(--line)] bg-black">
       <video
         ref={ref}
         src={video.url}
@@ -112,7 +112,7 @@ function VideoPlayer({ video, poster, title }) {
         aria-label={title ? `Video: ${title}` : 'Video'}
       />
 
-      <div className="flex items-center gap-3 border-t border-white/10 bg-black/60 px-4 py-3">
+      <div className="flex items-center gap-3 border-t border-[var(--line)] bg-black/60 px-4 py-3">
         <button
           type="button"
           onClick={toggle}
@@ -133,18 +133,18 @@ function VideoPlayer({ video, poster, title }) {
           step="0.1"
           value={Math.round(progress * 100)}
           onChange={seek}
-          className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-white/20 accent-white"
+          className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-[var(--surface-raised)] accent-white"
         />
 
         {video.duration && (
-          <span className="shrink-0 text-xs tabular-nums text-gray-300">{video.duration}</span>
+          <span className="shrink-0 text-xs tabular-nums text-[var(--ink-muted)]">{video.duration}</span>
         )}
 
         <button
           type="button"
           onClick={toggleMute}
           aria-label={muted ? 'Unmute' : 'Mute'}
-          className="text-gray-300 transition-colors hover:text-white"
+          className="text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
         >
           {muted ? <VolumeX size={16} aria-hidden="true" /> : <Volume2 size={16} aria-hidden="true" />}
         </button>
@@ -153,7 +153,7 @@ function VideoPlayer({ video, poster, title }) {
           type="button"
           onClick={fullscreen}
           aria-label="Fullscreen"
-          className="text-gray-300 transition-colors hover:text-white"
+          className="text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
         >
           <Maximize2 size={16} aria-hidden="true" />
         </button>
@@ -191,7 +191,7 @@ function Gallery({ photos, title }) {
       <div
         className={
           photos.length === 1
-            ? 'overflow-hidden rounded-2xl border border-white/10'
+            ? 'overflow-hidden rounded-2xl border border-[var(--line)]'
             : 'grid grid-cols-2 gap-2'
         }
       >
@@ -200,7 +200,7 @@ function Gallery({ photos, title }) {
             key={photo.url}
             type="button"
             onClick={() => setOpenIndex(index)}
-            className={`group relative overflow-hidden rounded-2xl border border-white/10 ${
+            className={`group relative overflow-hidden rounded-2xl border border-[var(--line)] ${
               photos.length === 1 ? '' : index === 0 ? 'col-span-2' : ''
             }`}
           >
@@ -231,7 +231,7 @@ function Gallery({ photos, title }) {
             alt={photos[openIndex].alt_text || title || 'Photo'}
             className="max-h-full max-w-full rounded-lg object-contain"
           />
-          <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-sm text-gray-300">
+          <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-sm text-[var(--ink-muted)]">
             {openIndex + 1} of {photos.length}
           </p>
         </div>
@@ -243,7 +243,7 @@ function Gallery({ photos, title }) {
 /** Shown when a post claims to have media but none could be loaded. */
 export function MediaUnavailable() {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-gray-400">
+    <div className="flex items-center gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 text-sm text-[var(--ink-muted)]">
       <ImageIcon size={18} aria-hidden="true" />
       This post&rsquo;s media could not be loaded.
     </div>

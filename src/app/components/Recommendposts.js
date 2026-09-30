@@ -66,39 +66,41 @@ export default function RecommendedPosts({
 
     return (
         <section className="mt-16">
-            <h2 className="text-2xl font-bold text-white mb-6">{title}</h2>
+            <h2 className="mb-2 text-[20px] font-bold text-[var(--ink)]">{title}</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="mt-4 flex flex-col">
                 {status === 'loading'
                     ? Array.from({ length: limit }).map((_, i) => (
-                        <div key={i} className="glass-card h-48 animate-pulse" />
+                        <div key={i} className="h-[100px] border-b border-[var(--line)] py-6">
+                            <div className="skeleton h-full w-full" />
+                        </div>
                     ))
                     : posts.map((post) => (
                         <Link
                             key={post.slug || post.id}
                             href={`/blog/${post.slug || post.id}`}
-                            className="glass-card-hover overflow-hidden group block"
+                            className="group flex gap-6 border-b border-[var(--line)] py-6"
                         >
+                            <div className="min-w-0 flex-1">
+                                {post.topic && (
+                                    <span className="eyebrow mb-1 block">{post.topic}</span>
+                                )}
+                                <h3 className="text-[16px] font-bold leading-[1.3] text-[var(--ink)]">
+                                    {post.title || 'Untitled Post'}
+                                </h3>
+                            </div>
                             {post.image_url && (
-                                <div className="relative w-full h-36">
+                                <div className="relative h-[100px] w-[150px] shrink-0 overflow-hidden bg-[var(--surface-sunken)]">
                                     <Image
                                         src={post.image_url}
-                                        alt={post.title || 'Recommended post'}
+                                        alt=""
                                         fill
                                         className="object-cover"
-                                        sizes="(max-width: 640px) 100vw, 33vw"
+                                        sizes="150px"
                                         unoptimized
                                     />
                                 </div>
                             )}
-                            <div className="p-4">
-                                {post.topic && (
-                                    <span className="eyebrow text-[10px] mb-2 block w-fit">{post.topic}</span>
-                                )}
-                                <h3 className="text-base font-semibold text-white group-hover:underline underline-offset-4 line-clamp-2">
-                                    {post.title || 'Untitled Post'}
-                                </h3>
-                            </div>
                         </Link>
                     ))}
             </div>

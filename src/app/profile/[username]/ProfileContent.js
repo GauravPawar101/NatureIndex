@@ -71,9 +71,9 @@ export default function ProfileContent({ username, website, posts, comments }) {
 
     return (
         <div>
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10">
-                <div role="tablist" aria-label="Profile content" className="flex gap-1">
-                    {TABS.map(({ id, label, icon: Icon }) => {
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)]">
+                <div role="tablist" aria-label="Profile content" className="flex gap-6">
+                    {TABS.map(({ id, label }) => {
                         const count = id === 'posts' ? posts.length : comments.length;
                         const isActive = tab === id;
                         return (
@@ -83,17 +83,13 @@ export default function ProfileContent({ username, website, posts, comments }) {
                                 role="tab"
                                 aria-selected={isActive}
                                 onClick={() => setTab(id)}
-                                className={`-mb-px flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                                className={`-mb-px border-b-2 py-3 text-[20px] transition-colors ${
                                     isActive
-                                        ? 'border-white text-white'
-                                        : 'border-transparent text-gray-400 hover:text-gray-200'
+                                        ? 'border-[var(--ink)] text-[var(--ink)]'
+                                        : 'border-transparent text-[var(--ink-muted)] hover:text-[var(--ink)]'
                                 }`}
                             >
-                                <Icon size={15} aria-hidden="true" />
-                                {label}
-                                <span className={`rounded-full px-1.5 py-0.5 text-xs ${isActive ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500'}`}>
-                                    {count}
-                                </span>
+                                {label} <span className="text-[14px] text-[var(--ink-faint)]">{count}</span>
                             </button>
                         );
                     })}
@@ -113,14 +109,14 @@ export default function ProfileContent({ username, website, posts, comments }) {
                         onClick={copyProfileUrl}
                         aria-label="Copy profile link"
                         title="Copy profile link"
-                        className="shrink-0 rounded-lg border border-white/20 p-2 text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
+                        className="shrink-0 p-2 text-[var(--ink-faint)] transition-colors hover:text-[var(--ink)]"
                     >
-                        <Copy size={15} aria-hidden="true" />
+                        <Copy size={16} aria-hidden="true" />
                     </button>
                 </div>
             </div>
 
-            <p aria-live="polite" className="mb-5 text-sm text-gray-400">
+            <p aria-live="polite" className="mb-5 text-sm text-[var(--ink-muted)]">
                 {searching
                     ? `${activeList.length} ${activeList.length === 1 ? 'result' : 'results'} for "${query.trim()}"`
                     : null}
@@ -128,7 +124,7 @@ export default function ProfileContent({ username, website, posts, comments }) {
 
             {tab === 'posts' ? (
                 filteredPosts.length > 0 ? (
-                    <div className="space-y-4">
+                    <div>
                         {filteredPosts.map((post) => (
                             <PostCard key={post.slug} post={post} query={query} />
                         ))}
@@ -143,7 +139,7 @@ export default function ProfileContent({ username, website, posts, comments }) {
                                 : 'When this contributor publishes, their work will appear here.'
                         }
                         action={searching ? (
-                            <button type="button" onClick={() => setQuery('')} className="btn-secondary">Clear filter</button>
+                            <button type="button" onClick={() => setQuery('')} className="btn btn-secondary">Clear filter</button>
                         ) : null}
                     />
                 )
@@ -153,14 +149,14 @@ export default function ProfileContent({ username, website, posts, comments }) {
                         <Link
                             key={comment.id}
                             href={`/blog/${comment.slug}#comment-${comment.id}`}
-                            className="glass-card-hover block p-5"
+                            className="block border-b border-[var(--line)] py-5"
                         >
-                            <p className="mb-2 flex items-center gap-2 text-xs text-gray-500">
-                                <span className="truncate font-semibold text-gray-300">{comment.postTitle}</span>
+                            <p className="mb-2 flex items-center gap-2 text-xs text-[var(--ink-faint)]">
+                                <span className="truncate font-semibold text-[var(--ink-muted)]">{comment.postTitle}</span>
                                 <span aria-hidden="true">•</span>
                                 <time dateTime={toISODate(comment.created_at)}>{formatRelativeTime(comment.created_at)}</time>
                             </p>
-                            <p className="line-clamp-3 text-sm leading-relaxed text-gray-300">{comment.content}</p>
+                            <p className="line-clamp-3 text-sm leading-relaxed text-[var(--ink-muted)]">{comment.content}</p>
                         </Link>
                     ))}
                 </div>
@@ -174,7 +170,7 @@ export default function ProfileContent({ username, website, posts, comments }) {
                             : 'This contributor has not taken part in any discussions yet.'
                     }
                     action={searching ? (
-                        <button type="button" onClick={() => setQuery('')} className="btn-secondary">Clear filter</button>
+                        <button type="button" onClick={() => setQuery('')} className="btn btn-secondary">Clear filter</button>
                     ) : null}
                 />
             )}
@@ -190,21 +186,21 @@ export function ProfileStats({ stats, website }) {
     const { postCount, totalViews, commentCount, topicCount, topPost } = stats;
 
     return (
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat icon={FileText} value={postCount} label={postCount === 1 ? 'Story' : 'Stories'} />
-            <Stat icon={Eye} value={totalViews} label="Total views" />
-            <Stat icon={MessageSquare} value={commentCount} label="Comments" />
-            <Stat icon={Leaf} value={topicCount} label={topicCount === 1 ? 'Topic' : 'Topics'} />
-        </div>
-    );
-}
-
-function Stat({ icon: Icon, value, label }) {
-    return (
-        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center">
-            <Icon size={15} aria-hidden="true" className="mx-auto mb-1.5 text-gray-400" />
-            <div className="text-lg font-bold text-white">{formatCompactNumber(value)}</div>
-            <div className="text-xs text-gray-500">{label}</div>
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-[var(--line)] pb-4 text-[14px] text-[var(--ink-faint)]">
+            <span>
+                <strong className="font-bold text-[var(--ink)]">{formatCompactNumber(postCount)}</strong>{' '}
+                {postCount === 1 ? 'story' : 'stories'}
+            </span>
+            <span>
+                <strong className="font-bold text-[var(--ink)]">{formatCompactNumber(totalViews)}</strong> views
+            </span>
+            <span>
+                <strong className="font-bold text-[var(--ink)]">{formatCompactNumber(commentCount)}</strong> comments
+            </span>
+            <span>
+                <strong className="font-bold text-[var(--ink)]">{topicCount}</strong>{' '}
+                {topicCount === 1 ? 'topic' : 'topics'}
+            </span>
         </div>
     );
 }
@@ -214,9 +210,9 @@ export function ProfileHeader({ profile, websiteHref, memberSince, topPost }) {
     const displayName = profile.full_name || profile.username;
 
     return (
-        <div className="glass-card p-8">
-            <div className="flex flex-col items-center gap-6 md:flex-row md:items-start md:text-left">
-                <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-full bg-white/10 ring-4 ring-white/20">
+        <div className="border-b border-[var(--line)] pb-8">
+            <div className="flex flex-col items-start gap-6 md:flex-row">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-[var(--surface-sunken)]">
                     {profile.avatar_url ? (
                         // Avatars come from arbitrary user-supplied hosts, which
                         // cannot be enumerated in next.config's
@@ -231,24 +227,23 @@ export function ProfileHeader({ profile, websiteHref, memberSince, topPost }) {
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center">
-                            <Leaf size={40} className="text-gray-500" aria-hidden="true" />
+                            <Leaf size={28} className="text-[var(--ink-faint)]" aria-hidden="true" />
                         </div>
                     )}
                 </div>
 
-                <div className="min-w-0 flex-1 text-center md:text-left">
-                    <span className="eyebrow mb-2 block">Contributor</span>
-                    <h1 className="break-words text-3xl font-bold text-white md:text-4xl">{displayName}</h1>
-                    <p className="mt-1 text-gray-400">@{profile.username}</p>
+                <div className="min-w-0 flex-1 text-left">
+                    <h1 className="display-2 break-words">{displayName}</h1>
+                    <p className="mt-1 text-[14px] text-[var(--ink-faint)]">@{profile.username}</p>
 
                     {profile.bio && (
-                        <p className="mt-4 max-w-2xl whitespace-pre-line text-left text-gray-300">{profile.bio}</p>
+                        <p className="mt-4 max-w-2xl whitespace-pre-line text-[15px] leading-[1.5] text-[var(--ink-muted)]">{profile.bio}</p>
                     )}
 
-                    <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-sm md:justify-start">
+                    <div className="mt-4 flex flex-wrap items-center gap-4 text-[13px]">
                         {memberSince && (
-                            <span className="inline-flex items-center gap-1.5 text-gray-500">
-                                <CalendarDays size={14} aria-hidden="true" />
+                            <span className="inline-flex items-center gap-1.5 text-[var(--ink-faint)]">
+                                <CalendarDays size={13} aria-hidden="true" />
                                 Member since {memberSince}
                             </span>
                         )}
@@ -258,23 +253,24 @@ export function ProfileHeader({ profile, websiteHref, memberSince, topPost }) {
                                 href={websiteHref}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="link-accent inline-flex items-center gap-1.5 text-sm"
+                                className="inline-flex items-center gap-1.5 text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
                             >
-                                <Globe size={14} aria-hidden="true" />
-                                {website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                                <ExternalLink size={12} aria-hidden="true" className="opacity-60" />
+                                {websiteHref.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                                <ExternalLink size={12} aria-hidden="true" className="text-[var(--ink-faint)]" />
                             </a>
                         )}
                     </div>
 
                     {topPost && (
-                        <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-300">
-                            <TrendingUp size={13} aria-hidden="true" className="text-emerald-300" />
+                        <p className="mt-5 text-[14px] text-[var(--ink-faint)]">
                             Most read:{' '}
-                            <Link href={`/blog/${topPost.slug}`} className="font-semibold text-white hover:underline underline-offset-2">
+                            <Link
+                                href={`/blog/${topPost.slug}`}
+                                className="text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
+                            >
                                 {topPost.title}
-                            </Link>
-                            <span className="text-gray-500">({formatCompactNumber(topPost.views)})</span>
+                            </Link>{' '}
+                            — {formatCompactNumber(topPost.views)} views
                         </p>
                     )}
                 </div>

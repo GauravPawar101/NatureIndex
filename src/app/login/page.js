@@ -2,7 +2,6 @@
 import { createClient } from '../lib/supabase/client';
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import PageHero from '../components/PageHero';
 import PasswordField from '../components/PasswordField';
 import ConnectionNotice from '../components/ConnectionNotice';
 import ConfigurationRequired from '../components/ConfigurationRequired';
@@ -20,6 +19,21 @@ function validateEmail(value) {
     if (!trimmed) return 'Enter your email address.';
     if (!EMAIL_PATTERN.test(trimmed)) return 'That does not look like an email address yet.';
     return '';
+}
+
+/**
+ * Resolves the `?next=` parameter to a path inside this app.
+ *
+ * Anything absolute, protocol-relative, or backslash-prefixed is rejected
+ * rather than sanitised: this is an open-redirect guard, and it now feeds a
+ * `window.location.href` assignment as well as a router push, so a value like
+ * `//evil.example` would send the reader off-site with their session intact.
+ */
+function safeDestination(next) {
+    if (!next) return '/account';
+    if (!next.startsWith('/')) return '/account';
+    if (next.startsWith('//') || next.startsWith('/\\')) return '/account';
+    return next;
 }
 
 export default function LoginPage() {
@@ -107,14 +121,27 @@ function LoginForm() {
     useEffect(() => {
         if (!supabase) return;
 
+        // A full document navigation, not `router.push`. The session cookie is
+        // written by the browser client as a side effect of the auth event, and
+        // that write lands a beat *after* this listener fires — measured at
+        // roughly 1.2s on this project's project-latency, while the push
+        // happened immediately. So the client-side transition issued its RSC
+        // request before the cookie existed, the proxy read no session, and
+        // /feed bounced straight back to /login?next=/feed. The user was signed
+        // in the whole time and simply never left the login page.
+        //
+        // Reloading the document cannot race itself: the browser attaches the
+        // cookie it already holds, and both the proxy and the RLS-backed server
+        // components re-evaluate under the real session. `signOut` in the header
+        // does the same thing for the same reason.
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
-                router.push('/account');
+                window.location.href = safeDestination(redirectTo);
             }
         });
 
         return () => subscription.unsubscribe();
-    }, [supabase, router]);
+    }, [supabase, redirectTo]);
 
     // Errors appear once a field has been left, or once a submit was attempted —
     // never while someone is still typing their first character.
@@ -186,14 +213,10 @@ function LoginForm() {
             }
 
             toast.success('Signed in', { message: 'Taking you to your account...' });
-            // Honour a same-origin `next` from the callback flow; anything else
-            // (an absolute URL) is ignored rather than turned into an open
-            // redirect.
-            const destination = redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')
-                ? redirectTo
-                : '/account';
-            router.push(destination);
-            router.refresh();
+            // Same reasoning as the auth listener above: a full navigation, so
+            // the request that lands on the destination carries the session
+            // cookie that was just written.
+            window.location.href = safeDestination(redirectTo);
         } catch (unexpected) {
             // signInWithPassword normally resolves with an `error` rather than
             // throwing, but a thrown network error would otherwise skip the
@@ -209,21 +232,23 @@ function LoginForm() {
     }
 
     return (
-        <div className="page-shell flex items-center justify-center px-6">
+        <div className="flex min-h-[80vh] items-center justify-center px-5 py-16">
             <div className="w-full max-w-md">
-                <PageHero
-                    eyebrow="Welcome back"
-                    title="Sign in to Nature Index"
-                    description="Access your account, publish articles, and manage your profile."
-                />
-                <div className="glass-card p-8">
+                <div className="mb-8">
+                    <span className="eyebrow mb-2 block">Welcome back</span>
+                    <h1 className="display-2">Sign in</h1>
+                    <p className="mt-2 text-[15px] leading-[1.5] text-[var(--ink-muted)]">
+                        Access your account, publish stories, and manage your profile.
+                    </p>
+                </div>
+                <div>
                     {/* Probes Supabase on mount, and again after a network
                         failure, so a broken URL is named up front. */}
                     <ConnectionNotice enabled={!!supabase} recheckToken={recheckToken} />
 
                     <form onSubmit={handleSignIn} className="space-y-5" noValidate>
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                            <label htmlFor="email" className="block text-sm font-medium text-[var(--ink-muted)] mb-1">Email</label>
                             <input
                                 id="email"
                                 type="email"
@@ -238,10 +263,10 @@ function LoginForm() {
                                 required
                                 aria-invalid={emailError ? 'true' : undefined}
                                 aria-describedby={emailError ? 'email-error' : undefined}
-                                className={`input-dark ${emailError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${emailError ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                             />
                             {emailError && (
-                                <p id="email-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+                                <p id="email-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
                                     <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
                                     {emailError}
                                 </p>
@@ -265,9 +290,9 @@ function LoginForm() {
                             return (
                                 <div
                                     role="alert"
-                                    className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3"
+                                    className="rounded border border-[var(--danger)]/30 bg-[var(--danger)]/8 px-4 py-3"
                                 >
-                                    <p className="flex items-start gap-2 text-sm font-semibold text-red-200">
+                                    <p className="flex items-start gap-2 text-sm font-semibold text-[var(--danger)]">
                                         <AlertTriangle size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
                                         {banner.title}
                                     </p>
@@ -287,7 +312,7 @@ function LoginForm() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="btn-primary w-full disabled:opacity-50 disabled:hover:scale-100"
+                                className="btn btn-primary w-full disabled:opacity-50 disabled:hover:scale-100"
                             >
                                 {loading ? (
                                     <>
@@ -302,7 +327,7 @@ function LoginForm() {
                                 )}
                             </button>
 
-                            <p className="text-center text-xs text-gray-500" aria-live="polite">
+                            <p className="text-center text-xs text-[var(--ink-faint)]" aria-live="polite">
                                 {loading
                                     ? 'Checking your details...'
                                     : formReady
@@ -310,9 +335,9 @@ function LoginForm() {
                                         : ''}
                             </p>
 
-                            <p className="text-sm text-gray-400 text-center">
+                            <p className="text-sm text-[var(--ink-muted)] text-center">
                                 New here?{' '}
-                                <Link href="/signup" className="text-white hover:underline underline-offset-4">
+                                <Link href="/signup" className="text-[var(--ink)] hover:underline underline-offset-4">
                                     Create an account
                                 </Link>
                             </p>

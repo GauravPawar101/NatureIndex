@@ -338,8 +338,8 @@ export default function AccountPage() {
 
     if (loading) {
         return (
-            <div className="page-shell flex items-center justify-center px-6">
-                <div className="glass-card flex w-full max-w-lg items-center justify-center gap-3 p-12 text-gray-400">
+            <div className="flex min-h-[60vh] items-center justify-center px-5">
+                <div className="flex w-full max-w-lg items-center justify-center gap-3 py-20 text-[var(--ink-muted)]">
                     <Loader2 size={18} className="animate-spin" aria-hidden="true" />
                     Loading your profile...
                 </div>
@@ -351,14 +351,13 @@ export default function AccountPage() {
         <div className="page-shell">
             <div className="w-full max-w-lg space-y-6 px-6 mx-auto">
                 <div>
-                    <span className="eyebrow mb-2 block">Your profile</span>
-                    <h1 className="text-3xl font-bold text-white">Account Settings</h1>
-                    <p className="mt-1 text-sm text-gray-400">
+                    <h1 className="display-2">Settings</h1>
+                    <p className="mt-2 text-[15px] leading-[1.5] text-[var(--ink-muted)]">
                         These details appear on every story you publish.
                     </p>
                 </div>
 
-                <div className="glass-card space-y-6 p-8">
+                <div className="space-y-6 border-t border-[var(--line)] pt-8">
                     <div className="flex items-center gap-4">
                         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full ring-2 ring-white/20">
                             <Image src={avatarUrl || DEFAULT_AVATAR} alt="" fill sizes="80px" className="object-cover" unoptimized />
@@ -367,7 +366,7 @@ export default function AccountPage() {
                             <div className="flex flex-wrap items-center gap-2">
                                 <label
                                     htmlFor="avatar-upload"
-                                    className={`btn-primary cursor-pointer !px-4 !py-2 !text-sm ${uploading ? 'pointer-events-none opacity-50' : ''}`}
+                                    className={`btn btn-primary cursor-pointer !px-4 !py-2 !text-sm ${uploading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
                                     {uploading ? (
                                         <>
@@ -386,14 +385,14 @@ export default function AccountPage() {
                                     <button
                                         type="button"
                                         onClick={() => setConfirmRemoveAvatar(true)}
-                                        className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-2 text-xs font-semibold text-gray-300 transition-colors hover:border-red-400/50 hover:text-red-300"
+                                        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line-strong)] px-3 py-2 text-xs font-semibold text-[var(--ink-muted)] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)]"
                                     >
                                         <Trash2 size={13} aria-hidden="true" />
                                         Remove
                                     </button>
                                 )}
                             </div>
-                            <p className="mt-2 text-xs text-gray-400">
+                            <p className="mt-2 text-xs text-[var(--ink-muted)]">
                                 PNG, JPEG, WebP, GIF or AVIF, up to {formatBytes(UPLOAD_TARGETS.avatar.maxBytes)}.
                             </p>
                             <input
@@ -408,17 +407,17 @@ export default function AccountPage() {
                     </div>
 
                     <div>
-                        <label htmlFor="profile-email" className="mb-1 block text-sm font-medium text-gray-400">Email</label>
+                        <label htmlFor="profile-email" className="mb-1 block text-sm font-medium text-[var(--ink-muted)]">Email</label>
                         {/* Supabase owns the email; editing it here would be a
                             no-op that silently discards the change. */}
-                        <input id="profile-email" type="text" value={user?.email || ''} readOnly className="input-dark cursor-not-allowed opacity-60" />
-                        <p className="mt-1.5 text-xs text-gray-500">
+                        <input id="profile-email" type="text" value={user?.email || ''} readOnly className="field cursor-not-allowed opacity-60" />
+                        <p className="mt-1.5 text-xs text-[var(--ink-faint)]">
                             Your sign-in address cannot be changed here.
                         </p>
                     </div>
 
                     <div>
-                        <label htmlFor="profile-username" className="mb-1 block text-sm font-medium text-gray-400">Username</label>
+                        <label htmlFor="profile-username" className="mb-1 block text-sm font-medium text-[var(--ink-muted)]">Username</label>
                         <input
                             id="profile-username"
                             type="text"
@@ -429,19 +428,19 @@ export default function AccountPage() {
                             spellCheck={false}
                             aria-invalid={fieldErrors.username ? 'true' : undefined}
                             aria-describedby={fieldErrors.username ? 'profile-username-error' : undefined}
-                            className={`input-dark ${fieldErrors.username ? 'border-red-400/60 focus:border-red-400/60' : ''}`}
+                            className={`field ${fieldErrors.username ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                         />
                         {fieldErrors.username ? (
                             <FieldError id="profile-username-error">{fieldErrors.username}</FieldError>
                         ) : (
-                            <p className="mt-1.5 text-xs text-gray-500">
-                                Your profile lives at <span className="text-gray-300">/profile/{username || 'your-handle'}</span>
+                            <p className="mt-1.5 text-xs text-[var(--ink-faint)]">
+                                Your profile lives at <span className="text-[var(--ink-muted)]">/profile/{username || 'your-handle'}</span>
                             </p>
                         )}
                     </div>
 
                     <div>
-                        <label htmlFor="profile-fullName" className="mb-1 block text-sm font-medium text-gray-400">Full name</label>
+                        <label htmlFor="profile-fullName" className="mb-1 block text-sm font-medium text-[var(--ink-muted)]">Full name</label>
                         <input
                             id="profile-fullName"
                             type="text"
@@ -452,13 +451,13 @@ export default function AccountPage() {
                             autoComplete="name"
                             aria-invalid={fieldErrors.fullName ? 'true' : undefined}
                             aria-describedby={fieldErrors.fullName ? 'profile-fullName-error' : undefined}
-                            className={`input-dark ${fieldErrors.fullName ? 'border-red-400/60 focus:border-red-400/60' : ''}`}
+                            className={`field ${fieldErrors.fullName ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                         />
                         {fieldErrors.fullName && <FieldError id="profile-fullName-error">{fieldErrors.fullName}</FieldError>}
                     </div>
 
                     <div>
-                        <label htmlFor="profile-website" className="mb-1 block text-sm font-medium text-gray-400">Website</label>
+                        <label htmlFor="profile-website" className="mb-1 block text-sm font-medium text-[var(--ink-muted)]">Website</label>
                         <input
                             id="profile-website"
                             type="url"
@@ -469,13 +468,13 @@ export default function AccountPage() {
                             autoComplete="url"
                             aria-invalid={fieldErrors.website ? 'true' : undefined}
                             aria-describedby={fieldErrors.website ? 'profile-website-error' : undefined}
-                            className={`input-dark ${fieldErrors.website ? 'border-red-400/60 focus:border-red-400/60' : ''}`}
+                            className={`field ${fieldErrors.website ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                         />
                         {fieldErrors.website && <FieldError id="profile-website-error">{fieldErrors.website}</FieldError>}
                     </div>
 
                     <div>
-                        <label htmlFor="profile-bio" className="mb-1 block text-sm font-medium text-gray-400">Bio</label>
+                        <label htmlFor="profile-bio" className="mb-1 block text-sm font-medium text-[var(--ink-muted)]">Bio</label>
                         <textarea
                             id="profile-bio"
                             value={bio || ''}
@@ -485,7 +484,7 @@ export default function AccountPage() {
                             maxLength={MAX_BIO_LENGTH + 50}
                             aria-invalid={fieldErrors.bio ? 'true' : undefined}
                             aria-describedby={`profile-bio-count${fieldErrors.bio ? ' profile-bio-error' : ''}`}
-                            className={`input-dark min-h-28 ${fieldErrors.bio ? 'border-red-400/60 focus:border-red-400/60' : ''}`}
+                            className={`field min-h-28 ${fieldErrors.bio ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                         />
                         <div className="mt-1.5 flex items-center justify-between gap-2">
                             {fieldErrors.bio ? (
@@ -493,7 +492,7 @@ export default function AccountPage() {
                             ) : (
                                 <span />
                             )}
-                            <span id="profile-bio-count" className={`text-xs ${(bio || '').length > MAX_BIO_LENGTH ? 'text-amber-300' : 'text-gray-500'}`}>
+                            <span id="profile-bio-count" className={`text-xs ${(bio || '').length > MAX_BIO_LENGTH ? 'text-[var(--warn)]' : 'text-[var(--ink-faint)]'}`}>
                                 {(bio || '').length}/{MAX_BIO_LENGTH}
                             </span>
                         </div>
@@ -503,7 +502,7 @@ export default function AccountPage() {
                         type="button"
                         onClick={() => updateProfile()}
                         disabled={saving || uploading}
-                        className="btn-primary w-full disabled:opacity-50 disabled:hover:scale-100"
+                        className="btn btn-primary w-full disabled:opacity-50 disabled:hover:scale-100"
                     >
                         {saving ? (
                             <>
@@ -536,7 +535,7 @@ export default function AccountPage() {
 
 function FieldError({ id, children }) {
     return (
-        <p id={id} role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+        <p id={id} role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
             <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
             {children}
         </p>

@@ -1,0 +1,11 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="32" y1="24" x2="224" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1D8A6E"/>
+      <stop offset="1" stop-color="#0F5C4D"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="128" fill="url(#bg)"/>
+  <text x="128" y="128" dy="0.35em" text-anchor="middle" fill="#ffffff" fill-opacity="0.92"
+    font-family="Georgia, 'Times New Roman', serif" font-size="96" font-weight="700" letter-spacing="2">EV</text>
+</svg>
