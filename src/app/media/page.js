@@ -41,7 +41,7 @@ export default async function MediaPage() {
         />
 
         {nothing ? (
-          <div className="glass p-8">
+          <div>
             <EmptyState
               icon={ImageIcon}
               title="No media published yet"
@@ -57,12 +57,11 @@ export default async function MediaPage() {
           <>
             {videos.length > 0 && (
               <section className="mb-14" aria-labelledby="video-heading">
-                <div className="mb-6 flex items-center gap-3">
-                  <Video size={20} className="text-red-400" aria-hidden="true" />
-                  <h2 id="video-heading" className="text-2xl font-bold text-[var(--ink)]">
+                <div className="mb-4 flex items-baseline gap-2 border-b border-[var(--line)] pb-3">
+                  <h2 id="video-heading" className="text-[20px] font-bold text-[var(--ink)]">
                     Video
                   </h2>
-                  <span className="text-sm text-[var(--ink-faint)]">{counts.video}</span>
+                  <span className="text-[13px] text-[var(--ink-faint)]">{counts.video}</span>
                 </div>
 
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -75,12 +74,11 @@ export default async function MediaPage() {
 
             {photos.length > 0 && (
               <section aria-labelledby="photo-heading">
-                <div className="mb-6 flex items-center gap-3">
-                  <ImageIcon size={20} className="text-emerald-400" aria-hidden="true" />
-                  <h2 id="photo-heading" className="text-2xl font-bold text-[var(--ink)]">
+                <div className="mb-4 flex items-baseline gap-2 border-b border-[var(--line)] pb-3">
+                  <h2 id="photo-heading" className="text-[20px] font-bold text-[var(--ink)]">
                     Photographs
                   </h2>
-                  <span className="text-sm text-[var(--ink-faint)]">{counts.photo}</span>
+                  <span className="text-[13px] text-[var(--ink-faint)]">{counts.photo}</span>
                 </div>
 
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -109,9 +107,9 @@ function MediaCard({ post }) {
   const duration = formatDuration(post.video_duration_s);
 
   return (
-    <article className="glass glass-hover group overflow-hidden">
+    <article className="group">
       <Link href={`/blog/${post.slug}`} className="block">
-        <div className="relative aspect-[4/3] overflow-hidden bg-black/40">
+        <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface-sunken)]">
           {post.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -132,12 +130,12 @@ function MediaCard({ post }) {
                 aria-hidden="true"
                 className="absolute inset-0 flex items-center justify-center"
               >
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/60 text-[var(--ink)] backdrop-blur transition-transform duration-200 group-hover:scale-110">
-                  <Play size={22} />
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/50">
+                  <Play size={18} className="text-white" />
                 </span>
               </span>
               {duration && (
-                <span className="absolute bottom-2 right-2 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-[var(--ink)] tabular-nums">
+                <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-[11px] font-medium text-white tabular-nums">
                   {duration}
                 </span>
               )}
@@ -145,12 +143,12 @@ function MediaCard({ post }) {
           )}
         </div>
 
-        <div className="p-4">
-          {post.topic && <span className="eyebrow mb-2 block text-[10px]">{post.topic}</span>}
-          <h3 className="line-clamp-2 font-bold text-[var(--ink)] group-hover:underline underline-offset-4">
+        <div className="pt-2">
+          {post.topic && <span className="eyebrow mb-1 block">{post.topic}</span>}
+          <h3 className="text-[16px] font-bold leading-[1.3] text-[var(--ink)]">
             {post.title}
           </h3>
-          <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--ink-faint)]">
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-[var(--ink-faint)]">
             {post.profiles?.full_name && <span>by {post.profiles.full_name}</span>}
             {isVideo && duration && (
               <span className="inline-flex items-center gap-1">

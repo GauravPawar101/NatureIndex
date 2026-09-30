@@ -17,7 +17,7 @@ export default function ConfigurationRequired() {
     return (
         <div className="page-shell flex items-center justify-center px-6">
             <div className="glass w-full max-w-md p-8 text-center">
-                <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/15 text-amber-300">
+                <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--warn)]/10 text-[var(--warn)]">
                     <AlertTriangle size={22} aria-hidden="true" />
                 </span>
 

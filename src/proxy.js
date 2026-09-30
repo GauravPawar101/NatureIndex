@@ -2,8 +2,31 @@ import { NextResponse } from 'next/server';
 // Adjust import path as needed to match your lib folder structure
 import { hasSupabaseConfig, getSupabaseUrl, getSupabaseAnonKey } from './app/lib/supabase/config';
 
+/**
+ * Routes that require a signed-in user.
+ *
+ * `/feed` is personalised — it ranks by who you read and what you save — and
+ * `/account` is your own profile, so both are meaningless without a session.
+ * An unauthenticated request is redirected to /login with the original path
+ * preserved in `next`, so signing in returns the reader to where they were
+ * going instead of dumping them on the home page.
+ *
+ * This is a redirect, not the security boundary. RLS is: every table this app
+ * reads is guarded by policy, so a request that skips the proxy entirely still
+ * gets nothing. The proxy exists to avoid rendering an empty personalised page
+ * and to keep private routes out of the crawlable navigation.
+ */
+const PROTECTED_PREFIXES = ['/feed', '/account'];
+
+function isProtected(pathname) {
+  return PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
 export async function proxy(request) {
     let supabaseResponse = NextResponse.next({ request });
+    const { pathname } = request.nextUrl;
 
     // Guard check: Avoid initializing Supabase if env vars aren't loaded
     if (!hasSupabaseConfig()) {
@@ -47,9 +70,19 @@ export async function proxy(request) {
         // trusting the cookie, which is why it must not be skipped — but a
         // failure here must not take the page down with it. An unreachable
         // backend should degrade to "signed out", not to a 500.
-        const { error } = await supabase.auth.getUser();
+        const { data, error } = await supabase.auth.getUser();
         if (error && /fetch|network|timeout/i.test(error.message || '')) {
             console.warn('Supabase unreachable during auth refresh:', error.message);
+        }
+
+        // The response is only rebuilt when a cookie actually changed, so the
+        // redirect below carries the refreshed session rather than a stale one.
+        if (isProtected(pathname) && !data?.user) {
+            const url = request.nextUrl.clone();
+            url.pathname = '/login';
+            url.search = '';
+            url.searchParams.set('next', `${pathname}${request.nextUrl.search}`);
+            return NextResponse.redirect(url);
         }
     } catch (error) {
         console.error('Auth refresh failed in middleware:', error);

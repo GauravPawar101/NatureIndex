@@ -17,24 +17,24 @@ const ToastContext = createContext(null);
 const VARIANTS = {
     success: {
         Icon: CheckCircle2,
-        ring: 'border-emerald-400/30 bg-emerald-500/10',
-        icon: 'text-emerald-300',
-        bar: 'bg-emerald-400',
+        ring: 'border-[var(--accent)]/30 bg-[var(--accent)]/10',
+        icon: 'text-[var(--accent)]',
+        bar: 'bg-[var(--accent)]',
         // Errors stay up longer — they usually carry something to act on.
         duration: 5000,
     },
     error: {
         Icon: AlertTriangle,
-        ring: 'border-red-400/30 bg-red-500/10',
-        icon: 'text-red-300',
-        bar: 'bg-red-400',
+        ring: 'border-[var(--danger)]/30 bg-[var(--danger)]/10',
+        icon: 'text-[var(--danger)]',
+        bar: 'bg-[var(--danger)]',
         duration: 9000,
     },
     info: {
         Icon: Info,
         ring: 'border-[var(--line-strong)] bg-[var(--surface)]',
         icon: 'text-[var(--ink)]',
-        bar: 'bg-white/60',
+        bar: 'bg-[var(--ink-faint)]',
         duration: 5000,
     },
 };

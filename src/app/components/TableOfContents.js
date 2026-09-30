@@ -150,7 +150,7 @@ export default function TableOfContents({ headings = [], variant = 'accordion' }
                 <span className="text-xs text-[var(--ink-muted)]">{open ? 'Hide' : `${headings.length} sections`}</span>
             </button>
             {open && (
-                <div id="toc-panel" className="mt-2 rounded-xl border border-[var(--line)] bg-black/40 p-3">
+                <div id="toc-panel" className="mt-2 rounded border border-[var(--line)] bg-black/40 p-3">
                     {list}
                 </div>
             )}

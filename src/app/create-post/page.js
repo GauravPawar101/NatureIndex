@@ -27,10 +27,10 @@ export default async function CreatePostPage() {
             <div className="container-page">
                 <PageHero
                     eyebrow="Contribute"
-                    title="Create a New Post"
+                    title="New story"
                     description="Share your research, field notes, or conservation story with the community."
                 />
-                <div className="glass p-6 md:p-8">
+                <div className="measure">
                     <CreatePostForm userId={user.id} />
                 </div>
             </div>

@@ -280,7 +280,7 @@ export default function CreatePostForm({ userId }) {
                     id="post-title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className={`field ${fieldErrors.title ? 'border-red-400/60 focus:border-red-400/60' : ''}`}
+                    className={`field ${fieldErrors.title ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                     maxLength={MAX_TITLE_LENGTH}
                     required
                     disabled={isLoading}
@@ -308,7 +308,7 @@ export default function CreatePostForm({ userId }) {
                         id="post-topic"
                         value={topic}
                         onChange={(e) => setTopic(e.target.value)}
-                        className={`field appearance-none cursor-pointer pr-10 ${fieldErrors.topic ? 'border-red-400/60 focus:border-red-400/60' : ''}`}
+                        className={`field appearance-none cursor-pointer pr-10 ${fieldErrors.topic ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                         required
                         disabled={isLoading}
                         aria-invalid={fieldErrors.topic ? 'true' : undefined}
@@ -332,7 +332,7 @@ export default function CreatePostForm({ userId }) {
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
                     placeholder="https://..."
-                    className={`field ${fieldErrors.imageUrl ? 'border-red-400/60 focus:border-red-400/60' : ''}`}
+                    className={`field ${fieldErrors.imageUrl ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                     disabled={isLoading}
                     aria-invalid={fieldErrors.imageUrl ? 'true' : undefined}
                     aria-describedby={fieldErrors.imageUrl ? 'post-imageUrl-error' : 'post-imageUrl-hint'}
@@ -401,8 +401,8 @@ export default function CreatePostForm({ userId }) {
             </div>
 
             {error && (
-                <div role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3">
-                    <p className="flex items-start gap-2 text-sm font-semibold text-red-200">
+                <div role="alert" className="rounded border border-[var(--danger)]/30 bg-[var(--danger)]/8 px-4 py-3">
+                    <p className="flex items-start gap-2 text-sm font-semibold text-[var(--danger)]">
                         <AlertTriangle size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
                         {error.title}
                     </p>
@@ -434,7 +434,7 @@ export default function CreatePostForm({ userId }) {
 
 function FieldError({ id, children }) {
     return (
-        <p id={id} role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+        <p id={id} role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
             <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
             {children}
         </p>

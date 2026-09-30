@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Loader2, UserPlus } from 'lucide-react';
-import PageHero from '../components/PageHero';
 import PasswordField from '../components/PasswordField';
 import ConnectionNotice from '../components/ConnectionNotice';
 import ConfigurationRequired from '../components/ConfigurationRequired';
@@ -208,14 +207,17 @@ export default function SignupPage() {
     }
 
     return (
-        <div className="page-shell flex items-center justify-center px-6 py-20">
-            <div className="w-full max-w-2xl">
-                <PageHero
-                    eyebrow="Join Nature Index"
-                    title="Create your contributor account"
-                    description="Set up your profile once, confirm your email, and add your avatar later from your profile settings."
-                />
-                <div className="glass p-8">
+        <div className="mx-auto max-w-[680px] px-5 py-16">
+            <div className="w-full">
+                <div className="mb-8">
+                    <span className="eyebrow mb-2 block">Join Nature Index</span>
+                    <h1 className="display-2">Create your account</h1>
+                    <p className="mt-2 text-[15px] leading-[1.5] text-[var(--ink-muted)]">
+                        Set up your profile once, confirm your email, and add your avatar later
+                        from your profile settings.
+                    </p>
+                </div>
+                <div>
                     <ConnectionNotice enabled={!!supabase} recheckToken={recheckToken} />
 
                     <form onSubmit={handleSignUp} className="grid gap-5 md:grid-cols-2" noValidate>
@@ -235,10 +237,10 @@ export default function SignupPage() {
                                 required
                                 aria-invalid={emailError ? 'true' : undefined}
                                 aria-describedby={emailError ? 'signup-email-error' : undefined}
-                                className={`field ${emailError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${emailError ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                             />
                             {emailError && (
-                                <p id="signup-email-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+                                <p id="signup-email-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
                                     <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
                                     {emailError}
                                 </p>
@@ -273,10 +275,10 @@ export default function SignupPage() {
                                 required
                                 aria-invalid={usernameError ? 'true' : undefined}
                                 aria-describedby={usernameError ? 'signup-username-error' : 'signup-username-hint'}
-                                className={`field ${usernameError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${usernameError ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                             />
                             {usernameError ? (
-                                <p id="signup-username-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+                                <p id="signup-username-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
                                     <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
                                     {usernameError}
                                 </p>
@@ -313,10 +315,10 @@ export default function SignupPage() {
                                 disabled={loading}
                                 aria-invalid={websiteError ? 'true' : undefined}
                                 aria-describedby={websiteError ? 'signup-website-error' : undefined}
-                                className={`field ${websiteError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${websiteError ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                             />
                             {websiteError && (
-                                <p id="signup-website-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+                                <p id="signup-website-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
                                     <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
                                     {websiteError}
                                 </p>
@@ -337,8 +339,8 @@ export default function SignupPage() {
                         </div>
 
                         {formError && (
-                            <div role="alert" className="md:col-span-2 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3">
-                                <p className="flex items-start gap-2 text-sm font-semibold text-red-200">
+                            <div role="alert" className="md:col-span-2 rounded border border-[var(--danger)]/30 bg-[var(--danger)]/8 px-4 py-3">
+                                <p className="flex items-start gap-2 text-sm font-semibold text-[var(--danger)]">
                                     <AlertTriangle size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
                                     {formError.title}
                                 </p>
@@ -350,7 +352,7 @@ export default function SignupPage() {
                         )}
 
                         {success && (
-                            <div role="status" className="md:col-span-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                            <div role="status" className="md:col-span-2 rounded border border-[var(--accent)]/30 bg-[var(--accent)]/8 px-4 py-3 text-sm text-[var(--ink-muted)]">
                                 {success}
                             </div>
                         )}

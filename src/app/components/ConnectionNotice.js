@@ -82,14 +82,14 @@ export default function ConnectionNotice({ enabled = true, recheckToken = 0 }) {
     return (
         <div
             role="alert"
-            className="mb-5 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-left"
+            className="mb-5 rounded border border-[var(--warn)]/30 bg-[var(--warn)]/8 px-4 py-3 text-left"
         >
             <div className="flex items-start gap-3">
-                <Icon size={16} className="mt-0.5 shrink-0 text-amber-300" aria-hidden="true" />
+                <Icon size={16} className="mt-0.5 shrink-0 text-[var(--warn)]" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-amber-200">{heading}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-amber-100/80">{result.message}</p>
-                    {result.hint && <p className="mt-1.5 text-xs leading-relaxed text-amber-100/60">{result.hint}</p>}
+                    <p className="text-sm font-semibold text-[var(--warn)]">{heading}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-[var(--ink-muted)]">{result.message}</p>
+                    {result.hint && <p className="mt-1.5 text-xs leading-relaxed text-[var(--ink-faint)]">{result.hint}</p>}
 
                     <div className="mt-2.5 flex flex-wrap items-center gap-2">
                         {retryable && (
@@ -97,7 +97,7 @@ export default function ConnectionNotice({ enabled = true, recheckToken = 0 }) {
                                 type="button"
                                 onClick={handleRetry}
                                 disabled={checking}
-                                className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 px-3 py-1.5 text-xs font-semibold text-amber-100 transition-colors hover:bg-amber-300/10 disabled:opacity-50"
+                                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line-strong)] px-3 py-1.5 text-xs text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-raised)] disabled:opacity-50"
                             >
                                 <RefreshCw size={12} className={checking ? 'animate-spin' : ''} aria-hidden="true" />
                                 {checking ? 'Checking...' : 'Try again'}
@@ -111,26 +111,26 @@ export default function ConnectionNotice({ enabled = true, recheckToken = 0 }) {
                             type="button"
                             onClick={() => setShowDetails((open) => !open)}
                             aria-expanded={showDetails}
-                            className="text-xs font-semibold text-amber-200/70 underline underline-offset-2 transition-colors hover:text-amber-100"
+                            className="text-xs text-[var(--ink-muted)] underline underline-offset-2 transition-colors hover:text-[var(--ink)]"
                         >
                             {showDetails ? 'Hide details' : 'Details'}
                         </button>
                     </div>
 
                     {showDetails && (
-                        <dl className="mt-3 space-y-1 rounded-lg bg-black/40 p-3 font-mono text-[11px] text-amber-100/70">
+                        <dl className="mt-3 space-y-1 rounded bg-[var(--surface-sunken)] p-3 font-mono text-[11px] text-[var(--ink-muted)]">
                             <div className="flex gap-2">
-                                <dt className="shrink-0 text-amber-200/60">reason</dt>
+                                <dt className="shrink-0 text-[var(--ink-faint)]">reason</dt>
                                 <dd>{result.reason}{result.code ? ` (${result.code})` : ''}</dd>
                             </div>
                             {typeof result.status === 'number' && (
                                 <div className="flex gap-2">
-                                    <dt className="shrink-0 text-amber-200/60">http</dt>
+                                    <dt className="shrink-0 text-[var(--ink-faint)]">http</dt>
                                     <dd>{result.status || 'no response'}</dd>
                                 </div>
                             )}
                             <div className="flex gap-2">
-                                <dt className="shrink-0 text-amber-200/60">env</dt>
+                                <dt className="shrink-0 text-[var(--ink-faint)]">env</dt>
                                 <dd>NEXT_PUBLIC_SUPABASE_URL</dd>
                             </div>
                         </dl>

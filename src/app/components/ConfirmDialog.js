@@ -106,7 +106,7 @@ export default function ConfirmDialog({
             >
                 <div className="flex items-start gap-3">
                     {destructive && (
-                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-300">
+                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--danger)]/10 text-[var(--danger)]">
                             <AlertTriangle size={18} aria-hidden="true" />
                         </span>
                     )}

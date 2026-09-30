@@ -104,8 +104,8 @@ export default function PasswordField({
                     aria-describedby={[showGuidance ? rulesId : null, capsLockOn ? `${inputId}-caps` : null, hint ? hintId : null, error ? errorId : null]
                         .filter(Boolean)
                         .join(' ') || undefined}
-                    className={`field pr-12 ${error ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''} ${
-                        capsLockOn ? 'border-amber-400/60' : ''
+                    className={`field pr-12 ${error ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''} ${
+                        capsLockOn ? 'border-[var(--warn)]' : ''
                     }`}
                 />
                 <button
@@ -127,7 +127,7 @@ export default function PasswordField({
             {capsLockOn && (
                 <p
                     id={`${inputId}-caps`}
-                    className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-300"
+                    className="mt-1.5 flex items-center gap-1.5 text-xs text-[var(--warn)]"
                 >
                     <AlertTriangle size={13} aria-hidden="true" />
                     Caps Lock is on.
@@ -162,13 +162,13 @@ export default function PasswordField({
                         <li
                             key={rule.id}
                             className={`flex items-center gap-1.5 transition-colors ${
-                                rule.passed ? 'text-emerald-300' : 'text-[var(--ink-muted)]'
+                                rule.passed ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)]'
                             }`}
                         >
                             <span
                                 aria-hidden="true"
                                 className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border transition-colors ${
-                                    rule.passed ? 'border-emerald-400/60 bg-emerald-500/20' : 'border-[var(--line-strong)]'
+                                    rule.passed ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 'border-[var(--line-strong)]'
                                 }`}
                             >
                                 {rule.passed ? <Check size={9} strokeWidth={3} /> : <X size={9} strokeWidth={3} className="opacity-0" />}
@@ -188,7 +188,7 @@ export default function PasswordField({
             )}
 
             {error && (
-                <p id={errorId} role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+                <p id={errorId} role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
                     <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
                     {error}
                 </p>

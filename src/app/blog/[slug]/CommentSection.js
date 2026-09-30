@@ -203,8 +203,8 @@ function CommentForm({ postId, parentId = null, onComplete, onCancel, autoFocus 
     return (
         <form onSubmit={submit} className="mt-4">
             {error && (
-                <div role="alert" className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-                    <p className="text-xs font-semibold text-red-200">{error.title}</p>
+                <div role="alert" className="mb-3 rounded border border-[var(--danger)]/30 bg-[var(--danger)]/8 p-3">
+                    <p className="text-xs font-semibold text-[var(--danger)]">{error.title}</p>
                     <p className="mt-0.5 text-xs leading-relaxed text-red-100/70">{error.message}</p>
                 </div>
             )}
@@ -269,7 +269,7 @@ function CommentForm({ postId, parentId = null, onComplete, onCancel, autoFocus 
                     <span
                         id={`comment-count-${parentId || 'root'}`}
                         aria-live="polite"
-                        className={`text-xs ${remaining < 200 ? 'text-amber-300' : 'text-[var(--ink-faint)]'}`}
+                        className={`text-xs ${remaining < 200 ? 'text-[var(--warn)]' : 'text-[var(--ink-faint)]'}`}
                     >
                         {content.length > 0 ? `${remaining.toLocaleString()} left` : ''}
                     </span>
@@ -588,7 +588,7 @@ export default function CommentsSection({ postId, initialComments }) {
                 )}
             </div>
 
-            <div className="glass mt-6 p-6">
+            <div className="mt-8 border-t border-[var(--line)] pt-6">
                 <h3 className="mb-2 font-semibold text-[var(--ink)]">
                     {currentUser ? 'Leave a comment' : 'Join the discussion'}
                 </h3>
@@ -605,7 +605,7 @@ export default function CommentsSection({ postId, initialComments }) {
             {loading ? (
                 <div className="mt-8 space-y-4" aria-hidden="true">
                     {Array.from({ length: 2 }).map((_, index) => (
-                        <div key={index} className="glass h-28 animate-pulse" />
+                        <div key={index} className="skeleton mb-4 h-24 w-full" />
                     ))}
                 </div>
             ) : sortedRoots.length === 0 ? (
@@ -617,7 +617,7 @@ export default function CommentsSection({ postId, initialComments }) {
             ) : (
                 <div className="mt-8 space-y-6">
                     {sortedRoots.map((comment) => (
-                        <div key={comment.id} id={`comment-${comment.id}`} className="glass p-6">
+                        <div key={comment.id} id={`comment-${comment.id}`} className="border-b border-[var(--line)] py-6">
                             <CommentItem
                                 comment={comment}
                                 currentUser={currentUser}

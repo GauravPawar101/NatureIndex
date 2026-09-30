@@ -1,142 +1,172 @@
 import Link from 'next/link';
-import { ChevronRight, Leaf, Globe, Users, ArrowDown } from 'lucide-react';
+import Image from 'next/image';
+import { getMostRead, getTrendingPosts } from './lib/stats';
+import { getTopics } from './lib/posts';
+import PostCard from './components/PostCard';
+import EmptyState from './components/EmptyState';
 
-export default function HomePage() {
-    return (
-        <>
-            {/* Hero. The photograph is the ground the whole page sits on, so it
-                does not need its own scrim here — the global .ground layer and
-                its --scrim already do that work, and stacking a second
-                gradient on top was what made this read as a dark slab. */}
-            <section className="relative flex min-h-[86vh] flex-col items-center justify-center px-6 text-center">
-                <div className="relative z-10 mx-auto max-w-3xl">
-                    <span className="eyebrow mb-6 block">Conservation science, published in the open</span>
-                    <h1 className="display-1 mb-6 text-[var(--ink)]">
-                        Field reports from the people doing the work
-                    </h1>
-                    <p className="lede mx-auto mb-10">
-                        Research, monitoring and hard-won field notes on the ecosystems
-                        that keep us alive. Written by scientists and stewards, published
-                        without a paywall.
-                    </p>
-                    <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-                        <Link href="/blog" className="btn btn btn-primary group">
-                            Read the field journal
-                            <ChevronRight
-                                size={16}
-                                className="transition-transform group-hover:translate-x-1"
-                                aria-hidden="true"
-                            />
-                        </Link>
-                        <Link href="/discover" className="btn btn btn-secondary">
-                            See what is trending
-                        </Link>
-                    </div>
-                </div>
+const DEFAULT_AVATAR = '/images/default-avatar.svg';
 
-                <a
-                    href="#initiatives"
-                    className="absolute bottom-10 left-1/2 -translate-x-1/2 text-[var(--ink-faint)] transition-colors hover:text-[var(--ink)]"
-                    aria-label="Scroll to initiatives"
-                >
-                    <ArrowDown size={20} aria-hidden="true" />
-                </a>
-            </section>
+export const metadata = {
+  title: 'Nature Index — Conservation Science & Community',
+  description:
+    'An open platform for conservation science, field discoveries, and community action.',
+};
 
-            <section id="initiatives" className="py-20 lg:py-28">
-                <div className="container-page">
-                    <div className="mx-auto max-w-3xl text-center">
-                        <span className="eyebrow mb-4 block">What we do</span>
-                        <h2 className="display-2 mb-4 text-[var(--ink)]">
-                            Three things, taken seriously
-                        </h2>
-                        <p className="lede mx-auto">
-                            Every action we take is guided by science, powered by
-                            communities, and aimed at lasting ecological impact.
-                        </p>
-                    </div>
+/**
+ * The front page, laid out the way Medium lays out its own: a 700px stream on
+ * the left, a 48px gutter, and a 264px rail on the right. The rail is not an
+ * afterthought — the two columns are why the page reads as a publication
+ * rather than a blog index.
+ */
+export default async function HomePage() {
+  const [featured, mostRead, topics] = await Promise.all([
+    getTrendingPosts({ limit: 10, windowDays: 45 }),
+    getMostRead({ limit: 3 }),
+    getTopics(),
+  ]);
 
-                    <div className="mt-14 grid gap-6 md:grid-cols-3">
-                        {[
-                            {
-                                Icon: Leaf,
-                                title: 'Habitat restoration',
-                                desc: 'We document and support reforestation and ecosystem recovery projects that rebuild habitat for wildlife and the people who live alongside it.',
-                            },
-                            {
-                                Icon: Globe,
-                                title: 'Climate science',
-                                desc: 'Our contributors publish evidence-based research and field reporting that informs policy and public understanding of the climate crisis.',
-                            },
-                            {
-                                Icon: Users,
-                                title: 'Community programmes',
-                                desc: 'We connect local stewards with a global audience, giving the communities doing the work ownership of the outcomes they produce.',
-                            },
-                        ].map(({ Icon, title, desc }) => (
-                            <div key={title} className="glass glass-hover p-7">
-                                <Icon size={26} className="mb-5 text-[var(--accent)]" aria-hidden="true" />
-                                <h3 className="display-3 mb-3 text-[var(--ink)]">{title}</h3>
-                                <p className="text-sm leading-relaxed text-[var(--ink-muted)]">{desc}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+  // "Who to follow" is derived from the stories already loaded rather than
+  // from a second author query: the rail is a suggestion, and a suggestion
+  // drawn from what the reader is already looking at is a better one.
+  const authors = [];
+  const seen = new Set();
+  for (const post of featured) {
+    const profile = post.profiles;
+    if (!profile?.username || seen.has(profile.username)) continue;
+    seen.add(profile.username);
+    authors.push({
+      username: profile.username,
+      fullName: profile.full_name || profile.username,
+      avatarUrl: profile.avatar_url,
+    });
+    if (authors.length === 3) break;
+  }
 
-            <section id="about" className="py-20 lg:py-28">
-                <div className="container-page">
-                    {/* Framed as a pull-quote rather than a two-column split over a
-                        photograph. The old version put a gradient over an
-                        external image to make text legible, which is a worse way
-                        to achieve the same thing than a glass panel. */}
-                    <div className="glass mx-auto max-w-3xl p-8 md:p-12">
-                        <span className="eyebrow mb-4 block">Our story</span>
-                        <h2 className="display-2 mb-6 text-[var(--ink)]">
-                            Science-led. Community-driven.
-                        </h2>
-                        <p className="measure mb-5 leading-relaxed">
-                            Nature Index is a collective of ecologists, conservationists and
-                            storytellers building open knowledge for environmental action.
-                        </p>
-                        <p className="measure mb-8 leading-relaxed">
-                            Every project is monitored with satellite imagery and on-the-ground
-                            data. We publish the results openly, including the parts that did
-                            not work, because accountability is the foundation of trust.
-                        </p>
-                        <Link href="/about" className="btn btn btn-primary group">
-                            Learn about us
-                            <ChevronRight
-                                size={16}
-                                className="transition-transform group-hover:translate-x-1"
-                                aria-hidden="true"
-                            />
-                        </Link>
-                    </div>
-                </div>
-            </section>
+  const nothingPublished = featured.length === 0;
 
-            <section className="pb-24">
-                <div className="container-page">
-                    <div className="glass mx-auto max-w-3xl p-8 text-center md:p-12">
-                        <h2 className="display-2 mb-4 text-[var(--ink)]">
-                            Read something useful
-                        </h2>
-                        <p className="lede mx-auto mb-8">
-                            Seventeen field reports, photographed surveys and monitoring
-                            records — searchable by meaning, not just by keyword.
-                        </p>
-                        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-                            <Link href="/blog" className="btn btn btn-primary">
-                                Browse the journal
-                            </Link>
-                            <Link href="/media" className="btn btn btn-secondary">
-                                Photos and video
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </>
-    );
+  return (
+    <div className="mx-auto flex max-w-[1012px] gap-12 px-5 pb-16 pt-10">
+      <div className="stream">
+        <h1 className="display-2 mb-2">Latest</h1>
+        <p className="mb-2 text-[14px] text-[var(--ink-faint)]">
+          Field reports from the people doing the work, published without a paywall.
+        </p>
+
+        {nothingPublished ? (
+          <EmptyState
+            title="Nothing published yet"
+            description="Once a contributor publishes their first story it will appear here."
+            action={
+              <Link href="/create-post" className="btn btn-primary">
+                Write the first story
+              </Link>
+            }
+          />
+        ) : (
+          <div className="mt-4">
+            {featured.map((post, index) => (
+              <PostCard key={post.slug} post={post} variant={index === 0 ? 'lead' : 'row'} />
+            ))}
+
+            <div className="pt-6 text-center">
+              <Link href="/blog" className="btn btn-secondary">
+                See all stories
+              </Link>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* The rail. Medium's right column: a short recommendation list, then the
+          topic index, then writers worth following — each separated by a 1px
+          rule, never by a card. */}
+      <aside className="rail hidden lg:block">
+        {mostRead.length > 0 && (
+          <section aria-labelledby="rail-recommended">
+            <h2 id="rail-recommended" className="mb-4 border-b border-[var(--line)] pb-3 text-[14px] font-bold text-[var(--ink)]">
+              Recommended for you
+            </h2>
+            <ul>
+              {mostRead.map((post) => (
+                <li key={post.slug} className="border-b border-[var(--line)] py-4 last:border-b-0">
+                  <Link href={`/blog/${post.slug}`} className="block">
+                    <span className="block text-[16px] font-bold leading-[1.3] text-[var(--ink)]">
+                      {post.title}
+                    </span>
+                  </Link>
+                  {post.profiles?.full_name && (
+                    <span className="mt-2 block text-[13px] text-[var(--ink-faint)]">
+                      {post.profiles.full_name}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {topics.length > 0 && (
+          <section aria-labelledby="rail-topics" className="mt-8">
+            <h2 id="rail-topics" className="mb-4 border-b border-[var(--line)] pb-3 text-[14px] font-bold text-[var(--ink)]">
+              Explore topics
+            </h2>
+            <ul className="flex flex-col gap-2">
+              {topics.slice(0, 8).map(({ topic, count }) => (
+                <li key={topic}>
+                  <Link
+                    href={`/blog?topic=${encodeURIComponent(topic)}`}
+                    className="text-[14px] text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
+                  >
+                    {topic}
+                    <span className="ml-1 text-[var(--ink-faint)]">{count}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {authors.length > 0 && (
+          <section aria-labelledby="rail-authors" className="mt-8">
+            <h2 id="rail-authors" className="mb-4 border-b border-[var(--line)] pb-3 text-[14px] font-bold text-[var(--ink)]">
+              Who to follow
+            </h2>
+            <ul>
+              {authors.map((author) => (
+                <li key={author.username} className="flex items-center gap-3 border-b border-[var(--line)] py-4 last:border-b-0">
+                  <Image
+                    src={author.avatarUrl || DEFAULT_AVATAR}
+                    alt=""
+                    width={40}
+                    height={40}
+                    unoptimized
+                    className="h-10 w-10 shrink-0 rounded-full bg-[var(--surface-raised)] object-cover"
+                  />
+                  <div className="min-w-0">
+                    <Link
+                      href={`/profile/${author.username}`}
+                      className="block truncate text-[14px] font-medium text-[var(--ink)] hover:underline"
+                    >
+                      {author.fullName}
+                    </Link>
+                    <Link
+                      href={`/blog?author=${encodeURIComponent(author.username)}`}
+                      className="block truncate text-[13px] text-[var(--ink-faint)] hover:text-[var(--ink-muted)]"
+                    >
+                      Read their stories
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <Link href="/leaderboards" className="mt-8 block text-[14px] text-[var(--ink-muted)] hover:text-[var(--ink)]">
+          See the leaderboards →
+        </Link>
+      </aside>
+    </div>
+  );
 }

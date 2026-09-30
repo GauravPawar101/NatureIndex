@@ -6,7 +6,6 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import CommentsSection from './CommentSection';
 import TableOfContents from '../../components/TableOfContents';
-import ReadingProgress from '../../components/ReadingProgress';
 import PostMedia from '../../components/PostMedia';
 import { getPostMedia, getPostVideo } from '../../lib/media';
 import ArticleActions from '../../components/ArticleActions';
@@ -130,155 +129,140 @@ export default async function BlogPostPage({ params }) {
         : [[], null];
 
     return (
-        <article className="page-shell">
-            <ReadingProgress />
+        <article className="pb-16">
+            {/* Medium's story page is a single 700px column. No breadcrumb, no
+                table of contents in the margin, no reading-progress bar — the
+                title, the byline, the actions, the cover, the body, in that
+                order, and nothing else competing for attention. */}
+            <div className="mx-auto max-w-[700px] px-5 pt-10">
+                {post.topic && (
+                    <Link
+                        href={`/blog?topic=${encodeURIComponent(post.topic)}`}
+                        className="eyebrow mb-3 inline-block hover:text-[var(--accent)]"
+                    >
+                        {post.topic}
+                    </Link>
+                )}
 
-            <div className="container-page">
-                <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_220px]">
-                    <div className="min-w-0 max-w-3xl">
-                        <nav aria-label="Breadcrumb" className="mb-6">
-                            <ol className="flex flex-wrap items-center gap-2 text-xs text-[var(--ink-faint)]">
-                                <li>
-                                    <Link href="/" className="transition-colors hover:text-[var(--ink)]">Home</Link>
-                                </li>
-                                <li aria-hidden="true">/</li>
-                                <li>
-                                    <Link href="/blog" className="transition-colors hover:text-[var(--ink)]">Field Journal</Link>
-                                </li>
-                                {post.topic && (
-                                    <>
-                                        <li aria-hidden="true">/</li>
-                                        <li>
-                                            <Link
-                                                href={`/blog?topic=${encodeURIComponent(post.topic)}`}
-                                                className="transition-colors hover:text-[var(--ink)]"
-                                            >
-                                                {post.topic}
-                                            </Link>
-                                        </li>
-                                    </>
-                                )}
-                            </ol>
-                        </nav>
+                <h1 className="display-1">{post.title}</h1>
 
-                        {/* A video post shows its player in place of the cover:
-                            a still cover above a player two scrolls down is worse
-                            than the video first. Photo and article posts keep the
-                            existing cover treatment. */}
-                        {post.content_type === 'video' ? (
-                            <div className="mb-8">
-                                <PostMedia
-                                    media={media}
-                                    video={video}
-                                    title={post.title}
+                {/* Byline on the left, actions on the right — Medium's split.
+                    The author is 20px bold sans with a 48px avatar above the
+                    name, because that is how Medium renders the byline block. */}
+                <div className="mt-8 flex items-start justify-between gap-6">
+                    <div className="flex items-center gap-3">
+                        {authorUsername && post.profiles?.avatar_url && (
+                            <Link href={`/profile/${authorUsername}`} aria-label={authorName}>
+                                <Image
+                                    src={post.profiles.avatar_url}
+                                    alt=""
+                                    width={48}
+                                    height={48}
+                                    unoptimized
+                                    className="h-12 w-12 rounded-full bg-[var(--surface-raised)] object-cover"
                                 />
-                            </div>
-                        ) : (
-                            post.image_url && (
-                                <div className="relative mb-8 h-64 w-full overflow-hidden rounded-2xl border border-[var(--line-strong)] md:h-80">
-                                    <Image
-                                        src={post.image_url}
-                                        alt={post.title}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, 768px"
-                                        className="object-cover"
-                                        // Cover URLs are user-supplied at publish time, so they
-                                        // can point at any host. Without this, next/image
-                                        // throws on hosts missing from images.remotePatterns
-                                        // and takes the whole article page down with it.
-                                        unoptimized
-                                        priority
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                </div>
-                            )
-                        )}
-
-                        {post.topic && (
-                            <Link href={`/blog?topic=${encodeURIComponent(post.topic)}`} className="eyebrow mb-4 inline-block hover:text-[var(--ink)]">
-                                {post.topic}
                             </Link>
                         )}
 
-                        <h1 className="mb-6 break-words text-4xl font-bold leading-tight text-[var(--ink)] lg:text-5xl">
-                            {post.title}
-                        </h1>
-
-                        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] pb-6">
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--ink-muted)]">
-                                <span>By</span>
+                        <div className="text-[14px] leading-[1.4]">
+                            <div className="font-bold text-[var(--ink)]">
                                 {authorUsername ? (
-                                    <Link href={`/profile/${authorUsername}`} className="link-accent">
+                                    <Link href={`/profile/${authorUsername}`} className="hover:underline">
                                         {authorName}
                                     </Link>
                                 ) : (
                                     <span>{authorName}</span>
                                 )}
-                                {formattedDate && (
-                                    <>
-                                        <span className="text-[var(--ink-faint)]" aria-hidden="true">•</span>
-                                        <time dateTime={toISODate(post.date)}>{formattedDate}</time>
-                                    </>
-                                )}
+                            </div>
+                            <div className="text-[var(--ink-faint)]">
+                                {formattedDate && <time dateTime={toISODate(post.date)}>{formattedDate}</time>}
                                 {readingTime && (
                                     <>
-                                        <span className="text-[var(--ink-faint)]" aria-hidden="true">•</span>
+                                        <span aria-hidden="true"> · </span>
                                         <span>{readingTime}</span>
                                     </>
                                 )}
-                                {Number(post.views) > 0 && (
-                                    <>
-                                        <span className="text-[var(--ink-faint)]" aria-hidden="true">•</span>
-                                        <span>{formatCompactNumber(post.views)} views</span>
-                                    </>
-                                )}
-                            </div>
-
-                            <ArticleActions postId={post.id} title={post.title} />
-                        </div>
-
-                        <TableOfContents headings={headings} variant="accordion" />
-
-                        {/* Photo posts get their gallery after the header. A video
-                            post already rendered its player at the top, so it is
-                            not repeated here. */}
-                        {post.content_type === 'photo' && media.length > 0 && (
-                            <div className="mb-12">
-                                <PostMedia media={media} title={post.title} />
-                            </div>
-                        )}
-
-                        {/* Comments are already nested by CommentSection, so a flat
-                            <ReactMarkdown> here would render nothing for them —
-                            instead make the article body markdown fully styled. */}
-                        <div id="article-body" className="glass mb-12 p-6 md:p-8">
-                            <div className="prose-nature">
-                                {post.content ? (
-                                    <ReactMarkdown components={markdownComponents}>{post.content}</ReactMarkdown>
-                                ) : (
-                                    <p className="text-[var(--ink-muted)]">This post has no content yet.</p>
-                                )}
                             </div>
                         </div>
-
-                        <CommentsSection postId={post.id} initialComments={comments} />
                     </div>
 
-                    {/* Only the desktop sidebar lives here; the mobile TOC is
-                        rendered inline above the article, so the list and its
-                        scroll-spy are never duplicated. */}
-                    <aside className="hidden lg:block">
-                        <div className="sticky top-28 max-h-[calc(100vh-9rem)] overflow-y-auto pb-8">
-                            <TableOfContents headings={headings} variant="sidebar" />
-                        </div>
-                    </aside>
+                    <ArticleActions postId={post.id} title={post.title} />
                 </div>
 
-                <RecommendedPosts
-                    excludeSlug={post.slug}
-                    title="Related reading"
-                    limit={3}
-                />
+                {/* The cover sits between the byline and the text, edge to edge
+                    across the 700px column — not in a rounded frame with a
+                    gradient over it, which is what the old layout did. */}
+                {post.content_type === 'video' ? (
+                    <div className="mt-8">
+                        <PostMedia media={media} video={video} title={post.title} />
+                    </div>
+                ) : (
+                    post.image_url && (
+                        <div className="relative mt-8 aspect-[16/9] w-full overflow-hidden bg-[var(--surface-sunken)]">
+                            <Image
+                                src={post.image_url}
+                                alt={post.title}
+                                fill
+                                sizes="(max-width: 720px) 100vw, 700px"
+                                className="object-cover"
+                                // Cover URLs are user-supplied at publish time, so they
+                                // can point at any host. Without this, next/image
+                                // throws on hosts missing from images.remotePatterns
+                                // and takes the whole article page down with it.
+                                unoptimized
+                                priority
+                            />
+                        </div>
+                    )
+                )}
+
+                {/* Photo posts get their gallery after the header. A video post
+                    already rendered its player at the top, so it is not
+                    repeated here. */}
+                {post.content_type === 'photo' && media.length > 0 && (
+                    <div className="mt-8">
+                        <PostMedia media={media} title={post.title} />
+                    </div>
+                )}
+
+                {headings.length > 2 && (
+                    <div className="mt-8">
+                        <TableOfContents headings={headings} variant="accordion" />
+                    </div>
+                )}
+
+                {/* The body. 680px of 20px serif at 1.58, no card, no padding
+                    box — Medium's text starts on the same left edge as the
+                    title and ends on the same measure. */}
+                <div id="article-body" className="measure mt-10">
+                    <div className="prose-nature">
+                        {post.content ? (
+                            <ReactMarkdown components={markdownComponents}>{post.content}</ReactMarkdown>
+                        ) : (
+                            <p className="text-[var(--ink-muted)]">This post has no content yet.</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="measure mt-8 flex flex-wrap items-center gap-3 border-t border-[var(--line)] pt-4 text-[14px] text-[var(--ink-faint)]">
+                    {post.topic && (
+                        <Link
+                            href={`/blog?topic=${encodeURIComponent(post.topic)}`}
+                            className="pill"
+                        >
+                            {post.topic}
+                        </Link>
+                    )}
+                    {Number(post.views) > 0 && (
+                        <span>{formatCompactNumber(post.views)} views</span>
+                    )}
+                </div>
+
+                <CommentsSection postId={post.id} initialComments={comments} />
+            </div>
+
+            <div className="mx-auto max-w-[1012px] px-5">
+                <RecommendedPosts excludeSlug={post.slug} title="More from Nature Index" limit={3} />
             </div>
         </article>
     );

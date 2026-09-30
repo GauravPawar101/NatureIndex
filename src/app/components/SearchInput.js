@@ -68,7 +68,7 @@ export default function SearchInput({
             <Search
                 size={size === 'sm' ? 15 : 18}
                 aria-hidden="true"
-                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-faint)]"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-faint)]"
             />
             <input
                 ref={ref}
@@ -84,7 +84,7 @@ export default function SearchInput({
                 placeholder={placeholder}
                 aria-label={label}
                 aria-describedby={resultCount ? 'site-search-count' : undefined}
-                className={`field pl-11 ${hasValue ? 'pr-11' : ''} ${
+                className={`field pl-9 ${hasValue ? 'pr-9' : ''} ${
                     size === 'sm' ? 'py-2 text-sm' : ''
                 } [&::-webkit-search-cancel-button]:appearance-none`}
             />
@@ -94,7 +94,7 @@ export default function SearchInput({
                     type="button"
                     onClick={() => (onClear || (() => onChange('')))()}
                     aria-label="Clear search"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-2 text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-raised)] hover:text-[var(--ink)]"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 rounded p-1.5 text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-raised)] hover:text-[var(--ink)]"
                 >
                     <X size={14} aria-hidden="true" />
                 </button>

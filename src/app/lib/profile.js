@@ -59,9 +59,16 @@ export async function getProfilePosts(userId) {
     const supabase = await createClient();
     if (!supabase) return [];
 
+    // The author is joined in because these rows are rendered by PostCard, and
+    // PostCard's byline reads `post.profiles`. Without the embed every card on
+    // a profile page renders "Unknown author" — including the page's owner,
+    // which is the one author that definitely exists.
     const { data, error } = await supabase
         .from('posts')
-        .select('id, slug, title, excerpt, image_url, topic, views, date')
+        .select(
+            `id, slug, title, excerpt, image_url, topic, views, date,
+             profiles!posts_user_id_fkey(username, avatar_url, full_name)`
+        )
         .eq('user_id', userId)
         .eq('published', true)
         .order('date', { ascending: false });
@@ -71,7 +78,23 @@ export async function getProfilePosts(userId) {
         return [];
     }
 
-    return data || [];
+    // PostgREST returns an embedded to-one as either an object or a one-item
+    // array depending on whether it inferred the relationship, so both are
+    // accepted here rather than guarding on one shape and rendering nothing.
+    return (data || []).map((post) => {
+        const raw = post.profiles;
+        const profile = Array.isArray(raw) ? raw[0] : raw;
+        return {
+            ...post,
+            profiles: profile
+                ? {
+                    username: profile.username,
+                    avatar_url: profile.avatar_url,
+                    full_name: profile.full_name,
+                }
+                : null,
+        };
+    });
 }
 
 /** The contributor's most recent comments, joined to the post they are on. */

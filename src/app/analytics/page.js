@@ -39,7 +39,7 @@ export default async function AnalyticsPage() {
             title="How the journal is doing"
             description="Publication volume, readership and topic coverage across the whole site."
           />
-          <div className="glass p-8">
+          <div>
             <EmptyState
               icon={BarChart3}
               title="No data to report yet"
@@ -76,7 +76,7 @@ export default async function AnalyticsPage() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
-          <section className="glass p-6" aria-labelledby="topics-heading">
+          <section className="border border-[var(--line)] p-6" aria-labelledby="topics-heading">
             <h2 id="topics-heading" className="mb-1 text-lg font-bold text-[var(--ink)]">
               Topic coverage
             </h2>
@@ -105,7 +105,7 @@ export default async function AnalyticsPage() {
                         role="img"
                         aria-label={`${entry.topic}: ${entry.count} stories`}
                       >
-                        <div className="h-full rounded-full bg-emerald-400/70" style={{ width: `${share}%` }} />
+                        <div className="h-full rounded-full bg-[var(--accent)]/70" style={{ width: `${share}%` }} />
                       </div>
                     </li>
                   );
@@ -114,7 +114,7 @@ export default async function AnalyticsPage() {
             )}
           </section>
 
-          <section className="glass p-6" aria-labelledby="activity-heading">
+          <section className="border border-[var(--line)] p-6" aria-labelledby="activity-heading">
             <h2 id="activity-heading" className="mb-1 text-lg font-bold text-[var(--ink)]">
               Latest activity
             </h2>
@@ -191,8 +191,8 @@ export default async function AnalyticsPage() {
 
 function Stat({ icon: Icon, label, value, hint }) {
   return (
-    <div className="glass p-5">
-      <Icon size={18} className="mb-3 text-emerald-400" aria-hidden="true" />
+    <div className="border-b border-[var(--line)] py-4 last:border-b-0">
+      <Icon size={18} className="mb-3 text-[var(--accent)]" aria-hidden="true" />
       <p className="text-2xl font-bold text-[var(--ink)] tabular-nums">
         {value.toLocaleString('en-GB')}
       </p>

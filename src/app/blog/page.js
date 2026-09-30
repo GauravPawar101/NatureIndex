@@ -87,7 +87,7 @@ export default async function BlogPage({ searchParams }) {
                     description="Conservation science, field discoveries, and community action — documented by researchers and stewards worldwide."
                 />
 
-                <div className="glass mb-12 p-6 md:p-10">
+                <div className="measure mb-12">
                     <BlogList
                         key={`${query}|${topic}|${author}|${sort}`}
                         initialPosts={posts}

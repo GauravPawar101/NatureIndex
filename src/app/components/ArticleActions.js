@@ -160,30 +160,34 @@ export default function ArticleActions({ postId, title }) {
     }, [title, shareUrl, toast, canNativeShare]);
 
     return (
+        /* Medium's action cluster: 48px circles with a hairline border, sitting
+           to the right of the byline. No labels — the icons are what Medium
+           uses, and the accessible name comes from aria-label. */
         <div className="flex flex-wrap items-center gap-2">
             <button
                 type="button"
                 onClick={toggleBookmark}
                 disabled={busy || !ready}
                 aria-pressed={bookmarked}
+                aria-label={bookmarked ? 'Remove from saved stories' : 'Save for later'}
                 title={bookmarked ? 'Remove bookmark' : 'Save for later'}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
+                className={`flex h-12 w-12 items-center justify-center rounded-full border transition-colors disabled:opacity-60 ${
                     bookmarked
-                        ? 'border-[var(--line-strong)] bg-white text-black'
-                        : 'border-[var(--line-strong)] text-[var(--ink)] hover:bg-[var(--surface)] hover:border-[var(--line-strong)]'
+                        ? 'border-[var(--ink)] text-[var(--ink)]'
+                        : 'border-[var(--line-strong)] text-[var(--ink)] hover:border-[var(--ink)]'
                 }`}
             >
-                <Bookmark size={15} fill={bookmarked ? 'currentColor' : 'none'} aria-hidden="true" />
-                {bookmarked ? 'Saved' : 'Save'}
+                <Bookmark size={20} fill={bookmarked ? 'currentColor' : 'none'} aria-hidden="true" />
             </button>
 
             <button
                 type="button"
                 onClick={share}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--line-strong)] px-4 py-2 text-sm font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface)] hover:border-[var(--line-strong)]"
+                aria-label="Share this story"
+                title="Share"
+                className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--line-strong)] text-[var(--ink)] transition-colors hover:border-[var(--ink)]"
             >
-                <Share2 size={15} aria-hidden="true" />
-                Share
+                <Share2 size={20} aria-hidden="true" />
             </button>
 
             {/* Fallback for when the share sheet is unavailable and the user

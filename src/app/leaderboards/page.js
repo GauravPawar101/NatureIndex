@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Trophy, FileText, Eye } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import { getLeaderboard } from '../lib/stats';
 import PageHero from '../components/PageHero';
 import EmptyState from '../components/EmptyState';
@@ -38,7 +38,7 @@ export default async function LeaderboardsPage() {
             title="Who is writing"
             description="The contributors behind the field reports on this site."
           />
-          <div className="glass p-8">
+          <div>
             <EmptyState
               icon={Trophy}
               title="No contributors yet"
@@ -62,21 +62,19 @@ export default async function LeaderboardsPage() {
         <div className="grid gap-8 md:grid-cols-2">
           <Board
             title="Most published"
-            icon={FileText}
             caption="Field reports written"
             entries={byPosts}
             metric="posts"
           />
           <Board
             title="Most read"
-            icon={Eye}
             caption="Total readership"
             entries={byViews}
             metric="views"
           />
         </div>
 
-        <p className="mt-10 text-center text-sm text-[var(--ink-faint)]">
+        <p className="mt-10 text-[13px] text-[var(--ink-faint)]">
           These rankings count published stories only. Drafts are never included.
         </p>
       </div>
@@ -85,17 +83,16 @@ export default async function LeaderboardsPage() {
 }
 
 /** One leaderboard table. `metric` decides which number is emphasised. */
-function Board({ title, icon: Icon, caption, entries, metric }) {
+function Board({ title, caption, entries, metric }) {
   return (
-    <section className="glass overflow-hidden" aria-labelledby={`board-${metric}`}>
-      <div className="flex items-center gap-3 border-b border-[var(--line)] p-5">
-        <Icon size={18} className="text-amber-400" aria-hidden="true" />
-        <h2 id={`board-${metric}`} className="text-lg font-bold text-[var(--ink)]">
+    <section aria-labelledby={`board-${metric}`}>
+      <div className="flex items-center gap-2 border-b border-[var(--line)] pb-3">
+        <h2 id={`board-${metric}`} className="text-[20px] font-bold text-[var(--ink)]">
           {title}
         </h2>
       </div>
 
-      <ol className="divide-y divide-white/5">
+      <ol className="flex flex-col">
         {entries.map((entry) => {
           const primary = metric === 'views' ? entry.views : entry.posts;
           const secondary = metric === 'views' ? entry.posts : entry.views;
@@ -104,12 +101,12 @@ function Board({ title, icon: Icon, caption, entries, metric }) {
             <li key={entry.userId}>
               <Link
                 href={`/profile/${entry.handle}`}
-                className="flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]"
+                className="flex items-center gap-4 border-b border-[var(--line)] py-3 transition-colors hover:bg-[var(--surface-raised)]"
               >
                 <span
                   aria-hidden="true"
                   className={`w-7 shrink-0 text-center font-bold ${
-                    entry.rank <= 3 ? 'text-amber-400' : 'text-[var(--ink-faint)]'
+                    entry.rank <= 3 ? 'text-[var(--ink)]' : 'text-[var(--ink-faint)]'
                   }`}
                 >
                   {entry.rank}
@@ -136,7 +133,7 @@ function Board({ title, icon: Icon, caption, entries, metric }) {
         })}
       </ol>
 
-      <p className="border-t border-[var(--line)] p-3 text-center text-xs text-[var(--ink-faint)]">{caption}</p>
+      <p className="mt-3 text-[13px] text-[var(--ink-faint)]">{caption}</p>
     </section>
   );
 }

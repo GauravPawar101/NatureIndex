@@ -2,7 +2,6 @@
 import { createClient } from '../lib/supabase/client';
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import PageHero from '../components/PageHero';
 import PasswordField from '../components/PasswordField';
 import ConnectionNotice from '../components/ConnectionNotice';
 import ConfigurationRequired from '../components/ConfigurationRequired';
@@ -107,14 +106,22 @@ function LoginForm() {
     useEffect(() => {
         if (!supabase) return;
 
+        // The destination is resolved here too, not only in handleSignIn: this
+        // listener fires on the sign-in event and would otherwise push /account
+        // a frame before the submit handler pushes the page the reader actually
+        // asked for.
+        const destination = redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')
+            ? redirectTo
+            : '/account';
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
-                router.push('/account');
+                router.push(destination);
             }
         });
 
         return () => subscription.unsubscribe();
-    }, [supabase, router]);
+    }, [supabase, router, redirectTo]);
 
     // Errors appear once a field has been left, or once a submit was attempted —
     // never while someone is still typing their first character.
@@ -209,14 +216,16 @@ function LoginForm() {
     }
 
     return (
-        <div className="page-shell flex items-center justify-center px-6">
+        <div className="flex min-h-[80vh] items-center justify-center px-5 py-16">
             <div className="w-full max-w-md">
-                <PageHero
-                    eyebrow="Welcome back"
-                    title="Sign in to Nature Index"
-                    description="Access your account, publish articles, and manage your profile."
-                />
-                <div className="glass p-8">
+                <div className="mb-8">
+                    <span className="eyebrow mb-2 block">Welcome back</span>
+                    <h1 className="display-2">Sign in</h1>
+                    <p className="mt-2 text-[15px] leading-[1.5] text-[var(--ink-muted)]">
+                        Access your account, publish stories, and manage your profile.
+                    </p>
+                </div>
+                <div>
                     {/* Probes Supabase on mount, and again after a network
                         failure, so a broken URL is named up front. */}
                     <ConnectionNotice enabled={!!supabase} recheckToken={recheckToken} />
@@ -238,10 +247,10 @@ function LoginForm() {
                                 required
                                 aria-invalid={emailError ? 'true' : undefined}
                                 aria-describedby={emailError ? 'email-error' : undefined}
-                                className={`field ${emailError ? 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/30' : ''}`}
+                                className={`field ${emailError ? 'border-[var(--danger)] focus:border-[var(--danger)]' : ''}`}
                             />
                             {emailError && (
-                                <p id="email-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-red-300">
+                                <p id="email-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs text-[var(--danger)]">
                                     <AlertTriangle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
                                     {emailError}
                                 </p>
@@ -265,9 +274,9 @@ function LoginForm() {
                             return (
                                 <div
                                     role="alert"
-                                    className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3"
+                                    className="rounded border border-[var(--danger)]/30 bg-[var(--danger)]/8 px-4 py-3"
                                 >
-                                    <p className="flex items-start gap-2 text-sm font-semibold text-red-200">
+                                    <p className="flex items-start gap-2 text-sm font-semibold text-[var(--danger)]">
                                         <AlertTriangle size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
                                         {banner.title}
                                     </p>

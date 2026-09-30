@@ -5,21 +5,27 @@ import Footer from './components/Footer';
 import ToastProvider from './components/ToastProvider';
 import { THEME_INIT_SCRIPT } from './components/ThemeToggle';
 
-// Two faces, split by role. Source Serif carries every headline and the article
-// body; Inter handles interface text. That split is the single biggest lever on
-// whether a page looks published or assembled.
+// Two faces, split by role, the way Medium splits them: a UI sans for every
+// label, byline and card title, and a serif that only appears in the story
+// title and the story body. Making the card titles serif too — which the old
+// design system did — is the single most obvious tell that a page is not
+// Medium.
+// Inter stands in for Söhne, Medium's UI face: the same humanist skeleton, the
+// same tight apertures, and — unlike a novelty serif — it renders every
+// byline and timestamp at 14px without looking like a fallback.
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-ui',
   display: 'swap',
 });
 
+// Source Serif 4 stands in for medium-content-serif. Optical sizing is kept
+// because the story title is 42px and the body is 20px, and one weight has to
+// read correctly at both.
 const serif = Source_Serif_4({
   subsets: ['latin'],
   variable: '--font-editorial',
   display: 'swap',
-  // Optical sizing is what lets one weight read correctly at both 4rem and
-  // 1.3rem; without it the large sizes look thin and the small ones heavy.
   axes: ['opsz'],
 });
 
@@ -38,10 +44,9 @@ export default function RootLayout({ children }) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className={`${inter.variable} ${serif.variable} font-sans antialiased`}>
-        {/* The photographic ground every glass surface sits on. Fixed and behind
-            everything, so a card always has something to blur. */}
-        <div className="ground" aria-hidden="true" />
-
+        {/* No background layer. Medium's page is a flat field of one colour, and
+            the previous fixed blurred photograph behind the whole document was
+            the largest single reason this did not read as Medium. */}
         <ToastProvider>
           <Header />
           <main>{children}</main>

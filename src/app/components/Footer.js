@@ -1,22 +1,22 @@
 import Link from 'next/link';
-import { Leaf, Twitter, Linkedin, Github } from 'lucide-react';
+import { Twitter, Linkedin, Github } from 'lucide-react';
 
 const SECTIONS = [
   {
     title: 'Read',
     links: [
-      { href: '/blog', label: 'Field journal' },
+      { href: '/blog', label: 'Stories' },
       { href: '/discover', label: 'Discover' },
       { href: '/feed', label: 'Feed' },
-      { href: '/media', label: 'Photos and video' },
+      { href: '/media', label: 'Media' },
     ],
   },
   {
-    title: 'Contribute',
+    title: 'Write',
     links: [
+      { href: '/create-post', label: 'Publish a story' },
       { href: '/signup', label: 'Create an account' },
       { href: '/login', label: 'Sign in' },
-      { href: '/create-post', label: 'Publish a story' },
       { href: '/leaderboards', label: 'Leaderboards' },
     ],
   },
@@ -36,24 +36,25 @@ const SOCIALS = [
   { href: 'https://github.com/GauravPawar101', label: 'GitHub', Icon: Github },
 ];
 
+/**
+ * Medium's footer: three (here, three) columns of 14px links at 60% black,
+ * the wordmark above them, and a hairline-separated legal row. No background
+ * band, no newsletter form, no social row with borders around the icons —
+ * Medium's footer is a list of links and nothing else.
+ */
 export default function Footer() {
   return (
-    <footer className="mt-20 border-t border-[var(--line)] py-14">
-      <div className="container-page">
-        <div className="grid gap-10 md:grid-cols-[1.6fr_repeat(3,1fr)]">
-          <div className="text-center md:text-left">
-            <Link
-              href="/"
-              className="mb-4 inline-flex items-center gap-2 font-[family-name:var(--font-serif)] text-lg font-semibold text-[var(--ink)]"
-            >
-              <Leaf size={20} className="text-[var(--accent)]" aria-hidden="true" />
-              <span>Nature Index</span>
+    <footer className="border-t border-[var(--line)]">
+      <div className="mx-auto max-w-[1012px] px-5 py-10">
+        <div className="grid gap-8 sm:grid-cols-[1.4fr_repeat(3,1fr)]">
+          <div>
+            <Link href="/" className="mb-3 inline-block text-[22px] font-bold tracking-[-0.02em] text-[var(--ink)]">
+              <span className="text-[var(--accent)]">Nature</span>Index
             </Link>
-            <p className="mx-auto max-w-xs text-sm leading-relaxed text-[var(--ink-muted)] md:mx-0">
-              An open platform for conservation science, field discoveries, and
-              community action.
+            <p className="max-w-xs text-[14px] leading-[1.4] text-[var(--ink-muted)]">
+              An open platform for conservation science, field discoveries, and community action.
             </p>
-            <div className="mt-5 flex justify-center gap-3 md:justify-start">
+            <div className="mt-4 flex gap-4">
               {SOCIALS.map(({ href, label, Icon }) => (
                 <a
                   key={label}
@@ -61,9 +62,9 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--line)] text-[var(--ink-muted)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--surface-raised)] hover:text-[var(--ink)]"
+                  className="text-[var(--ink-faint)] transition-colors hover:text-[var(--ink)]"
                 >
-                  <Icon size={15} aria-hidden="true" />
+                  <Icon size={18} aria-hidden="true" />
                 </a>
               ))}
             </div>
@@ -71,18 +72,15 @@ export default function Footer() {
 
           {SECTIONS.map((section) => (
             <nav key={section.title} aria-labelledby={`footer-${section.title}`}>
-              <h2
-                id={`footer-${section.title}`}
-                className="eyebrow mb-4"
-              >
+              <h2 id={`footer-${section.title}`} className="mb-3 text-[14px] font-bold text-[var(--ink)]">
                 {section.title}
               </h2>
-              <ul className="space-y-2.5">
+              <ul className="space-y-2">
                 {section.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
+                      className="text-[14px] text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
                     >
                       {link.label}
                     </Link>
@@ -93,7 +91,7 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-[var(--line)] pt-6 text-xs text-[var(--ink-faint)] sm:flex-row">
+        <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-[var(--line)] pt-5 text-[13px] text-[var(--ink-faint)] sm:flex-row sm:items-center">
           <p>© {new Date().getFullYear()} Nature Index. All rights reserved.</p>
           <p>Field reports are published by their authors.</p>
         </div>
