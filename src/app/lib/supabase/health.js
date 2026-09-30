@@ -1,4 +1,10 @@
-import { getConfigProblem, getSupabaseProjectRef, getSupabaseUrl, hasSupabaseConfig } from './config';
+import {
+    getConfigProblem,
+    getSupabaseAnonKey,
+    getSupabaseProjectRef,
+    getSupabaseUrl,
+    hasSupabaseConfig,
+} from './config';
 
 /**
  * Cheap liveness probe for the Supabase project.
@@ -9,8 +15,8 @@ import { getConfigProblem, getSupabaseProjectRef, getSupabaseUrl, hasSupabaseCon
  * from "the credentials are wrong", so the UI can say which one it is instead of
  * making the person guess.
  *
- * `/auth/v1/health` needs no API key, which is deliberate: this also confirms
- * the *anon key* problem is a separate failure from the URL problem.
+ * The `apikey` header is sent, because GoTrue rejects an unauthenticated
+ * health probe with a 401 that is indistinguishable from a bad key.
  *
  * @param {{ timeout?: number }} [options]
  * @returns {Promise<{ ok: boolean, reason: string, message: string, hint?: string }>}
@@ -39,23 +45,31 @@ export async function checkSupabaseHealth(options = {}) {
     const timer = setTimeout(() => controller.abort(), timeout);
 
     try {
+        // The `apikey` header is required. The file comment above used to claim
+        // /auth/v1/health "needs no API key", and that was true when it was
+        // written — but GoTrue now returns 401 to an unauthenticated probe, with
+        // `{"message":"No API key found in request"}`. So the probe was reporting
+        // a *key* fault while the real fault was the probe itself, and the login
+        // page told people to go re-copy a perfectly good key. Verified against
+        // this project: no header -> 401, with header -> 200.
         const response = await fetch(`${baseUrl}/auth/v1/health`, {
             signal: controller.signal,
             cache: 'no-store',
+            headers: { apikey: getSupabaseAnonKey() },
         });
 
         if (response.ok) {
             return { ok: true, reason: 'ok', message: 'Connected.' };
         }
 
-        // 401/403 here means the URL is right but the key is not accepted.
+        // With the header sent, a 401 genuinely does mean the key was rejected.
         if (response.status === 401 || response.status === 403) {
             return {
                 ok: false,
                 reason: 'unauthorized',
                 status: response.status,
-                message: `The server rejected the request (HTTP ${response.status}).`,
-                hint: 'The project URL resolved, so the anon key is the likely problem. Re-copy the "anon public" key from Supabase → Project Settings → API and restart the dev server.',
+                message: `The server rejected the API key (HTTP ${response.status}).`,
+                hint: 'The project URL resolved, so the anon key itself is the problem. Re-copy the "anon public" key from Supabase → Project Settings → API and redeploy — Next.js inlines NEXT_PUBLIC_* values at build time, so saving the variable is not enough.',
             };
         }
 
