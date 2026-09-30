@@ -14,7 +14,7 @@
     "check:env": "node scripts/check-env.mjs"
   },
   "engines": {
-    "node": ">=20.9.0"
+    "node": ">=24.0.0"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.3.0",
