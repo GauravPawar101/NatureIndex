@@ -7,14 +7,14 @@ Contributors publish field reports and research; readers follow, discuss, and sh
 
 ## ✨ Features
 
-- 📝 Publish and manage posts on environmental topics
-- 🧭 Browse and filter by topic, keyword, and popularity
-- 🔐 Supabase email/password auth with profile editing and avatars
-- 💬 Threaded comments with realtime updates and image attachments
-- 🧮 Recommendation engine — PageRank, collaborative filtering, and pgvector
+-  Publish and manage posts on environmental topics
+-  Browse and filter by topic, keyword, and popularity
+-  Supabase email/password auth with profile editing and avatars
+-  Threaded comments with realtime updates and image attachments
+-  Recommendation engine — PageRank, collaborative filtering, and pgvector
   similarity over a hybrid ranking
 - 🔎 Full-text and vector search backed by Postgres
-- 🖼️ Responsive, accessible dark UI
+-  Responsive, accessible dark UI
 
 ---
 
